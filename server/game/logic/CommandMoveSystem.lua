@@ -41,7 +41,6 @@ function M:execute()
     ety:replace(Components.Direction,cmd.data.angle)
     local pos = ety:get(Components.Position)
     self.net.send(cmd.id,"S2CCommandMove",{x=pos.x,y=pos.y})
-    self.net.send(cmd.id,"S2CCommandMoveB",{id = cmd.id,dir =cmd.data.angle,  x=pos.x,y=pos.y}) 
     --print("command move", cmd.id,pos.x,pos.y,cmd.data.angle)
 
     local movers = self.movers.entities

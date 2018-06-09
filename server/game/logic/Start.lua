@@ -33,6 +33,7 @@ local group = contexts.game:get_group(Matcher({Components.BaseData}))
 contexts.idx = PrimaryEntityIndex.new(Components.BaseData, group, 'id')
 contexts.game:add_entity_index(contexts.idx)
 
+--保存contexts.input的唯一entity input_entity,方便使用
 contexts.input.input_entity =contexts.input:create_entity()
 
 local systems = Systems.new()

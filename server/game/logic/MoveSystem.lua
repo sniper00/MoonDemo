@@ -15,10 +15,11 @@ local dir_to_vec = vector2.new(0, 0)
 function M:ctor(contexts, helper)
     M.super.ctor(self, contexts.input)
     self.context = contexts.game
-    self.input_entity = contexts.input.input_entity
-    self.idx = contexts.idx
+    self.input_entity = contexts.input.input_entity--客户端网络消息承载entity
+    self.idx = contexts.idx--用来根据id查询玩家entity
+    --所有可以移动的entity
     self.movers = self.context:get_group(Matcher({Components.Mover}))
-    self.aoi = helper.aoi
+    self.aoi = helper.aoi--aoi模块
     self.aoi.on_enter = function ( ... )
         self:on_enter(...)
     end
@@ -31,7 +32,7 @@ end
 function M:get_trigger()
     return {
         {
-            Matcher({Components.CommandUpdate}),
+            Matcher({Components.CommandUpdate}),--只处理 增加/更新 CommandUpdate Component操作的entity
             GroupEvent.ADDED | GroupEvent.UPDATE
         }
     }
@@ -74,6 +75,7 @@ function M:on_leave( watcher, marker )
 end
 
 function M:execute()
+    --更新玩家位置
     local delta = self.input_entity:get(Components.CommandUpdate).delta
     local movers = self.movers.entities
     movers:foreach(
@@ -97,6 +99,7 @@ function M:execute()
 
     self.aoi.update_message()
 
+    --计算玩家碰撞
     movers:foreach(
         function(e)
             local pos = e:get(Components.Position)
@@ -131,10 +134,10 @@ function M:execute()
             end
             if dead then
                 self.aoi.update_pos(id, "d", pos.x, pos.y)
-                e:add(Components.Dead)
+                e:add(Components.Dead)--玩家死亡，给玩家添加Dead Component
             elseif eat>0 then
                 local weight = 0.01*eat
-                e:replace(Components.Eat,weight)
+                e:replace(Components.Eat,weight)--更新玩家Eat组件，用来计算球体半径增加量
             end
         end
     )
