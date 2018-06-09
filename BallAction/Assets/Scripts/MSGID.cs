@@ -1,0 +1,16 @@
+public enum MSGID {
+    MsgUnknown = 0x0000,
+    C2SLogin = 0x0101,
+    S2CLogin = 0x0102,
+    C2SEnterRoom = 0x0301,
+    S2CEnterRoom = 0x0302,
+    S2CEnterViewPlayer = 0x0303,
+    S2CEnterViewFood = 0x0304,
+    C2SCommandMove = 0x0305,
+    S2CCommandMove = 0x0306,
+    S2CLeaveViewPlayer = 0x0307,
+    S2CLeaveViewFood = 0x0308,
+    S2CCommandMoveB = 0x0309,
+    S2CPlayerDead = 0x0310,
+    S2CBoradcastRadius = 0x0311,
+}

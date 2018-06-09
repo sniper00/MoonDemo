@@ -1,0 +1,35 @@
+[
+    {
+        "sid": 1,
+        "name": "server_#sid",
+        "outer_host": "127.0.0.1",
+        "inner_host": "127.0.0.1",
+        "thread": 4,
+        "startup": "main.lua",
+        "log": "log/#sid_#date.log",
+        "path":"./game/?.lua;./game/logic/?.lua;",
+        "services": [
+            {
+                "name": "gate",
+                "file": "game/service_gate.lua",
+                "unique": true,
+                "network": {
+                    "name": "network",
+                    "type": "listen",
+                    "ip": "#inner_host",
+                    "port": "12345"
+                }
+            },
+            {
+                "name": "login",
+                "file": "game/service_login.lua",
+                "unique": true
+            },
+            {
+                "name": "game",
+                "file": "game/service_game.lua",
+                "unique": true
+            }
+        ]
+    }
+]
