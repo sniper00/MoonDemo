@@ -9,7 +9,7 @@ server 包含编译好的windows版可执行文件(如果没有安装vs2017,则�
 
 clinet 请使用unity2018 启动执行
 
-#server 编译
+# 编译Server
 
 [MoonNetLua编译](https://github.com/sniper00/MoonNetLua)
 
