@@ -1,5 +1,5 @@
 # BallGame
-多人简易版球球大作战，MoonNetLua的一个使用示例，同时演示如何在服务端使用Entity Component System
+多人简易版球球大作战，MoonNetLua的一个使用示例，同时演示如何在服务端使用Entitas lua(Entity Component System)
 
 # 运行
 
@@ -15,12 +15,17 @@
 需要用到laoi，请自行编译为lua动态库 
 
 # 简介
+服务端使用了 [Entitas lua版](https://github.com/sniper00/entitas-lua),有些改动，原版Matcher会匹配 任意组件发生变化的Entity,不太适合服务端编写，这里做了改动，Matcher只匹配拥有感兴趣的组件变化的Entity.
+
+## 参考资料
+- [Inter-context communication in Entitas](https://github.com/sschmid/Entitas-CSharp/wiki/Inter-context-communication-in-Entitas-0.39.0)
+- [How I build games with Entitas](https://github.com/sschmid/Entitas-CSharp/wiki/How-I-build-games-with-Entitas-%28FNGGames%29)
 
 ## Server
 
 服务端开启了三个服务:
 - service_gate 负责管理玩家网络连接，并转发玩家网络消息
-- service_login 简易的认证功能，演示不同服务间消息通信
+- service_login 简易的认证功能，演示不同服务间通信
 - service_game 游戏场景服务，主要演示使用ECS来编写服务端逻辑
 
 这段代码展示了更新玩家位置，并处理碰撞System逻辑：
