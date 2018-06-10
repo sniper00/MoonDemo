@@ -15,7 +15,7 @@
 需要用到laoi，请自行编译为lua动态库 
 
 # 简介
-服务端使用了 [Entitas lua版](https://github.com/sniper00/entitas-lua),有些改动，原版Matcher会匹配 任意组件发生变化的Entity,不太适合服务端编写，这里做了改动，Matcher只匹配拥有感兴趣的组件变化的Entity.
+服务端使用了 [Entitas lua版](https://github.com/sniper00/entitas-lua),有些改动，原版Matcher会匹配 任意组件发生变化的Entity,不太适合服务端编写，这里做了改动，Matcher感兴趣的组件发生变化的Entity.
 
 ## 参考资料
 - [Inter-context communication in Entitas](https://github.com/sschmid/Entitas-CSharp/wiki/Inter-context-communication-in-Entitas-0.39.0)
