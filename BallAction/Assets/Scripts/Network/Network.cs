@@ -69,7 +69,7 @@ namespace Moon
             var sendmsgid = GetOrAddMessageID(msg.GetType());
             var responsemsgid = GetOrAddMessageID(typeof(TResponse));
             TaskCompletionSource<byte[]> tcs = new TaskCompletionSource<byte[]>();
-            ExceptHanders.Add(responsemsgid, tcs);
+            ExceptHanders[responsemsgid] = tcs;
 
             using (MemoryStream ms = new MemoryStream())
             {

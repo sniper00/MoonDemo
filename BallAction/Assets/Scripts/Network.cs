@@ -20,13 +20,18 @@ public class Network : MonoBehaviour {
     static public Network instance;
     Network<MSGID, Serializer> net;
 
-    // Use this for initialization
-    void Start () {
+    void Awake()
+    {
         instance = this;
         net = new Network<MSGID, Serializer>();
         net.OnLog = (errmsg) => {
             Debug.Log(errmsg);
         };
+    }
+
+    // Use this for initialization
+    void Start () {
+      
     }
 	
 	// Update is called once per frame
@@ -72,5 +77,10 @@ public class Network : MonoBehaviour {
             var response = JsonUtility.FromJson<TResponse>(System.Text.Encoding.Default.GetString(data));
             callback(response);
         });
+    }
+
+    static public void OnError(Action<int,int,string> action)
+    {
+        instance.net.OnError = action;
     }
 }

@@ -61,6 +61,8 @@
     <Compile Include="Assets\Scripts\Common\UnityUtils.cs" />
     <Compile Include="Assets\Scripts\Game\Game.cs" />
     <Compile Include="Assets\Scripts\Login\Login.cs" />
+    <Compile Include="Assets\Scripts\MessageBox\MessageBox.cs" />
+    <Compile Include="Assets\Scripts\MessageBox\MessageBoxWnd.cs" />
     <Compile Include="Assets\Scripts\MessageDefine.cs" />
     <Compile Include="Assets\Scripts\MSGID.cs" />
     <Compile Include="Assets\Scripts\Network.cs" />
@@ -70,10 +72,10 @@
     <Compile Include="Assets\Scripts\Prepare\Prepare.cs" />
     <Compile Include="Assets\Scripts\UserData.cs" />
     <Reference Include="UnityEditor.StandardEvents">
-      <HintPath>E:/Project/BallAction/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
+      <HintPath>D:/GitProject/Repos/BallGame/BallAction/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
     </Reference>
     <Reference Include="Unity.PackageManagerUI.Editor">
-      <HintPath>E:/Project/BallAction/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
+      <HintPath>D:/GitProject/Repos/BallGame/BallAction/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule">
       <HintPath>D:/Program Files/Unity/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>
