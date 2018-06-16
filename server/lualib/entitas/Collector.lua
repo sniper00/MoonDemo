@@ -1,4 +1,4 @@
-local set           = require("unorderset")
+local set           = require("set")
 local GroupEvent    = require("entitas.GroupEvent")
 local set_insert    = set.insert
 local set_remove    = set.remove
@@ -21,18 +21,15 @@ end
 --changed entities. Collectors are activated by default.
 function M:activate()
     for group, group_event in pairs(self._groups) do
-        if group_event & GroupEvent.ADDED then
-            group.on_entity_added:remove(self.add_entity)
+        if 0 ~= (group_event & GroupEvent.ADDED) and not group.on_entity_added:has(self.add_entity) then
             group.on_entity_added:add(self.add_entity)
         end
 
-        if group_event & GroupEvent.REMOVED then
-            group.on_entity_removed:remove(self.remove_entity)
+        if 0 ~= (group_event & GroupEvent.REMOVED) and not group.on_entity_removed:has(self.remove_entity) then
             group.on_entity_removed:add(self.remove_entity)
         end
 
-        if group_event & GroupEvent.UPDATE then
-            group.on_entity_updated:remove(self.add_entity)
+        if 0 ~= (group_event & GroupEvent.UPDATE) and not group.on_entity_updated:has(self.add_entity) then
             group.on_entity_updated:add(self.add_entity)
         end
     end
@@ -52,14 +49,17 @@ function M:clear_entities()
 end
 
 function M:_add_entity(entity)
-    if self.entities:has(entity) then
-        assert(false,string.format( "Collect already has Entity %s",tostring(entity)))
-    end
+    -- if self.entities:has(entity) then
+    --     assert(false,string.format( "Collect already has Entity %s",tostring(entity)))
+    -- end
     set_insert(self.entities, entity)
 end
 
 function M:_remove_entity(entity)
     -- if not self.entities:has(entity) then
+    --     for group, et in pairs(self._groups) do
+    --         print(group,et)
+    --     end
     --     assert(false,string.format( "Collect has not Entity %s",tostring(entity)))
     -- end
     set_remove(self.entities, entity)

@@ -1,4 +1,4 @@
-local set           = require("unorderset")
+local set           = require("set")
 local util           = require("util")
 local set_insert    = set.insert
 local set_remove    = set.remove

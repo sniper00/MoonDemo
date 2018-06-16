@@ -49,7 +49,7 @@ function M:clear()
 end
 
 function M:_execute()
-    if self._collector.entities then
+    if self._collector.entities:size()>0 then
         self._collector.entities:foreach(function(entity)
             if self:filter(entity) then
                 self._buffer:push(entity)

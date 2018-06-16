@@ -1,4 +1,4 @@
-local set = require("unorderset")
+local set = require("set")
 local set_insert = set.insert
 local set_remove = set.remove
 local set_has    = set.has
@@ -7,7 +7,7 @@ local M = {}
 M.__index = M
 
 M.__call = function(t, ...)
-    for k,_ in pairs(t._listeners) do
+    for k,_ in pairs(t._listeners._data) do
         k(...)
     end
 end
@@ -25,6 +25,10 @@ end
 
 function M.remove(self, f)
     return set_remove(self._listeners, f)
+end
+
+function M.has(self, f)
+    return self._listeners:has(f)
 end
 
 return M

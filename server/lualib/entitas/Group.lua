@@ -1,5 +1,5 @@
 local Delegate      = require("entitas.Delegate")
-local set           = require("unorderset")
+local set           = require("set")
 local set_insert    = set.insert
 local set_remove    = set.remove
 local set_has       = set.has

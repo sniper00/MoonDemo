@@ -16,6 +16,12 @@ function M.push(self, value)
     self.buffer[self.cur] = value
 end
 
+function M.pop(self)
+    assert(self.cur>0,"array:attemp pop empty table")
+    self.cur = self.cur - 1
+    return self.buffer[self.cur+1]
+end
+
 function M.clear(self)
     self.cur = 0
 end
