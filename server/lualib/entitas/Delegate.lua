@@ -19,8 +19,7 @@ function M.new()
 end
 
 function M.add(self, f)
-    assert(not set_has(self._listeners,f))
-    set_insert(self._listeners, f)
+    assert(set_insert(self._listeners, f))
 end
 
 function M.remove(self, f)

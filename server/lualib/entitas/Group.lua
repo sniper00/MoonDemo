@@ -1,9 +1,9 @@
-local Delegate      = require("entitas.Delegate")
-local set           = require("set")
-local set_insert    = set.insert
-local set_remove    = set.remove
-local set_has       = set.has
-local set_size      = set.size
+local Delegate = require("entitas.Delegate")
+local set = require("set")
+local set_insert = set.insert
+local set_remove = set.remove
+local set_has = set.has
+local set_size = set.size
 local M = {}
 
 --[[
@@ -15,15 +15,13 @@ The created group is managed by the context and will always be up to
 date. It will automatically add entities that match the matcher or
 remove entities as soon as they don't match the matcher anymore.
 ]]
-
 M.__index = M
 
 M.__tostring = function(t)
-        return string.format("<Group [{%s}]>", tostring(t._matcher))
-    end
+    return string.format("<Group [{%s}]>", tostring(t._matcher))
+end
 
 function M.new(matcher)
-
     local tb = {}
     -- Occurs when an entity gets added.
     tb.on_entity_added = Delegate.new()
@@ -34,7 +32,6 @@ function M.new(matcher)
     tb._matcher = matcher
     tb.entities = set.new()
     return setmetatable(tb, M)
-
 end
 
 --[[
@@ -78,8 +75,8 @@ end
 This is used by the context to manage the group.
 :param matcher: Entity
 ]]
-function M:handle_entity(entity, component,brm)
-    if not brm and self._matcher:matches(entity) then
+function M:handle_entity(entity, component, isremove)
+    if not isremove and self._matcher:matches(entity) then
         self:_add_entity(entity, component)
     else
         self:_remove_entity(entity, component)
@@ -97,11 +94,7 @@ function M:update_entity(entity, comp_value)
 end
 
 function M:_add_entity_silently(entity)
-    if not set.has(self.entities, entity) then
-        set_insert(self.entities, entity)
-        return true
-    end
-    return false
+    return set_insert(self.entities, entity)
 end
 
 function M:_add_entity(entity, component)
@@ -113,11 +106,7 @@ function M:_add_entity(entity, component)
 end
 
 function M:_remove_entity_silently(entity)
-    if set_has(self.entities, entity) then
-        set_remove(self.entities, entity)
-        return true
-    end
-    return false
+    return set_remove(self.entities, entity)
 end
 
 function M:_remove_entity(entity, component)

@@ -12,16 +12,23 @@ function M.new()
 end
 
 function M.insert(self, value)
-    assert(not self._data[value], string.format("set: value %s already exist", tostring(value)))
-    self._data[value] = true
-    self._size = self._size + 1
+    -- assert(not self._data[value], string.format("set: value %s already exist", tostring(value)))
+    if not self._data[value] then
+        self._data[value] = true
+        self._size = self._size + 1
+        return true
+    end
+    return false
 end
 
 function M.remove(self, value)
-    assert(self._data[value], "set:attemp remove unexist value")
-    self._data[value] = nil
-    self._size = self._size - 1
-    return value
+    --assert(self._data[value], "set:attemp remove unexist value")
+    if self._data[value] then
+        self._data[value] = nil
+        self._size = self._size - 1
+        return value
+    end
+    return false
 end
 
 function M.size(self)

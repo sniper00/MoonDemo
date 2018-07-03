@@ -34,6 +34,7 @@ socket_handler[3] = function(sessionid, msg)
     if msg:size() < 2 then
         -- 消息数据非法，没有消息ID
         network:close(sessionid)
+        return
     end
 
     -- 协议结构
