@@ -11,7 +11,7 @@
         "services": [
             {
                 "name": "gate",
-                "file": "game/service_gate.lua",
+                "file": "service_gate.lua",
                 "unique": true,
                 "network": {
                     "name": "network",
@@ -22,12 +22,12 @@
             },
             {
                 "name": "login",
-                "file": "game/service_login.lua",
+                "file": "service_login.lua",
                 "unique": true
             },
             {
                 "name": "game",
-                "file": "game/service_game.lua",
+                "file": "service_game.lua",
                 "unique": true
             }
         ]
