@@ -17,6 +17,7 @@ function M:ctor(contexts, helper)
     self.context = contexts.game
     self.input_entity = contexts.input.input_entity
     self.aoi = helper.aoi
+    self.cfg = helper.cfg
 end
 
 function M:get_trigger()
@@ -36,13 +37,13 @@ function M:execute()
     local count = self.input_entity:get(Components.InputCreateFood).count
     for i = 1, count do
         local food = self.context:create_entity()
-        local x = math.random(-20, 20)
-        local y = math.random(-20, 20)
+        local x = math.random(self.cfg.min_edge, self.cfg.max_edge)
+        local y = math.random(self.cfg.min_edge, self.cfg.max_edge)
         local spriteid = math.random(1,12)
         food:add(Components.Position, x, y)
         food:add(Components.BaseData, fooduid, "",spriteid)
         food:add(Components.Food)
-        food:add(Components.Radius, 0.2)
+        food:add(Components.Radius, self.cfg.raduis)
         self.aoi.add(fooduid)
         self.aoi.update_pos(fooduid, "m", x, y)
         fooduid = fooduid + 1

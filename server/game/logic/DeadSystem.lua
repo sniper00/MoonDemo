@@ -37,10 +37,10 @@ function M:execute(entites)
     local num = 0
     entites:foreach(function( ne )
         local p =  ne:get(Components.BaseData)
-        local isfood = not ne:has(Components.Mover)
+        local isfood = ne:has(Components.Food)
 
         if not isfood then
-            self.net.send(p.id,"S2CPlayerDead",{id=p.id}) 
+            self.net.send(p.id,"S2CLeaveView",{id=p.id}) 
         end
         self.aoi.update_pos(p.id, "d", 0, 0)
         self.context:destroy_entity(ne)

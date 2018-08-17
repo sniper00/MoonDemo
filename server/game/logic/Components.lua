@@ -9,9 +9,8 @@ local M = {
 
     BaseData = MakeComponent("BaseData","id","name","spriteid"),
     Position = MakeComponent("Position","x","y"),
-    Direction = MakeComponent("Direction","value"),
+    Direction = MakeComponent("Direction","x","y"),
     Speed = MakeComponent("Speed","value"),
-    Size = MakeComponent("Size","value"),
     Color = MakeComponent("Color","r","g","b"),
     Mover = MakeComponent("Mover"),
     Food = MakeComponent("Food"),

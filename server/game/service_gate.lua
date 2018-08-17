@@ -124,7 +124,7 @@ command.login_res = function(_, msg)
     -- 登陆结果返回给客户端
     local S2CLogin ={
         ret = data.ret,
-        playerid = data.playerid
+        uid = data.playerid
     }
 
     network:send(data.sessionid, MSGID.encode(MSGID.S2CLogin,S2CLogin))

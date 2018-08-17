@@ -28,7 +28,15 @@
             {
                 "name": "game",
                 "file": "service_game.lua",
-                "unique": true
+                "unique": true,
+                "game":{
+                    "max_edge":20,
+                    "min_edge":-20,
+                    "max_random_edge":10,
+                    "min_random_edge":-10,
+                    "speed":2,
+                    "raduis":0.3          
+                }
             }
         ]
     }

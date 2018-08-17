@@ -17,6 +17,7 @@ function M:ctor(contexts, helper)
     self.context = contexts.game
     self.input_entity = contexts.input.input_entity--客户端网络消息承载entity
     self.idx = contexts.idx--用来根据id查询玩家entity
+    self.cfg = helper.cfg
     --所有可以移动的entity
     self.movers = self.context:get_group(Matcher({Components.Mover}))
     self.aoi = helper.aoi--aoi模块
@@ -81,18 +82,52 @@ function M:execute()
     movers:foreach(
         function(e)
             local pos = e:get(Components.Position)
+            local dir = e:get(Components.Direction)
             local speed = e:get(Components.Speed)
             local id = e:get(Components.BaseData).id
 
-            dir_to_vec:from_angle(e:get(Components.Direction).value)
+            dir_to_vec:set_x(dir.x)
+            dir_to_vec:set_y(dir.y)
+
             dir_to_vec:mul(speed.value*delta)
 
             local x = pos.x + dir_to_vec.x
             local y = pos.y + dir_to_vec.y
 
+            local out_range = false
+
+            if x>self.cfg.max_edge then
+                x = self.cfg.max_edge
+                out_range = true
+                dir_to_vec.x = 0
+            end
+            
+            if x<self.cfg.min_edge then
+                x = self.cfg.min_edge
+                out_range = true
+                dir_to_vec.x = 0
+            end
+            
+            if y>self.cfg.max_edge then
+                y = self.cfg.max_edge
+                out_range = true
+                dir_to_vec.y = 0
+            end
+            
+            if y<self.cfg.min_edge then
+                y = self.cfg.min_edge
+                out_range = true
+                dir_to_vec.y = 0
+            end
+
             e:replace(Components.Position, x, y)
 
             self.aoi.update_pos(id, "wm", x, y)
+
+            if out_range  then
+                dir_to_vec:normalize()
+                e:replace(Components.Direction,dir_to_vec.x,dir_to_vec.y)
+            end
             --print("move",id,pos.x,pos.y, "->",x,y)
         end
     )
@@ -118,7 +153,6 @@ function M:execute()
                     local nid = ne:get(Components.BaseData).id
                     local npos = ne:get(Components.Position)
                     local nradius = ne:get(Components.Radius).value
-
                     local distance = math.sqrt((pos.x - npos.x) ^ 2 + (pos.y - npos.y) ^ 2)
                     --print("near", nid,distance)
                     if distance < (radius + nradius) then
@@ -127,14 +161,14 @@ function M:execute()
                             break
                         else
                             eat = eat + 1
-                            ne:add(Components.Dead)
+                            ne:replace(Components.Dead)
                         end
                     end
                 end
             end
             if dead then
                 self.aoi.update_pos(id, "d", pos.x, pos.y)
-                e:add(Components.Dead)--玩家死亡，给玩家添加Dead Component
+                e:replace(Components.Dead)--玩家死亡，给玩家添加Dead Component
             elseif eat>0 then
                 local weight = 0.01*eat
                 e:replace(Components.Eat,weight)--更新玩家Eat组件，用来计算球体半径增加量

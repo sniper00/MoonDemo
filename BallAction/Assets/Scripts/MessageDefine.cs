@@ -1,87 +1,96 @@
 ﻿
+
+using UnityEngine;
+
+[System.Serializable]
 public class C2SLogin
 {
     public string username;
 }
 
+
+[System.Serializable]
 public class S2CLogin
 {
     public string ret;
-    public int playerid;
+    public int uid;
 }
 
+[System.Serializable]
 public class C2SEnterRoom
 {
     public string username;
 }
 
-public class S2CEnterRoom
-{
-    public float x;
-    public float y;
-    public float dir;
-    public float speed;
-    public float radius;
-    public int spriteid;
-}
-
-public class S2CEnterViewPlayer
-{
-    public float x;
-    public float y;
-    public float dir;
-    public float speed;
-    public float radius;
-    public int id;
-    public string name;
-    public int spriteid;
-}
-
-public class S2CEnterViewFood
-{
-    public float x;
-    public float y;
-    public int id;
-    public int spriteid;
-}
-
+[System.Serializable]
 public class C2SCommandMove
 {
-    public float angle;
-}
-
-public class S2CCommandMove
-{
     public float x;
     public float y;
 }
 
-public class S2CCommandMoveB
-{
-    public int id;
-    public float x;
-    public float y;
-    public float dir;
-}
-
-public class S2CLeaveViewPlayer
+[System.Serializable]
+public class S2CEnterView
 {
     public int id;
 }
 
-public class S2CLeaveViewFood
+[System.Serializable]
+public class S2CLeaveView
 {
     public int id;
 }
 
-public class S2CPlayerDead
+[System.Serializable]
+public class S2CMover
 {
     public int id;
 }
 
-public class S2CBoradcastRadius
+[System.Serializable]
+public class S2CFood
 {
     public int id;
-    public float radius;
 }
 
+[System.Serializable]
+public class S2CBaseData
+{
+    public int id;
+    public Component.BaseData data;
+}
+
+[System.Serializable]
+public class S2CPosition
+{
+    public int id;
+    public Component.Position data;
+}
+
+[System.Serializable]
+public class S2CDirection
+{
+    public int id;
+    public Vector2 data;
+}
+
+[System.Serializable]
+public class S2CSpeed
+{
+    public int id;
+    public Component.Speed data;
+}
+
+[System.Serializable]
+public class S2CColor
+{
+    public int id;
+    public Component.Color data;
+}
+
+[System.Serializable]
+public class S2CRadius
+{
+    public int id;
+    public Component.Radius data;
+}

@@ -3,6 +3,7 @@ local seri = require("seri")
 local json = require("json")
 local start = require("Start")
 local HelperNet = require("HelperNet")
+local Helper = require("Helper")
 
 local command = {}
 
@@ -27,6 +28,11 @@ command.client_close = function(playerid)
     --参见ComponentsIndex
     start.dispatch(2,playerid)
 end
+
+moon.init(function ( cfg )
+    Helper.cfg = cfg.game
+    return true
+end)
 
 moon.start(function()
     HelperNet.set_gate_service(moon.unique_service("gate"))

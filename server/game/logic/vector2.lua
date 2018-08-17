@@ -32,7 +32,7 @@ function M:mul( delta )
     self.y=self.y*delta
 end
 
-function M:normalize()
+function M.normalize(self)
     local n = self.x^2+self.y^2
     if n==1.0 then
         return
@@ -44,6 +44,10 @@ function M:normalize()
     n = 1.0/n
     self.x=self.x*n
     self.y=self.y*n
+end
+
+function M:degree()
+    return math.atan( self.y,self.x )*57.29578
 end
 
 return M

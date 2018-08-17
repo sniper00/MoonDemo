@@ -60,7 +60,7 @@ public class Login : MonoBehaviour
         if (v.ret == "OK")
         {
             UserData.username = userName.text;
-            UserData.playerid = v.playerid;
+            UserData.uid = v.uid;
             SceneManager.LoadScene("Game");
         }
         else

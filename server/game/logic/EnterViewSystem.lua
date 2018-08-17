@@ -37,19 +37,19 @@ function M:execute(entites)
         for _,otherid in pairs(others) do
             local oe = self.idx:get_entity(otherid)
             if oe then
+                self.net.send(p.id, "S2CEnterView", {id = otherid})
+
                 if oe:has(Components.Mover) then
-                    local pos = oe:get(Components.Position)
-                    local dir = oe:get(Components.Direction).value
-                    local basedata = oe:get(Components.BaseData)
-                    local speed = oe:get(Components.Speed).value
-                    local radius = oe:get(Components.Radius).value
-                    self.net.send(p.id,'S2CEnterViewPlayer',{x=pos.x,y=pos.y,dir=dir,speed = speed,radius = radius,id = basedata.id,name=basedata.name,spriteid =basedata.spriteid})
-                else
-                    local pos = oe:get(Components.Position)
-                    local basedata = oe:get(Components.BaseData)
-                    local radius = oe:get(Components.Radius)
-                    self.net.send(p.id,'S2CEnterViewFood',{x=pos.x,y=pos.y,radius = radius,id = basedata.id,spriteid =basedata.spriteid})      
+                    self.net.send_component(p.id,oe,Components.Speed)
+                    self.net.send_component(p.id,oe,Components.Direction)
+                    self.net.send_component(p.id,oe,Components.Mover)
+                elseif oe:has(Components.Food) then
+                    self.net.send_component(p.id,oe,Components.Food)
                 end
+
+                self.net.send_component(p.id,oe,Components.BaseData)
+                self.net.send_component(p.id,oe,Components.Position)
+                self.net.send_component(p.id,oe,Components.Radius)
                 print("EnterView", otherid,"->",p.id)
             end
         end

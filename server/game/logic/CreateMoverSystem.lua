@@ -1,6 +1,7 @@
 local util = require("util")
 local entitas = require("entitas")
 local Components = require("Components")
+local vector2 = require("vector2")
 local ReactiveSystem = entitas.ReactiveSystem
 local Matcher = entitas.Matcher
 local GroupEvent = entitas.GroupEvent
@@ -15,6 +16,7 @@ function M:ctor(contexts, helper)
     self.input_entity = contexts.input.input_entity
     self.aoi = helper.aoi
     self.net = helper.net
+    self.cfg = helper.cfg
 end
 
 function M:get_trigger()
@@ -34,21 +36,34 @@ function M:execute()
     local cmd = self.input_entity:get(Components.CommandCreate)
     print("create mover", cmd.id)
     local mover = self.context:create_entity()
-    local x = math.random(-10, 10)
-    local y = math.random(-10, 10)
+    local x = math.random(self.cfg.min_random_edge, self.cfg.max_random_edge)
+    local y = math.random(self.cfg.min_random_edge, self.cfg.max_random_edge)
     local dir = math.random(0,360)
-    local speed = 2
-    local raduis = 0.3
+    local speed = self.cfg.speed
+    local raduis = self.cfg.raduis
+
     local spriteid = math.random(1,6)
+
+    local vec = vector2.new(x,y)
+    vec:normalize()
+
     mover:add(Components.Position, x, y)
-    mover:add(Components.Direction, dir)
+    mover:add(Components.Direction,vec.x, vec.y)
     mover:add(Components.BaseData, cmd.id, cmd.data.name,spriteid)
-    mover:add(Components.Mover)
     mover:add(Components.Speed, speed)
     mover:add(Components.Radius, raduis)
+    mover:add(Components.Mover)
     self.aoi.add(cmd.id)
     self.aoi.update_message()
-    self.net.send(cmd.id, "S2CEnterRoom", {x = x, y = y, dir = dir, speed = speed, radius = raduis})
+
+    self.net.send(cmd.id, "S2CEnterView", {id = cmd.id})
+    self.net.send_component(cmd.id,mover,Components.Mover)
+    self.net.send_component(cmd.id,mover,Components.BaseData)
+    self.net.send_component(cmd.id,mover,Components.Position)
+    self.net.send_component(cmd.id,mover,Components.Direction)
+    self.net.send_component(cmd.id,mover,Components.Speed)
+    self.net.send_component(cmd.id,mover,Components.Radius)
+
 end
 
 return M

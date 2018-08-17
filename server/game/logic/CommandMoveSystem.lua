@@ -1,6 +1,7 @@
 local util       = require("util")
 local entitas    = require('entitas')
 local Components = require('Components')
+local vector2 = require("vector2")
 local ReactiveSystem = entitas.ReactiveSystem
 local Matcher    = entitas.Matcher
 local GroupEvent = entitas.GroupEvent
@@ -38,20 +39,10 @@ function M:execute()
         print("command move not found ", cmd.id)
         return
     end
-    ety:replace(Components.Direction,cmd.data.angle)
-    local pos = ety:get(Components.Position)
-    self.net.send(cmd.id,"S2CCommandMove",{x=pos.x,y=pos.y})
-    --print("command move", cmd.id,pos.x,pos.y,cmd.data.angle)
-
-    local movers = self.movers.entities
-    movers:foreach(
-        function(e)
-            local id = e:get(Components.BaseData).id
-            if id~= cmd.id then
-                self.net.send(id,"S2CCommandMoveB",{id = cmd.id,dir =cmd.data.angle,  x=pos.x,y=pos.y}) 
-            end 
-        end
-    )
+    local vec = vector2.new(cmd.data.x,cmd.data.y)
+    vec:normalize()
+    ety:replace(Components.Direction,vec.x,vec.y)
+    print("CommandMove",vec.x,vec.y)
 end
 
 return M
