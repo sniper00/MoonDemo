@@ -1,13 +1,13 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using UnityEngine;
 using Moon;
-using UnityEngine;
+using System.Threading.Tasks;
+using System;
 
-public class Serializer:ISerializer
+public class Serializer : ISerializer
 {
-    T ISerializer.Deserialize<T>(byte[] data)
+    T ISerializer.Deserialize<T>(byte[] data,int index, int count)
     {
-        return JsonUtility.FromJson<T>(System.Text.Encoding.Default.GetString(data));
+        return JsonUtility.FromJson<T>(System.Text.Encoding.Default.GetString(data, index, count));
     }
 
     byte[] ISerializer.Serialize<TMsg>(TMsg msg)
@@ -16,71 +16,64 @@ public class Serializer:ISerializer
     }
 }
 
-public class Network : MonoBehaviour {
-    static public Network instance;
-    Network<MSGID, Serializer> net;
+public class Network:MonoBehaviour
+{
+    static Network<MSGID, Serializer> net = new Network<MSGID, Serializer>();
 
-    void Awake()
+    static public SocketMessage Connect(string ip, int port)
     {
-        instance = this;
-        net = new Network<MSGID, Serializer>();
-        net.OnLog = (errmsg) => {
-            Debug.Log(errmsg);
-        };
+        return net.Connect(ip, port);
     }
 
-    // Use this for initialization
-    void Start () {
-      
+    static public Task<SocketMessage> AsyncConnect(string host, int port)
+    {
+        return net.AsyncConnect(host, port);
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    static public int ServerID
+    {
+        set { net.DefaultServerID = value; }
+        get { return net.DefaultServerID; }
+    }
+
+    static public Action<int, int, string> OnError
+    {
+        set { net.OnError = value; }
+    }
+
+    static public async Task<TResponse> Call<TResponse>(object msg)
+    {
+        return await net.Call<TResponse>(msg);
+    }
+
+    static public bool Send(object msg)
+    {
+        return net.Send(msg);
+    }
+
+    static public void Close(int sessionid)
+    {
+        net.Close(sessionid);
+    }
+
+    static public void Register<TResponse>(Action<TResponse> callback)
+    {
+        MSGID msgid = net.GetOrAddMessageID(typeof(TResponse));
+        net.Register(msgid, msg =>
+        {
+            var response = JsonUtility.FromJson<TResponse>(System.Text.Encoding.Default.GetString(msg.Bytes,msg.Index,msg.Count));
+            callback(response);
+        });
+    }
+
+    void Update()
+    {
         net.Update();
     }
 
     void OnApplicationQuit()
     {
         Debug.Log("Close net...");
-        instance.net.Close(instance.net.DefaultServerID);
-    }
-
-    static public int Connect(string ip,int port)
-    {
-        return instance.net.Connect(ip, port);
-    }
-
-    static public int SetServerID
-    {
-         set { instance.net.DefaultServerID = value; }
-         get { return instance.net.DefaultServerID; }
-    }
-
-    static public async Task<TResponse> Call<TResponse>(object msg)
-    {
-        return  await instance.net.Call<TResponse>(msg);
-    }
-
-    static public bool Send(object msg)
-    {
-        return instance.net.Send(msg);
-    }
-
-    static public void Close(int sessionid)
-    {
-         instance.net.Close(sessionid);
-    }
-
-    static public void Register<TResponse>(MSGID msgid, Action<TResponse> callback)
-    {
-        instance.net.RegisterMessage(msgid, data=> {
-            var response = JsonUtility.FromJson<TResponse>(System.Text.Encoding.Default.GetString(data));
-            callback(response);
-        });
-    }
-
-    static public void OnError(Action<int,int,string> action)
-    {
-        instance.net.OnError = action;
+        net.CloseAll();
     }
 }

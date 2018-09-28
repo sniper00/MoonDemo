@@ -53,7 +53,7 @@ public class Game : MonoBehaviour {
         xpos = parent.Find("UI/Xpos").GetComponent<Text>();
         ypos = parent.Find("UI/Ypos").GetComponent<Text>();
 
-        Network.Register<S2CEnterView>(MSGID.S2CEnterView, v => {
+        Network.Register<S2CEnterView>(v => {
             var e = new Entity();
             entitas.Add(v.id, e);
             if (v.id == UserData.uid)
@@ -63,7 +63,7 @@ public class Game : MonoBehaviour {
             //Debug.LogFormat("Entity  id {0} enter view", v.id);
         });
 
-        Network.Register<S2CLeaveView>(MSGID.S2CLeaveView, v =>
+        Network.Register<S2CLeaveView>(v =>
         {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
@@ -79,7 +79,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CMover>(MSGID.S2CMover, v => {
+        Network.Register<S2CMover>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -87,7 +87,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CFood>(MSGID.S2CFood, v => {
+        Network.Register<S2CFood>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -95,7 +95,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CBaseData>(MSGID.S2CBaseData, v => {
+        Network.Register<S2CBaseData>(v => {
             Entity e;
             if(entitas.TryGetValue(v.id,out e))
             {
@@ -132,7 +132,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CPosition>(MSGID.S2CPosition, v => {
+        Network.Register<S2CPosition>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -145,7 +145,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CDirection>(MSGID.S2CDirection, v => {
+        Network.Register<S2CDirection>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -153,7 +153,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CSpeed>(MSGID.S2CSpeed, v => {
+        Network.Register<S2CSpeed>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -161,7 +161,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CColor>(MSGID.S2CColor, v => {
+        Network.Register<S2CColor>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -169,7 +169,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CRadius>(MSGID.S2CRadius, v => {
+        Network.Register<S2CRadius>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {

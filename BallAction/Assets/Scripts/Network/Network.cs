@@ -1,64 +1,253 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 
 namespace Moon
 {
     public interface ISerializer
     {
-        T Deserialize<T>(byte[] data);
+        T Deserialize<T>(byte[] data, int index, int count);
         byte[] Serialize<TMsg>(TMsg msg);
     }
 
-    class Network<TMsgID, TSerializer>
-        where TSerializer: ISerializer,new()
+    public enum SocketMessageType
     {
-        Dictionary<TMsgID, Action<byte[]>> MessageHanders = new Dictionary<TMsgID, Action<byte[]>>();
-        Dictionary<TMsgID, TaskCompletionSource<byte[]>> ExceptHanders = new Dictionary<TMsgID, TaskCompletionSource<byte[]>>();
-        Dictionary<Type, TMsgID> messageIDmap = new Dictionary<Type, TMsgID>();
-        SessionManager sessionManager = new SessionManager();
+        Connect,
+        Recv,
+        Close,
+        Error
+    }
+
+    public class SocketMessage
+    {
+        public SocketMessageType MessageType { get; }
+        public int ConnectionID { get; }
+        public int TaskID { get; }
+        public int Index { set; get; }
+        public int Count { set; get; }
+        public byte[] Bytes { get; }
+
+        public SocketMessage(int connectionID, SocketMessageType messageType, byte[] bytes, int taskID)
+        {
+            ConnectionID = connectionID;
+            MessageType = messageType;
+            Bytes = bytes;
+            TaskID = taskID;
+        }
+    }
+
+    public class SocketErrorMessage : SocketMessage
+    {
+        public int ErrorCode { get; }
+        public string Message { get; }
+
+        public SocketErrorMessage(int connectionID, SocketMessageType messageType,int errorcode, string message, int taskID = 0)
+            : base(connectionID, messageType, null, taskID)
+        {
+            ErrorCode = errorcode;
+            Message = message;
+        }
+    }
+
+    public class SocketAsyncResult
+    {
+        public int ConnectionID { set; get; }
+        public int ErrorCode { set; get; }
+        public string Message { set; get; }
+    }
+
+    public class Network<TEMsg, TSerializer>
+        where TSerializer : ISerializer, new()
+    {
+        Dictionary<int, MoonConnection> connections = new Dictionary<int, MoonConnection>();
+        Queue<SocketMessage> messageQueue = new Queue<SocketMessage>();
+
+        Dictionary<int, Action<SocketMessage>> actionMap = new Dictionary<int, Action<SocketMessage>>();
+        Dictionary<int, TaskCompletionSource<SocketMessage>> taskMap = new Dictionary<int, TaskCompletionSource<SocketMessage>>();
+        Dictionary<Type, TEMsg> messageIDmap = new Dictionary<Type, TEMsg>();
         readonly TSerializer serializer = new TSerializer();
+
+        int connectionUUID = 1;
 
         public int DefaultServerID { get; set; }
 
-        public Action<int, int, string> OnError { set { sessionManager.OnError = value; } }
+        public Action<int, int, string> OnError { get; set; }
 
-        public Action<string> OnLog = null;
+        readonly int AsyncOpBeginUUID = 0xFFFF;
+        int AsyncOpUUID = 0xFFFF;
 
-        public Network()
+        int MakeConnectionUUID()
         {
-            DefaultServerID = 0;
-            sessionManager.OnData = OnData;
+            do
+            {
+                if (connectionUUID == AsyncOpBeginUUID)
+                {
+                    connectionUUID = 1;
+                }
+                else
+                {
+                    connectionUUID++;
+                }
+            } while (connections.ContainsKey(connectionUUID));
+            return connectionUUID;
         }
 
-        public int Connect(string ip, int port)
+        int MakeAsyncOpUUID()
         {
-            return sessionManager.Connect(ip, port);
+            do
+            {
+                if (AsyncOpUUID == int.MaxValue)
+                {
+                    AsyncOpUUID = AsyncOpBeginUUID;
+                }
+                else
+                {
+                    AsyncOpUUID++;
+                }
+            } while (taskMap.ContainsKey(AsyncOpUUID));
+            return AsyncOpUUID;
         }
 
-        public void Close(int sessonid)
+        public SocketMessage Connect(string host, int port)
         {
-            sessionManager.Close(sessonid);
+            int connectionID = MakeConnectionUUID();
+            try
+            {
+                MoonConnection connection = new MoonConnection(connectionID)
+                {
+                    OnMessage = PushMessage
+                };
+                connection.Socket.Connect(host, port);
+                connections.Add(connectionID, connection);
+                connection.ReadHead();
+                return new SocketMessage(connectionID,SocketMessageType.Connect,null,0);
+            }
+            catch (SocketException se)
+            {
+                return new SocketErrorMessage(connectionID, SocketMessageType.Connect,se.ErrorCode, se.Message);
+            }
+            catch (Exception e)
+            {
+                return new SocketErrorMessage(connectionID, SocketMessageType.Connect, -1, e.Message);
+            }
+        }
+
+        public Task<SocketMessage> AsyncConnect(string host, int port)
+        {
+            int connectionID = MakeConnectionUUID();
+            var task = new TaskCompletionSource<SocketMessage>();
+            var taskID = MakeAsyncOpUUID();
+            taskMap.Add(taskID, task);
+            try
+            {
+                MoonConnection connection = new MoonConnection(connectionID)
+                {
+                    OnMessage = PushMessage
+                };
+                connections.Add(connectionID, connection);
+                Socket socket = connection.Socket;
+                socket.BeginConnect(host, port, (ar) =>
+                {
+                    try
+                    {
+                        Socket s = (Socket)ar.AsyncState;
+                        s.EndConnect(ar);
+                        PushMessage(new SocketMessage(connectionID, SocketMessageType.Connect, null, taskID));
+                        connection.ReadHead();
+                    }
+                    catch (SocketException se)
+                    {
+                        PushMessage(new SocketErrorMessage(0, SocketMessageType.Connect, se.ErrorCode, se.Message, taskID));
+                    }
+                    catch (Exception e)
+                    {
+                        PushMessage(new SocketErrorMessage(0, SocketMessageType.Connect, 0, e.Message, taskID));
+                    }
+                }, socket);
+            }
+            catch (SocketException se)
+            {
+                connections.Remove(connectionID);
+                PushMessage(new SocketErrorMessage(0, SocketMessageType.Connect, se.ErrorCode, se.Message, taskID));
+            }
+            catch (Exception e)
+            {
+                connections.Remove(connectionID);
+                PushMessage(new SocketErrorMessage(0, SocketMessageType.Connect, 0, e.Message, taskID));
+            }
+            return task.Task;
+        }
+
+        void PushMessage(SocketMessage m)
+        {
+            lock (messageQueue)
+            {
+                messageQueue.Enqueue(m);
+            }
+        }
+
+        public void Close(int connectionID)
+        {
+            if (connections.ContainsKey(connectionID))
+            {
+                connections[connectionID].Close();
+            }
+        }
+
+        public void CloseAll()
+        {
+            foreach (var s in connections)
+            {
+                s.Value.Close();
+            }
+        }
+
+        public void Send(int connectionID, byte[] data)
+        {
+            Buffer buf = new Buffer();
+            buf.Write(data,0,data.Length);
+            Send(connectionID, buf);
+        }
+
+        public void Send(int connectionID, Buffer data)
+        {
+            if (connections.ContainsKey(connectionID))
+            {
+                connections[connectionID].Send(data);
+            }
+            else
+            {
+                throw new Exception("network send to unknown connection");
+            }
         }
 
         public void Update()
         {
-            sessionManager.Update();
+            lock (messageQueue)
+            {
+                while (messageQueue.Count != 0)
+                {
+                    var m = messageQueue.Dequeue();
+                    Dispatch(m);
+                }
+            }
         }
 
-        public void RegisterMessage(TMsgID id, Action<byte[]> callback)
+        public void Register(TEMsg id, Action<SocketMessage> callback)
         {
-            MessageHanders[id] = callback;
+            int intID = (int)Convert.ChangeType(id, typeof(int));
+            actionMap[intID] = callback;
         }
 
-        TMsgID GetOrAddMessageID(Type t)
+        public TEMsg GetOrAddMessageID(Type t)
         {
-            TMsgID id;
-            if(!messageIDmap.TryGetValue(t, out id))
+            TEMsg id;
+            if (!messageIDmap.TryGetValue(t, out id))
             {
                 var name = t.Name;
-                id = (TMsgID)Enum.Parse(typeof(TMsgID), name);
+                id = (TEMsg)Enum.Parse(typeof(TEMsg), name);
                 messageIDmap.Add(t, id);
             }
             return id;
@@ -67,9 +256,10 @@ namespace Moon
         public async Task<TResponse> Call<TResponse>(object msg)
         {
             var sendmsgid = GetOrAddMessageID(msg.GetType());
-            var responsemsgid = GetOrAddMessageID(typeof(TResponse));
-            TaskCompletionSource<byte[]> tcs = new TaskCompletionSource<byte[]>();
-            ExceptHanders[responsemsgid] = tcs;
+            var responseEnumID = GetOrAddMessageID(typeof(TResponse));
+            int responsemsgid = (int)Convert.ChangeType(responseEnumID, typeof(int));
+            var tcs = new TaskCompletionSource<SocketMessage>();
+            taskMap[responsemsgid] = tcs;
 
             using (MemoryStream ms = new MemoryStream())
             {
@@ -81,7 +271,7 @@ namespace Moon
                     if (null != sdata)
                     {
                         bw.Write(sdata);
-                        sessionManager.Send(DefaultServerID, ms.ToArray());
+                        Send(DefaultServerID, ms.ToArray());
                     }
                     else
                     {
@@ -90,71 +280,79 @@ namespace Moon
                 }
             }
             var ret = await tcs.Task;
-            return serializer.Deserialize<TResponse>(ret);
+            return serializer.Deserialize<TResponse>(ret.Bytes, ret.Index, ret.Count);
         }
 
         public bool Send<TMsg>(TMsg msg)
         {
-            var sendmsgid = GetOrAddMessageID(msg.GetType());
-            using (MemoryStream ms = new MemoryStream())
+            var bytes = serializer.Serialize(msg);
+            if (null == bytes)
             {
-                using (BinaryWriter bw = new BinaryWriter(ms))
-                {
-                    var len =  Convert.ToUInt16(sendmsgid);
-                    bw.Write(len);
-                    var sdata = serializer.Serialize(msg);
-                    if (null != sdata)
-                    {
-                        bw.Write(sdata);
-                        sessionManager.Send(DefaultServerID, ms.ToArray());
-                        return true;
-                    }
-                }
+                OnError(0, -1, string.Format("Send Message {0}, Serialize error", msg.ToString()));
+                return false;
             }
 
-            if(OnLog!=null)
-            {
-                OnLog(string.Format("Send Message {0}, Serialize error", sendmsgid));
-            }
-            return false;
+            var enumID = GetOrAddMessageID(msg.GetType());
+            var msgID = Convert.ToUInt16(enumID);
+            Buffer buf = new Buffer();
+            buf.Write(msgID);
+            buf.Write(bytes,0, bytes.Length);
+            Send(DefaultServerID, buf);
+            return true; 
         }
 
-        bool Dispatch(TMsgID msgID, byte[] msgData)
+        void Dispatch(SocketMessage m)
         {
-            Action<byte[]> action;
-            if (MessageHanders.TryGetValue(msgID,out action))
+            switch (m.MessageType)
             {
-                action(msgData);
-                return true;
-            }
-            return false;
-        }
-
-        void OnData(int sessionID, byte[] data)
-        {
-            using (MemoryStream ms = new MemoryStream(data))
-            {
-                using (BinaryReader br = new BinaryReader(ms))
-                {
-                    var msgID = (TMsgID)Enum.ToObject(typeof(TMsgID), br.ReadUInt16());
-                    var msgData = br.ReadBytes((int)(ms.Length - ms.Position));
-                    if (!Dispatch(msgID, msgData))
+                case SocketMessageType.Connect:
                     {
-                        TaskCompletionSource<byte[]> tcs;
-                        if (ExceptHanders.TryGetValue(msgID, out tcs))
+                        TaskCompletionSource<SocketMessage> tcs;
+                        if (taskMap.TryGetValue(m.TaskID, out tcs))
                         {
-                            ExceptHanders.Remove(msgID);
-                            tcs.SetResult(msgData);
+                            taskMap.Remove(m.TaskID);
+                            tcs.SetResult(m);
                         }
-                        else
+                        break;
+                    }
+                case SocketMessageType.Recv:
+                    {
+                        using (MemoryStream ms = new MemoryStream(m.Bytes))
                         {
-                            if (OnLog != null)
+                            using (BinaryReader br = new BinaryReader(ms))
                             {
-                                OnLog(string.Format("message{0} not register!!", msgID));
+                                var msgID = br.ReadUInt16();
+                                m.Index = (int)ms.Position;
+                                m.Count = (int)(m.Count - ms.Position);
+
+                                Action<SocketMessage> action;
+                                if (actionMap.TryGetValue(msgID, out action))
+                                {
+                                    action(m);
+                                }
+                                else
+                                {
+                                    TaskCompletionSource<SocketMessage> tcs;
+                                    if (taskMap.TryGetValue(msgID, out tcs))
+                                    {
+                                        taskMap.Remove(msgID);
+                                        tcs.SetResult(m);
+                                    }
+                                    else
+                                    {
+                                        OnError(0, -1, string.Format("message{0} not register!!", msgID));
+                                    }
+                                }
                             }
                         }
+                        break;
                     }
-                }
+                case SocketMessageType.Error:
+                    {
+                        var errmsg = m as SocketErrorMessage;
+                        OnError(errmsg.ConnectionID, errmsg.ErrorCode, errmsg.Message);
+                        break;
+                    }
             }
         }
     }

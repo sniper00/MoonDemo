@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -6,7 +7,6 @@ using UnityEngine.UI;
 
 public class Login : MonoBehaviour
 {
-
     Text userName;
     InputField Ip;
     InputField Port;
@@ -27,16 +27,16 @@ public class Login : MonoBehaviour
             Port.text = 12345.ToString();
         }
 
-        if (Network.SetServerID != 0)
+        if (Network.ServerID != 0)
         {
-            Network.Close(Network.SetServerID);
-            Network.SetServerID = 0;
+            Network.Close(Network.ServerID);
+            Network.ServerID = 0;
         }
     }
 
     public async void OnClickLogin()
     {
-        if (Network.SetServerID==0)
+        if (Network.ServerID == 0)
         {
             if(Ip.text.Length == 0)
             {
@@ -48,12 +48,14 @@ public class Login : MonoBehaviour
                 Port.text = 12345.ToString();
             }
 
-            var id = Network.Connect(Ip.text, int.Parse(Port.text));
-            if(id == 0)
+            var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text));
+            if (result.ConnectionID == 0)
             {
+                var error = result as Moon.SocketErrorMessage;
+                MessageBox.Show(error.Message);
                 return;
             }
-            Network.SetServerID = id;
+            Network.ServerID = result.ConnectionID;
         }
 
         var v = await Network.Call<S2CLogin>(new C2SLogin { username = userName.text });
