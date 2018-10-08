@@ -1,39 +1,22 @@
 local moon = require("moon")
 local log = require("log")
 local seri = require("seri")
+local tcp = require("moon.tcpserver")
 local connects = require("connects")
 local MSGID = require("MSGID")
-
-local network = moon.get_tcp("network")
-
-local socket_handler = {}
 
 local login_service -- login 服务id
 local match_service -- 匹配服务id(暂时没有实现)
 local game_service
 
--- enum class socket_data_type :std::uint8_t
--- {
---     socket_connect = 1,
---     socket_accept =2,
---     socket_recv = 3,
---     socket_close =4,
---     socket_error = 5,
---     socket_logic_error = 6
--- };
-
-socket_handler[1] = function(sessionid, msg)
-	print("connect ",sessionid,msg:bytes())
-end
-
-socket_handler[2] = function(sessionid, msg)
+tcp.on("accept",function(sessionid, msg)
 	print("accept ",sessionid,msg:bytes())
-end
+end)
 
-socket_handler[3] = function(sessionid, msg)
+tcp.on("message",function(sessionid, msg)
     if msg:size() < 2 then
         -- 消息数据非法，没有消息ID
-        network:close(sessionid)
+        tcp.close(sessionid)
         return
     end
 
@@ -47,7 +30,7 @@ socket_handler[3] = function(sessionid, msg)
         --玩家必须先login
         if id&0xFF00 ~= 0x0100 then
             log.warn("CLIENT %u SEND invalid message %d, will close. not login",sessionid,id)
-            network:close(sessionid)
+            tcp.close(sessionid)
             return
         end
 
@@ -71,10 +54,10 @@ socket_handler[3] = function(sessionid, msg)
 
     --收到非法数据
 	log.warn("CLIENT %u SEND invalid message %d, will close.",sessionid,id)
-    network:close(sessionid)
-end
+    tcp.close(sessionid)
+end)
 
-socket_handler[4] = function(sessionid, msg)
+tcp.on("close",function(sessionid, msg)
     print("close ",sessionid, msg:bytes())
 
     local conn = connects.find(sessionid)
@@ -90,15 +73,11 @@ socket_handler[4] = function(sessionid, msg)
     moon.send('lua', game_service,ctx,"")
 
     connects.remove(sessionid)
-end
+end)
 
-socket_handler[5] = function(sessionid, msg)
+tcp.on("error",function(sessionid, msg)
 	print("error ",sessionid, msg:bytes())
-end
-
-socket_handler[6] = function(sessionid, msg)
-	print("logic error ",sessionid, msg:bytes())
-end
+end)
 
 -----------------服务间消息处理-------------------
 local command = {}
@@ -109,7 +88,7 @@ command.S2C = function(playerid, msg)
     if not conn then
         return
     end
-    network:send_message(conn.sessionid,msg)
+    tcp.send_message(conn.sessionid,msg)
 end
 
 -- 登陆流程step3，gate 保存playerid-sessionid 映射
@@ -127,7 +106,7 @@ command.login_res = function(_, msg)
         uid = data.playerid
     }
 
-    network:send(data.sessionid, MSGID.encode(MSGID.S2CLogin,S2CLogin))
+    tcp.send(data.sessionid, MSGID.encode(MSGID.S2CLogin,S2CLogin))
 end
 
 -- command.set_room_id = function(playerid, msg)
@@ -152,25 +131,9 @@ end
 ------------------------------------
 
 moon.start(function()
-
     login_service = moon.unique_service("login")
     match_service = moon.unique_service("match")
     game_service = moon.unique_service("game")
-
-	moon.register_protocol(
-	{
-		name = "socket",
-		PTYPE = moon.PSOCKET,
-		pack = function(...) return ... end,
-		dispatch = function(msg)
-			local sessionid = msg:sender()
-			local subtype = msg:subtype()
-			local f = socket_handler[subtype]
-			if f then
-				f(sessionid, msg)
-			end
-		end
-    })
 
     moon.dispatch('lua',function(msg,p)
 		local sender = msg:sender()

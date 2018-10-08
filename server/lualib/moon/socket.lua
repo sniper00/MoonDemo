@@ -2,7 +2,6 @@
 
 local moon  = require("moon")
 
-local csrv          = moon
 local co_yield      = coroutine.yield
 local make_response = moon.make_response
 
@@ -64,8 +63,8 @@ local n = 0;
 function socket.new()
     n=n+1
     local tb = {}
-    tb.sock = csrv.add_component_tcp("component_tcp"..(tostring(n)))
-    tb.sock:setprotocol(1)
+    tb.sock = moon.get_tcp()
+    tb.sock:setprotocol("custom")
     return setmetatable(tb,socket)
 end
 

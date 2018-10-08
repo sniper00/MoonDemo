@@ -64,8 +64,8 @@ local response_uid = 1
 local resplistener = {} --response message handler
 local protocol = {}
 
-local watching_service = {}
-local watching_response = {}
+local services_exited = {}
+local response_wacther = {}
 
 local waitallco = {}
 
@@ -86,10 +86,10 @@ local function make_response(receiver)
     until not resplistener[response_uid]
 
     if receiver then
-        if watching_service[receiver] then
+        if services_exited[receiver] then
             return false
         end
-        watching_response[response_uid] = receiver
+        response_wacther[response_uid] = receiver
     end
 
     local co = co_running()
@@ -144,13 +144,13 @@ local function _default_dispatch(msg, PTYPE)
     end
 
     local responseid = msg:responseid()
-
     if responseid > 0 and PTYPE ~= PTYPE_ERROR then
-        watching_response[responseid] = nil
+        response_wacther[responseid] = nil
         local co = resplistener[responseid]
         if co then
             --print(coroutine.status(co))
             co_resume(co, p.unpack(msg))
+            --print(coroutine.status(co))
             resplistener[responseid] = nil
             return
         end
@@ -179,7 +179,7 @@ function moon.send(PTYPE, receiver, header, ...)
         error(string.format("moon send unknown PTYPE[%s] message", PTYPE))
     end
 
-    if watching_service[receiver] then
+    if services_exited[receiver] then
         return false,"send to a exited service"
     end
     header = header or ''
@@ -199,7 +199,7 @@ function moon.raw_send(PTYPE, receiver, header, data)
         error(string.format("moon send unknown PTYPE[%s] message", PTYPE))
     end
 
-    if watching_service[receiver] then
+    if services_exited[receiver] then
         print("moon.raw_send send to a crashed service")
         return false
 	end
@@ -213,12 +213,12 @@ function moon.co_call_with_header(PTYPE, receiver, header, ...)
         error(string.format("moon call unknown PTYPE[%s] message", PTYPE))
     end
 
-    if watching_service[receiver] then
+    if services_exited[receiver] then
         return false, "call a exited service"
 	end
 
     local responseid = make_response()
-    watching_response[responseid] = receiver
+    response_wacther[responseid] = receiver
     header = header or ''
 	core.send(sid_, receiver, p.pack(...), header, responseid, p.PTYPE)
     return co_yield()
@@ -255,13 +255,12 @@ end
 	@param 可选，为true时可以 使用协程等待移除结果
 ]]
 function moon.remove_service(sid, bresponse)
-    local header = "rmservice." .. sid
     if bresponse then
         local rspid = make_response()
-        core.runcmd(moon.sid(), "", header, rspid)
+        core.remove_service(sid,sid_,rspid,false)
         return co_yield()
     else
-        core.runcmd(0, "", header, 0)
+        core.remove_service(sid_,0,0,false)
     end
 end
 
@@ -270,15 +269,6 @@ end
 ]]
 function moon.removeself()
     moon.remove_service(sid_)
-end
-
-function moon.query_worktime(workerid, bco)
-    local header = "workertime." .. workerid
-    local rspid = 0
-    if bco then
-        rspid = make_response()
-    end
-    core.runcmd(sid_, "", header, rspid)
 end
 
 --[[
@@ -293,24 +283,6 @@ end
 
 function moon.set_unique_service(name,id)
 	core.set_unique_service(name,id)
-end
-
-----------------Loacl key-value DB, 只支持int-int----------
-
-function moon.db_set(ndb, key, value)
-    return core.local_db(ndb, "W", key, value)
-end
-
-function moon.db_get(ndb, key)
-    return core.local_db(ndb, "R", key, 0)
-end
-
-function moon.db_del(ndb, key)
-    return core.local_db(ndb, "D", key, 0)
-end
-
-function moon.db_size(ndb)
-    return core.local_db(ndb, "N", 0, 0)
 end
 
 -------------------------协程操作封装--------------------------
@@ -339,7 +311,7 @@ local function routine(func)
     end
 end
 
-function moon.start_coroutine(func)
+function moon.async(func)
     local co = table_remove(co_pool)
     if not co then
         co = co_create(routine)
@@ -400,16 +372,21 @@ end
 ------------------------------------------
 
 function moon.co_remove_service(serviceid)
-    local co = co_running()
-    moon.remove_service(serviceid, co)
+    return moon.remove_service(serviceid, true)
+end
+
+function moon.co_runcmd(command)
+    local rspid = make_response()
+    core.runcmd(moon.sid(), command, rspid)
     return co_yield()
 end
 
-function moon.co_query_worktime(workerid)
-    local co = co_running()
-    moon.query_worktime(workerid, co)
-    return co_yield()
-end
+-- function moon.co_query_worktime(workerid)
+--     local header = "workertime." .. workerid
+--     local rspid = make_response()
+--     core.runcmd(moon.sid(), "", header, rspid)
+--     return co_yield()
+-- end
 
 --[[
 	send-response 形式调用，发送消息附带一个responseid，对方收到后把
@@ -488,6 +465,9 @@ reg_protocol {
         else -- message
             return seri.unpack(arg:buffer())
         end
+    end,
+    dispatch = function()
+        error("PTYPE_LUA dispatch not implemented")
     end
 }
 
@@ -554,8 +534,8 @@ reg_protocol {
         local header = msg:header()
         if header == "exit" then
             local data = msg:bytes()
-            watching_service[sender] = true
-            for k, v in pairs(watching_response) do
+            services_exited[sender] = true
+            for k, v in pairs(response_wacther) do
                 if v == sender then
                     local co = resplistener[k]
                     if co then
@@ -567,6 +547,15 @@ reg_protocol {
             end
         end
         return true
+    end
+}
+
+reg_protocol{
+    name = "socket",
+    PTYPE = PTYPE_SOCKET,
+    pack = function(...) return ... end,
+    dispatch = function(msg)
+        error("PTYPE_SOCKET dispatch not implemented")
     end
 }
 
