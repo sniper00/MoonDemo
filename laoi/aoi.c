@@ -166,6 +166,7 @@ map_new(struct aoi_space *space) {
 	return m;
 }
 
+//增加引用计数
 inline static void
 grab_object(struct object *obj) {
 	++obj->ref;
@@ -177,6 +178,7 @@ delete_object(void *s, struct object * obj) {
 	space->alloc(space->alloc_ud, obj, sizeof(*obj));
 }
 
+//减少引用计数
 inline static void
 drop_object(struct aoi_space * space, struct object *obj) {
 	--obj->ref;
@@ -294,9 +296,10 @@ dist2(struct object *p1, struct object *p2) {
 	return d;
 }
 
+//aoi 更新
 void
 aoi_update(struct aoi_space * space , uint32_t id, const char * modestring , float pos[3]) {
-	struct object * obj = map_query(space, space->object,id);
+	struct object * obj = map_query(space, space->object,id);//查找
 	int i;
 	bool set_watcher = false;
 	bool set_marker = false;

@@ -63,8 +63,7 @@ local n = 0;
 function socket.new()
     n=n+1
     local tb = {}
-    tb.sock = moon.get_tcp()
-    tb.sock:setprotocol("custom")
+    tb.sock = moon.get_tcp("custom"..tostring(n))
     return setmetatable(tb,socket)
 end
 
@@ -101,7 +100,6 @@ function socket:co_connect(ip,port)
     if not connid then
         return nil,err
     end
-    print("connect success", connid)
     return session.new(self.sock,tonumber(connid),ip,port)
 end
 

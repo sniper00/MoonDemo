@@ -10,24 +10,22 @@ local co_running = coroutine.running
 local _co_resume = coroutine.resume
 local co_yield = coroutine.yield
 local table_remove = table.remove
+local _send = core.send
 
 local PTYPE_SYSTEM = 1
 local PTYPE_TEXT = 2
 local PTYPE_LUA = 3
 local PTYPE_SOCKET = 4
 local PTYPE_ERROR = 5
+local PTYPE_SOCKET_WS = 6
 
 local moon = {
-    PSYSTEM = PTYPE_SYSTEM,
-    PTEXT = PTYPE_TEXT,
-    PLUA = PTYPE_LUA,
-    PSOCKET = PTYPE_SOCKET,
-    PERROR = PTYPE_ERROR
+    PTYPE_LUA = PTYPE_LUA
 }
 
 setmetatable(moon, {__index = core})
 
--- export global variable
+--export global variable
 local _g = _G
 moon.exports = {}
 setmetatable(
@@ -46,10 +44,14 @@ setmetatable(
 setmetatable(
     _g,
     {
-        __newindex = function(_, name)
-            local msg = string.format('USE "moon.exports.%s = <value>" INSTEAD OF SET GLOBAL VARIABLE', name)
-            print(debug.traceback(msg, 2))
-            print("")
+        __newindex = function(_, name,value)
+            if name:sub(1,4)~='sol.' then --ignore sol2 registed library
+                local msg = string.format('USE "moon.exports.%s = <value>" INSTEAD OF SET GLOBAL VARIABLE', name)
+                print(debug.traceback(msg, 2))
+                print("")
+            else
+                rawset(_g, name, value)
+            end
         end
     }
 )
@@ -183,7 +185,7 @@ function moon.send(PTYPE, receiver, header, ...)
         return false,"send to a exited service"
     end
     header = header or ''
-    return core.send(sid_, receiver, p.pack(...), header, 0, p.PTYPE)
+    return _send(sid_, receiver, p.pack(...), header, 0, p.PTYPE)
 end
 
 --[[
@@ -204,7 +206,7 @@ function moon.raw_send(PTYPE, receiver, header, data)
         return false
 	end
     header = header or ''
-	core.send(sid_, receiver, data, header, 0, p.PTYPE)
+	_send(sid_, receiver, data, header, 0, p.PTYPE)
 end
 
 function moon.co_call_with_header(PTYPE, receiver, header, ...)
@@ -220,7 +222,7 @@ function moon.co_call_with_header(PTYPE, receiver, header, ...)
     local responseid = make_response()
     response_wacther[responseid] = receiver
     header = header or ''
-	core.send(sid_, receiver, p.pack(...), header, responseid, p.PTYPE)
+	_send(sid_, receiver, p.pack(...), header, responseid, p.PTYPE)
     return co_yield()
 end
 
@@ -325,9 +327,14 @@ function moon.wait_all( ... )
     local cos = {...}
     local ctx = {count = #cos,results={},cur=currentco}
     for k,co in pairs(cos) do
-        --assert(not waitallco[co])
-        ctx.results[k]=""
-        waitallco[co]={ctx=ctx,idx=k}
+        assert(not waitallco[co])
+        if type(co) == "thread" then
+            ctx.results[k]=""
+            waitallco[co]={ctx=ctx,idx=k}
+        else
+            ctx.results[k]=co
+            ctx.count = ctx.count -1
+        end
     end
     return co_yield()
 end
@@ -408,7 +415,7 @@ function moon.co_call(PTYPE, receiver, ...)
         return false, "call a exited service"
     end
 
-	core.send(sid_, receiver, p.pack(...), "", rspid, p.PTYPE)
+	_send(sid_, receiver, p.pack(...), "", rspid, p.PTYPE)
     return co_yield()
 end
 
@@ -424,7 +431,7 @@ function moon.response(PTYPE, receiver, responseid, ...)
     if not p then
         error("handle unknown message")
     end
-    core.send(sid_, receiver, p.pack(...), '', responseid, p.PTYPE)
+    _send(sid_, receiver, p.pack(...), '', responseid, p.PTYPE)
 end
 
 ------------------------------------
@@ -556,6 +563,15 @@ reg_protocol{
     pack = function(...) return ... end,
     dispatch = function(msg)
         error("PTYPE_SOCKET dispatch not implemented")
+    end
+}
+
+reg_protocol{
+    name = "websocket",
+    PTYPE = PTYPE_SOCKET_WS,
+    pack = function(...) return ... end,
+    dispatch = function(msg)
+        error("PTYPE_SOCKET_WS dispatch not implemented")
     end
 }
 

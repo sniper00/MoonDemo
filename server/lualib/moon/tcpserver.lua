@@ -16,7 +16,7 @@ moon.dispatch(
 
 local M = {}
 
-local tcp = moon.get_tcp()
+local tcp = moon.get_tcp('default')
 
 local type_map = {
     connect = 1,

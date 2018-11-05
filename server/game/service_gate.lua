@@ -36,7 +36,7 @@ tcp.on("message",function(sessionid, msg)
 
         local ctx = seri.packstring("login",sessionid)
         --登陆流程step1 转发给login service
-        msg:redirect(ctx,login_service,moon.PLUA)
+        msg:redirect(ctx,login_service,moon.PTYPE_LUA)
         return
     end
 
@@ -44,11 +44,11 @@ tcp.on("message",function(sessionid, msg)
 
     if(id&0xFF00) == 0x0200 then
         -- 转发给match service
-        msg:redirect(ctx,match_service,moon.PLUA)
+        msg:redirect(ctx,match_service,moon.PTYPE_LUA)
         return
     elseif (id&0xFF00) == 0x0300 then
         -- 转发给玩家所在房间 service
-        msg:redirect(ctx,game_service,moon.PLUA)
+        msg:redirect(ctx,game_service,moon.PTYPE_LUA)
         return
     end
 
