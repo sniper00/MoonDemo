@@ -100,16 +100,10 @@ static int laoi_create(lua_State *L)
 	return 2;
 }
 
-#if defined(_USRDLL)
-#define LUA_EXTENSIONS_DLL __declspec(dllexport)
-#else /* use a DLL library */
-#define LUA_EXTENSIONS_DLL
-#endif
-
 #if __cplusplus
 extern "C" {
 #endif
-int LUA_EXTENSIONS_DLL luaopen_aoi(lua_State *L)
+int LUAMOD_API luaopen_aoi(lua_State *L)
 {
 	luaL_Reg l[] = {
 		{"create",laoi_create},
