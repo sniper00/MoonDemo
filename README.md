@@ -1,6 +1,10 @@
 # BallGame
 多人简易版球球大作战，MoonNetLua的一个使用示例，同时演示如何在服务端使用Entitas lua(Entity Component System)
 
+![image](https://github.com/sniper00/BallGame/raw/master/image/start.png)
+
+![image](https://github.com/sniper00/BallGame/raw/master/image/game.png)
+
 # 运行
 
 - server 包含编译好的windows版可执行文件,可以直接双击运行。(如果没有安装vs2017,则需要vs2017运行环境VC_redist.x64.exe[可在这里下载](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads)).
