@@ -34,13 +34,13 @@ tcp.on("message",function(sessionid, msg)
             return
         end
 
-        local ctx = seri.packstring("login",sessionid)
+        local ctx = seri.packs("login",sessionid)
         --登陆流程step1 转发给login service
         msg:redirect(ctx,login_service,moon.PTYPE_LUA)
         return
     end
 
-    local ctx = seri.packstring("C2S",conn.playerid)
+    local ctx = seri.packs("C2S",conn.playerid)
 
     if(id&0xFF00) == 0x0200 then
         -- 转发给match service
@@ -65,7 +65,7 @@ tcp.on("close",function(sessionid, msg)
         return
     end
 
-    local ctx = seri.packstring("client_close",conn.playerid)
+    local ctx = seri.packs("client_close",conn.playerid)
 
     moon.send('lua', login_service,ctx,"")
     --moon.send('lua', match_service,ctx,"")

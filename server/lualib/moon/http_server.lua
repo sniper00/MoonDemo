@@ -215,24 +215,28 @@ local router = {}
 
 local server
 
-function M.listen(ip,port)
+function M.listen(ip,port,timeout)
     assert(not server,"http server can only listen port once.")
     server = socket.new()
+    timeout = timeout or 0
+    server:settimeout(timeout)
     server:listen(ip,port)
     moon.async(function()
         while true do
-            local session = server:co_accept()
+            local session,err = server:co_accept()
             if session then
                 moon.async(function()
                     local parser = moon.http_request_parser.new()
                     while true do
-                        local ok, err = session_handler(session,router,parser)
+                        local ok, err2 = session_handler(session,router,parser)
                         if not ok and M.error  then
-                            M.error(session,err)
+                            M.error(session,err2)
                             return
                         end
                     end
                 end)--async
+            else
+                print(err)
             end--if
         end--while
     end)

@@ -12,7 +12,7 @@ M.set_gate_service = function ( sid )
 end
 
 M.send =function(uid, msgid, mdata)
-    moon.raw_send('lua', gate_service,seri.packstring("S2C",uid),MSGID.encode(msgid,mdata))
+    moon.raw_send('lua', gate_service,seri.packs("S2C",uid),MSGID.encode(msgid,mdata))
 end
 
 M.send_component = function(uid, entity, comp)
@@ -20,7 +20,7 @@ M.send_component = function(uid, entity, comp)
         local entity_id = entity:get(Components.BaseData).id
         local c = entity:get(comp)
         local t = {id = entity_id,data=c}
-        moon.raw_send('lua', gate_service,seri.packstring("S2C",uid),MSGID.encode(comp._id,t))
+        moon.raw_send('lua', gate_service,seri.packs("S2C",uid),MSGID.encode(comp._id,t))
     end
 end
 

@@ -34,7 +34,7 @@ command.login = function(sessionid, msg)
 		map_playerid_username[res.playerid] = data.username
 		uuid=uuid+1
 	end
-	moon.raw_send('lua', gate_service,seri.packstring("login_res"),seri.pack(res))
+	moon.raw_send('lua', gate_service,seri.packs("login_res"),seri.pack(res))
 end
 
 command.client_close = function(playerid, _)
