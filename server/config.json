@@ -7,6 +7,7 @@
         "thread": 4,
         "startup": "main.lua",
         "log": "log/#sid_#date.log",
+        "loglevel": "INFO",
         "path":"./game/?.lua;./game/logic/?.lua;",
         "services": [
             {
@@ -30,13 +31,34 @@
                 "file": "service_game.lua",
                 "unique": true,
                 "game":{
-                    "max_edge":20,
-                    "min_edge":-20,
-                    "max_random_edge":10,
-                    "min_random_edge":-10,
+                    "max_edge":50,
+                    "min_edge":-50,
+                    "max_random_edge":50,
+                    "min_random_edge":-50,
                     "speed":2,
                     "raduis":0.3          
                 }
+            }
+        ]
+    },
+    {
+        "sid": 2,
+        "name": "server_#sid",
+        "outer_host": "127.0.0.1",
+        "inner_host": "127.0.0.1",
+        "thread": 1,
+        "startup": "main.lua",
+        "log": "log/#sid_#date.log",
+        "loglevel": "INFO",
+        "path":"./game/?.lua;./game/logic/?.lua;./robot/?.lua;",
+        "services": [
+            {
+                "name": "robot",
+                "file": "robot.lua",
+                "unique": true,
+                "ip": "#inner_host",
+                "port": "12345",
+                "num": 100
             }
         ]
     }

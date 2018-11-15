@@ -34,7 +34,7 @@ function M:execute(entites)
         local others = entity:get(Components.LeaveView).ids
         for _,otherid in pairs(others) do
             self.net.send(p.id,'S2CLeaveView',{id=otherid})
-            print("LeaveView", otherid,"<->",p.id)
+            --print("LeaveView", otherid,"<->",p.id)
         end
         entity:remove(Components.LeaveView)
     end)

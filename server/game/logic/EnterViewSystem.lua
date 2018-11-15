@@ -50,7 +50,7 @@ function M:execute(entites)
                 self.net.send_component(p.id,oe,Components.BaseData)
                 self.net.send_component(p.id,oe,Components.Position)
                 self.net.send_component(p.id,oe,Components.Radius)
-                print("EnterView", otherid,"->",p.id)
+                --print("EnterView", otherid,"->",p.id)
             end
         end
         entity:remove(Components.EnterView)

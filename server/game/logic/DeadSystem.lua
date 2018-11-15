@@ -31,8 +31,6 @@ function M:filter(entity)
     return entity:has(Components.Dead)
 end
 
-local fooduuid = 200000
-
 function M:execute(entites)
     local num = 0
     entites:foreach(function( ne )

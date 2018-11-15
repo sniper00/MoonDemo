@@ -16,7 +16,7 @@ end
 
 function M:initialize()
     -- 初始化100个food
-    self.input_entity:replace(Components.InputCreateFood,100)
+    self.input_entity:replace(Components.InputCreateFood,500)
 end
 
 return M
