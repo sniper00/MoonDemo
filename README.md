@@ -12,6 +12,9 @@
 
 - client 请使用unity2018 启动执行第一个场景Prepare。
 
+# 运行机器人
+- ```./moon 2 ``` 运行机器人。 config.json 可以修改机器人数量
+
 # 编译Server
 
 [moon编译](https://github.com/sniper00/moon)
