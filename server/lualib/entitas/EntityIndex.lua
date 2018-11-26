@@ -21,12 +21,13 @@ function M:get_entities(key)
 end
 
 function M:_add_entity(key, entity)
-    --print("key", key, "entity", entity)
+    --print("ecs_idx:add", key, "entity", entity)
     local t = self:get_entities(key)
     set_insert(t, entity)
 end
 
 function M:_remove_entity(key, entity)
+    --print("ecs_idx:remove", key, "entity", entity)
     local t = self:get_entities(key)
     set_remove(t, entity)
 end

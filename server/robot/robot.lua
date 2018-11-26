@@ -11,7 +11,7 @@ local config
 local function session_read( session )
     local data,err = session:co_read(2)
     if not data then
-        print(session.connid,"session read error")
+        print(session.connid,"session read error",err)
         return false
     end
 
@@ -19,7 +19,7 @@ local function session_read( session )
 
     data,err = session:co_read(len)
     if not data then
-        print(session.connid,"session read error")
+        print(session.connid,"session read error",err)
         return false
     end
     local id = string.unpack("<H",string.sub(data,1,2))
@@ -31,8 +31,6 @@ local function send(session,data)
     return session:send(string.pack(">H",len)..data)
 end
 
-local create_user
-
 local function session_hander( session,bauth,authdata)
     if bauth then
         username = username + 1
@@ -41,6 +39,7 @@ local function session_hander( session,bauth,authdata)
 
         local id,data = session_read(session)
         if not id then
+            print("session_read error", data)
             return
         end
         authdata = data
@@ -48,6 +47,7 @@ local function session_hander( session,bauth,authdata)
 
     local c2s_enterroom = MSGID.encode(MSGID.C2SEnterRoom,{username = authdata.username})
     if not c2s_enterroom then
+        print("MSGID.C2SEnterRoom encode error")
         return
     end
     send(session,c2s_enterroom)
@@ -61,28 +61,28 @@ local function session_hander( session,bauth,authdata)
         vec2:normalize()
         local c2s_move = MSGID.encode(MSGID.C2SCommandMove,{x = vec2.x,y=vec2.y})
         if not c2s_move then
-            print("error")
+            print("MSGID.C2SCommandMove encode error")
             moon.remove_timer(trid)
             return
         end
 
         if not send(session,c2s_move) then
+            print("send C2SCommandMove encode error")
             return
         end
     end)
 
     while true do
-        local _,data = session_read(session)
+        local _,err = session_read(session)
         if not _ then
-            print("close",_)
+            print("close",err)
             return
         end
 
-        if _ == MSGID.S2CLeaveView and authdata.uid == data.id then
-            print("LeaveView")
+        if _ == MSGID.S2CDead then
+            --print("LeaveView : ",authdata.uid,"DEAD")
             moon.remove_timer(timerid)
-            session_hander(session,false,authdata)
-            return
+            return session,false,authdata
         end
     end
 end
@@ -96,10 +96,16 @@ moon.start(function()
 
     local sock = socket.new()
 
-    create_user = function ()
+    local create_user = function ()
         local session = sock:co_connect(config.ip,config.port)
         moon.async(function ()
-            session_hander(session,true)
+            local ret = {session,true}
+            while true do
+                ret = {session_hander(table.unpack(ret))}
+                if #ret ==0 then
+                    break
+                end
+            end
         end)
     end
 
@@ -109,5 +115,6 @@ moon.start(function()
             create_user()
         end
     end)
+
 end)
 

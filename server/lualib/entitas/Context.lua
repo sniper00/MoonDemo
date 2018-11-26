@@ -1,14 +1,9 @@
-local set           = require("set")
-local set_insert    = set.insert
-local set_remove    = set.remove
-local set_size      = set.size
-local set_has       = set.has
-local table_insert  = table.insert
-local table_remove  = table.remove
-
 local Entity        = require("entitas.Entity")
 local Group         = require("entitas.Group")
 local Matcher       = require("entitas.Matcher")
+
+local table_insert  = table.insert
+local table_remove  = table.remove
 
 --[[
     The Context is the factory where you create and destroy entities.
@@ -21,11 +16,12 @@ M.__index = M
 function M.new()
     local tb = {}
     -- Entities retained by this context.
-    tb.entities = set.new()
+    tb.entities = {}
     -- An object pool to recycle entities.
     tb._entities_pool = {}
     -- Entities counter
     tb._uuid = 1
+    tb._size = 0
     -- Dictionary of matchers mapping groups.
     tb._groups = {}
     tb._entity_indices = {}
@@ -37,7 +33,7 @@ end
 
 -- Checks if the context contains this entity.
 function M:has_entity(entity)
-    return set_has(self.entities,entity)
+    return self.entities[entity._uid]
 end
 
 --[[
@@ -57,7 +53,8 @@ function M:create_entity()
 
     entity:activate(self._uuid)
     self._uuid = self._uuid + 1
-    set_insert(self.entities, entity)
+    self.entities[entity._uid] = entity
+    self._size = self._size + 1
     return entity
 end
 
@@ -74,12 +71,13 @@ function M:destroy_entity(entity)
 
     entity:destroy()
 
-    set_remove(self.entities, entity)
+    self.entities[entity._uid] = nil
     table_insert(self._entities_pool, entity)
+    self._size = self._size - 1
 end
 
 function M:entity_size()
-    return set_size(self.entities)
+    return self._size
 end
 
 --[[
@@ -95,9 +93,9 @@ function M:get_group(matcher)
 
     group = Group.new(matcher)
 
-    self.entities:foreach(function(v)
-        group:handle_entity_silently(v)
-    end)
+    for _,e in pairs(self.entities) do
+        group:handle_entity_silently(e)
+    end
 
     self._groups[matcher] = group
 

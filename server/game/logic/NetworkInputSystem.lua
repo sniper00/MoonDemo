@@ -3,9 +3,6 @@ local Components = require('Components')
 local util       = require("util")
 local ComponentsIndex = require("ComponentsIndex")
 local class      = util.class
-local ReactiveSystem = entitas.ReactiveSystem
-local Matcher    = entitas.Matcher
-local GroupEvent = entitas.GroupEvent
 
 local M = class("NetworkInputSystem")
 
@@ -15,7 +12,7 @@ end
 
 function M:dispatch(id,...)
     local comp = ComponentsIndex[id]
-    assert(comp,"unknown comp")
+    assert(comp,"unknown comp "..string.format( "0x%04x",id))
     self.input_entity:replace(comp,...)
     --print("net_input",comp)
 end

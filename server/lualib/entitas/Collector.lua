@@ -38,7 +38,8 @@ end
 function M:deactivate()
     for group, _ in pairs(self._groups) do
         group.on_entity_added:remove(self.add_entity)
-        group.on_entity_removed:remove(self.add_entity)
+        group.on_entity_removed:remove(self.remove_entity)
+        group.on_entity_updated:remove(self.add_entity)
     end
 
     self:clear_entities()

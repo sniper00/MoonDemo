@@ -53,13 +53,15 @@ public class Game : MonoBehaviour {
         xpos = parent.Find("UI/Xpos").GetComponent<Text>();
         ypos = parent.Find("UI/Ypos").GetComponent<Text>();
 
+        Network.Register<S2CEnterRoom>(v => {
+            var e = new Entity();
+            entitas.Add(v.id, e);
+            local = e;
+        });
+
         Network.Register<S2CEnterView>(v => {
             var e = new Entity();
             entitas.Add(v.id, e);
-            if (v.id == UserData.uid)
-            {
-                local = e;
-            }
             //Debug.LogFormat("Entity  id {0} enter view", v.id);
         });
 
@@ -68,12 +70,23 @@ public class Game : MonoBehaviour {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
-                if(v.id==UserData.uid)
+               // Debug.LogFormat("Entity id {0} leave view", v.id);
+                Destroy(e.Go);
+                entitas.Remove(v.id);
+            }
+        });
+
+        Network.Register<S2CDead>(v =>
+        {
+            Entity e;
+            if (entitas.TryGetValue(v.id, out e))
+            {
+                if (v.id == UserData.uid)
                 {
                     SceneManager.LoadScene("Login");
                     return;
                 }
-               // Debug.LogFormat("Entity id {0} leave view", v.id);
+                // Debug.LogFormat("Entity id {0} leave view", v.id);
                 Destroy(e.Go);
                 entitas.Remove(v.id);
             }

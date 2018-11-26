@@ -38,7 +38,6 @@ function M:execute()
     local mover = self.context:create_entity()
     local x = math.random(self.cfg.min_random_edge, self.cfg.max_random_edge)
     local y = math.random(self.cfg.min_random_edge, self.cfg.max_random_edge)
-    local dir = math.random(0,360)
     local speed = self.cfg.speed
     local raduis = self.cfg.raduis
 
@@ -53,10 +52,8 @@ function M:execute()
     mover:add(Components.Speed, speed)
     mover:add(Components.Radius, raduis)
     mover:add(Components.Mover)
-    self.aoi.add(cmd.id)
-    self.aoi.update_message()
 
-    self.net.send(cmd.id, "S2CEnterView", {id = cmd.id})
+    self.net.send(cmd.id, "S2CEnterRoom",{id=cmd.id})
     self.net.send_component(cmd.id,mover,Components.Mover)
     self.net.send_component(cmd.id,mover,Components.BaseData)
     self.net.send_component(cmd.id,mover,Components.Position)
@@ -64,6 +61,8 @@ function M:execute()
     self.net.send_component(cmd.id,mover,Components.Speed)
     self.net.send_component(cmd.id,mover,Components.Radius)
 
+    self.aoi.add(cmd.id)
+    self.aoi.update_message()--触发周围的玩家、Food进入视野
 end
 
 return M

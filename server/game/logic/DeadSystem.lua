@@ -1,7 +1,6 @@
 local util = require("util")
 local entitas = require("entitas")
 local Components = require("Components")
-local vector2 = require("vector2")
 local ReactiveSystem = entitas.ReactiveSystem
 local Matcher = entitas.Matcher
 local GroupEvent = entitas.GroupEvent
@@ -38,16 +37,18 @@ function M:execute(entites)
         local isfood = ne:has(Components.Food)
 
         if not isfood then
-            self.net.send(p.id,"S2CLeaveView",{id=p.id}) 
+            self.net.send(p.id,"S2CDead",{id=p.id})
         end
         self.aoi.update_pos(p.id, "d", 0, 0)
         self.context:destroy_entity(ne)
         if isfood then
             num = num +1
+        else
+            print("remove mover", p.id)
         end
     end)
-    self.input_entity:replace(Components.InputCreateFood,num)
     self.aoi.update_message()
+    self.input_entity:replace(Components.InputCreateFood,num)
 end
 
 return M

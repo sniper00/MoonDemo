@@ -42,7 +42,7 @@ function M:execute()
     local vec = vector2.new(cmd.data.x,cmd.data.y)
     vec:normalize()
     ety:replace(Components.Direction,vec.x,vec.y)
-    print("CommandMove",vec.x,vec.y)
+    --print("CommandMove",vec.x,vec.y)
 end
 
 return M

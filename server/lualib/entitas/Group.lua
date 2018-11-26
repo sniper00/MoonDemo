@@ -2,7 +2,6 @@ local Delegate = require("entitas.Delegate")
 local set = require("set")
 local set_insert = set.insert
 local set_remove = set.remove
-local set_has = set.has
 local set_size = set.size
 local M = {}
 
@@ -75,11 +74,11 @@ end
 This is used by the context to manage the group.
 :param matcher: Entity
 ]]
-function M:handle_entity(entity, component, isremove)
+function M:handle_entity(entity, comp_value, isremove)
     if not isremove and self._matcher:matches(entity) then
-        self:_add_entity(entity, component)
+        self:_add_entity(entity, comp_value)
     else
-        self:_remove_entity(entity, component)
+        self:_remove_entity(entity, comp_value)
     end
 end
 
@@ -97,11 +96,11 @@ function M:_add_entity_silently(entity)
     return set_insert(self.entities, entity)
 end
 
-function M:_add_entity(entity, component)
+function M:_add_entity(entity, comp_value)
     local entity_added = self:_add_entity_silently(entity)
     if entity_added then
         --print(self,"add_entity",entity)
-        self.on_entity_added(entity, component)
+        self.on_entity_added(entity, comp_value)
     end
 end
 
@@ -109,10 +108,10 @@ function M:_remove_entity_silently(entity)
     return set_remove(self.entities, entity)
 end
 
-function M:_remove_entity(entity, component)
+function M:_remove_entity(entity, comp_value)
     local entity_removed = self:_remove_entity_silently(entity)
     if entity_removed then
-        self.on_entity_removed(entity, component)
+        self.on_entity_removed(entity, comp_value)
     end
 end
 

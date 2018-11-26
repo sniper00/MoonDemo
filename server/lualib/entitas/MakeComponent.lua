@@ -1,3 +1,6 @@
+local table_insert  = table.insert
+local table_remove  = table.remove
+
 local function com_tostring(obj)
     local lua = ""
     local t = type(obj)
@@ -61,12 +64,23 @@ local function make_component(name, ...)
     tmp._name = name
     tmp._is = function(t) return t._name == name end
     tmp._replace = _replace
+    tmp._cache = {}
     tmp.new = function(...)
-        local tb = {}
-        setmetatable(tb, tmp)
+        local tb = table_remove(tmp._cache)
+        if not tb then
+            tb = {}
+            print("create component",name)
+            setmetatable(tb, tmp)
+        end
         _replace(tb,...)
         return tb
     end
+
+    tmp.release = function(comp_value)
+        assert(comp_value._name == name)
+        table_insert(tmp._cache,comp_value)
+    end
+
     setmetatable(tmp,mt)
     return tmp
 end

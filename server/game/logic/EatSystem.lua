@@ -1,7 +1,6 @@
 local util = require("util")
 local entitas = require("entitas")
 local Components = require("Components")
-local vector2 = require("vector2")
 local ReactiveSystem = entitas.ReactiveSystem
 local Matcher = entitas.Matcher
 local GroupEvent = entitas.GroupEvent
@@ -31,7 +30,6 @@ function M:filter(entity)
 end
 
 function M:execute(entites)
-    local num = 0
     entites:foreach(function(e)
         local weight = e:get(Components.Eat).weight
         local radius = e:get(Components.Radius).value

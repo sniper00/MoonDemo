@@ -57,7 +57,7 @@ function M:_execute()
         end)
 
         self._collector:clear_entities()
-  
+
         if self._buffer:size() > 0 then
             self:execute(self._buffer)
             self._buffer:clear()

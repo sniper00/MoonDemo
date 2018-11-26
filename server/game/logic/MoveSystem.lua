@@ -55,7 +55,7 @@ function M:on_enter( watcher, marker )
             --print("on_enter_update",watcher,"->",marker)
         end
     else
-        --print("on_enter_failed not found",marker)
+        print("on_enter_failed not found",marker)
     end
 end
 
@@ -71,7 +71,7 @@ function M:on_leave( watcher, marker )
            -- print("on_leave_update",watcher,"->",marker)
         end
     else
-        --print("on_leave_failed not found",marker)
+        print("on_leave_failed not found",marker)
     end
 end
 
@@ -101,19 +101,19 @@ function M:execute()
                 out_range = true
                 dir_to_vec.x = 0
             end
-            
+
             if x<self.cfg.min_edge then
                 x = self.cfg.min_edge
                 out_range = true
                 dir_to_vec.x = 0
             end
-            
+
             if y>self.cfg.max_edge then
                 y = self.cfg.max_edge
                 out_range = true
                 dir_to_vec.y = 0
             end
-            
+
             if y<self.cfg.min_edge then
                 y = self.cfg.min_edge
                 out_range = true
@@ -147,10 +147,10 @@ function M:execute()
             end
             local dead = false
             local eat = 0
-            for m, v in pairs(near) do
+            for m, _ in pairs(near) do
                 local ne = self.idx:get_entity(m)
                 if ne then
-                    local nid = ne:get(Components.BaseData).id
+                    --local nid = ne:get(Components.BaseData).id
                     local npos = ne:get(Components.Position)
                     local nradius = ne:get(Components.Radius).value
                     local distance = math.sqrt((pos.x - npos.x) ^ 2 + (pos.y - npos.y) ^ 2)

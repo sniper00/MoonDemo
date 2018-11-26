@@ -59,9 +59,9 @@ function M:activate(uid)
 end
 
 --[[
- Adds a component.
-param comp_type: table type
-param ...: (optional) data values
+    Adds a component.
+    param comp_type: table type
+    param ...: (optional) data values
 ]]
 function M:add(comp_type, ...)
     if not self._is_enabled then
@@ -107,8 +107,8 @@ end
 function M:_replace(comp_type, args)
     local comp_value = self._components[comp_type]
     if not args then
-        --print("_replace 0")
         self._components[comp_type] = nil
+        comp_type.release(comp_value)
         self.on_component_removed(self, comp_value)
     else
         comp_value:_replace(table_unpack(args))

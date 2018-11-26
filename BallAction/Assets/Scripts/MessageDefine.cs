@@ -8,7 +8,6 @@ public class C2SLogin
     public string username;
 }
 
-
 [System.Serializable]
 public class S2CLogin
 {
@@ -20,6 +19,12 @@ public class S2CLogin
 public class C2SEnterRoom
 {
     public string username;
+}
+
+[System.Serializable]
+public class S2CEnterRoom
+{
+    public int id;
 }
 
 [System.Serializable]
@@ -37,6 +42,12 @@ public class S2CEnterView
 
 [System.Serializable]
 public class S2CLeaveView
+{
+    public int id;
+}
+
+[System.Serializable]
+public class S2CDead
 {
     public int id;
 }

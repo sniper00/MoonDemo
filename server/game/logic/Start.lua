@@ -58,7 +58,7 @@ M.init = function ( ... )
     systems:add(EatSystem.new(contexts,Helper))
     systems:add(UpdateRadiusSystem.new(contexts,Helper))
     systems:add(UpdateSpeedSystem.new(contexts,Helper))
-    
+
     systems:activate_reactive_systems()
     systems:initialize()
 end
