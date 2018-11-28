@@ -61,7 +61,6 @@ function M:execute()
     self.net.send_component(cmd.id,mover,Components.Speed)
     self.net.send_component(cmd.id,mover,Components.Radius)
 
-    self.aoi.add(cmd.id)
     self.aoi.update_message()--触发周围的玩家、Food进入视野
 end
 

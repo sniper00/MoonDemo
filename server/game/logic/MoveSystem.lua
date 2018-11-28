@@ -20,6 +20,7 @@ function M:ctor(contexts, helper)
     self.cfg = helper.cfg
     --所有可以移动的entity
     self.movers = self.context:get_group(Matcher({Components.Mover}))
+    self.net = helper.net
     self.aoi = helper.aoi--aoi模块
     self.aoi.on_enter = function ( ... )
         self:on_enter(...)
@@ -46,13 +47,23 @@ end
 function M:on_enter( watcher, marker )
     local entity = self.idx:get_entity(watcher)
     if entity then
-        if not entity:has(Components.EnterView) then
-            entity:add(Components.EnterView,{marker})
-            --print("on_enter_add",watcher,"->",marker)
-        else
-            local t = entity:get(Components.EnterView).ids
-            table.insert(t, marker)
-            --print("on_enter_update",watcher,"->",marker)
+        local p =  entity:get(Components.BaseData)
+        local oe = self.idx:get_entity(marker)
+        if oe then
+            self.net.send(p.id, "S2CEnterView", {id = marker})
+
+            if oe:has(Components.Mover) then
+                self.net.send_component(p.id,oe,Components.Speed)
+                self.net.send_component(p.id,oe,Components.Direction)
+                self.net.send_component(p.id,oe,Components.Mover)
+            elseif oe:has(Components.Food) then
+                self.net.send_component(p.id,oe,Components.Food)
+            end
+
+            self.net.send_component(p.id,oe,Components.BaseData)
+            self.net.send_component(p.id,oe,Components.Position)
+            self.net.send_component(p.id,oe,Components.Radius)
+            --print("EnterView", marker,"->",p.id)
         end
     else
         print("on_enter_failed not found",marker)
@@ -62,14 +73,8 @@ end
 function M:on_leave( watcher, marker )
     local entity = self.idx:get_entity(watcher)
     if entity then
-        if not entity:has(Components.LeaveView) then
-            entity:add(Components.LeaveView,{marker})
-           -- print("on_leave_add",watcher,"->",marker)
-        else
-            local t = entity:get(Components.LeaveView).ids
-            table.insert(t, marker)
-           -- print("on_leave_update",watcher,"->",marker)
-        end
+        local p =  entity:get(Components.BaseData)
+        self.net.send(p.id,'S2CLeaveView',{id=marker})
     else
         print("on_leave_failed not found",marker)
     end
@@ -137,6 +142,10 @@ function M:execute()
     --计算玩家碰撞
     movers:foreach(
         function(e)
+            if e:has(Components.Dead) then
+                return
+            end
+
             local pos = e:get(Components.Position)
             local id = e:get(Components.BaseData).id
             local radius = e:get(Components.Radius).value
@@ -167,7 +176,6 @@ function M:execute()
                 end
             end
             if dead then
-                self.aoi.update_pos(id, "d", pos.x, pos.y)
                 e:replace(Components.Dead)--玩家死亡，给玩家添加Dead Component
             elseif eat>0 then
                 local weight = 0.01*eat

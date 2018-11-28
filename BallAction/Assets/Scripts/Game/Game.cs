@@ -61,8 +61,11 @@ public class Game : MonoBehaviour {
 
         Network.Register<S2CEnterView>(v => {
             var e = new Entity();
-            entitas.Add(v.id, e);
-            //Debug.LogFormat("Entity  id {0} enter view", v.id);
+            if(!entitas.ContainsKey(v.id))
+            {
+                entitas.Add(v.id, e);
+                Debug.LogFormat("Entity  id {0} enter view", v.id);
+            }
         });
 
         Network.Register<S2CLeaveView>(v =>
@@ -70,7 +73,7 @@ public class Game : MonoBehaviour {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
-               // Debug.LogFormat("Entity id {0} leave view", v.id);
+                Debug.LogFormat("Entity id {0} leave view", v.id);
                 Destroy(e.Go);
                 entitas.Remove(v.id);
             }
@@ -139,7 +142,7 @@ public class Game : MonoBehaviour {
                 spr.sprite = UnityUtils.LoadSprite(source);
                 go.transform.localPosition = new Vector3(0, 0, 0);
                 go.transform.SetParent(transform);
-                go.AddComponent<LineRenderer>();
+                //go.AddComponent<LineRenderer>();
 
                 e.Go = go;
             }
@@ -187,6 +190,8 @@ public class Game : MonoBehaviour {
             if (entitas.TryGetValue(v.id, out e))
             {
                 e.Radius = v.data;
+                var rect = e.Go.GetComponent<RectTransform>();
+                rect.localScale = new Vector3(2*e.Radius.value/0.3f, 2 * e.Radius.value / 0.3f, 1);
             }
         });
 
@@ -238,17 +243,17 @@ public class Game : MonoBehaviour {
                 e.Go.transform.localPosition = newPosition;
             }
 
-            var lr = e.Go.GetComponent<LineRenderer>();
-            lr.positionCount = nline;
-            lr.startWidth = 0.01f;
-            lr.endWidth = 0.01f;
-            for (int i = 0; i < lr.positionCount - 1; i++)
-            {
-                var x = newPosition.x + Mathf.Sin((360f * i / nline) * Mathf.Deg2Rad) * e.Radius.value;
-                var y = newPosition.y + Mathf.Cos((360f * i / nline) * Mathf.Deg2Rad) * e.Radius.value;
-                lr.SetPosition(i, new Vector3(x, y));
-            }
-            lr.SetPosition(lr.positionCount - 1, lr.GetPosition(0));
+            //var lr = e.Go.GetComponent<LineRenderer>();
+            //lr.positionCount = nline;
+            //lr.startWidth = 0.01f;
+            //lr.endWidth = 0.01f;
+            //for (int i = 0; i < lr.positionCount - 1; i++)
+            //{
+            //    var x = newPosition.x + Mathf.Sin((360f * i / nline) * Mathf.Deg2Rad) * e.Radius.value;
+            //    var y = newPosition.y + Mathf.Cos((360f * i / nline) * Mathf.Deg2Rad) * e.Radius.value;
+            //    lr.SetPosition(i, new Vector3(x, y));
+            //}
+            //lr.SetPosition(lr.positionCount - 1, lr.GetPosition(0));
         }
     }
 }

@@ -35,11 +35,11 @@ function M:execute()
 
     local e = self.idx:get_entity(cmd.id)
     if e then
+        local npos = e:get(Components.Position)
+        self.aoi.update_pos(cmd.id, "d", npos.x, npos.y)
+        self.aoi.update_message()
         self.context:destroy_entity(e)
     end
-
-    self.aoi.update_pos(cmd.id, "d", 0, 0)
-    self.aoi.update_message()
 
     print("remove mover", cmd.id)
 end

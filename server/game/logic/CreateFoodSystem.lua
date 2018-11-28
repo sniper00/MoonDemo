@@ -44,7 +44,6 @@ function M:execute()
         food:add(Components.BaseData, fooduid, "",spriteid)
         food:add(Components.Food)
         food:add(Components.Radius, self.cfg.raduis)
-        self.aoi.add(fooduid)
         self.aoi.update_pos(fooduid, "m", x, y)
         fooduid = fooduid + 1
     end

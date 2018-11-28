@@ -5,13 +5,8 @@ local M ={}
 local space = aoi.create()
 
 local cache = {}
-local drop ={}
 
 local scale = 1
-
-function M.add( id )
-    drop[id] = nil
-end
 
 function M.update_pos( id, mode, x, y )
     if mode == 'd' then
@@ -22,22 +17,17 @@ function M.update_pos( id, mode, x, y )
             end
         end
         cache[id] = nil
-        drop[id] = true
-        --print("drop end",id)
     end
     space:update(id,mode,x*scale,y*scale,0)
 end
 
 local function message( watcher,  marker )
-    --print("aoi",watcher,"->",marker)
-    if drop[watcher] or drop[marker] then
-        return
-    end
     if not cache[watcher] then
         cache[watcher] = {}
     end
 
     if not cache[watcher][marker] then
+        --print("aoi",watcher,"->",marker)
         cache[watcher][marker] = true
         M.on_enter(watcher,marker)
     end
