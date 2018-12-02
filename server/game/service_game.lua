@@ -53,6 +53,10 @@ moon.start(function()
         start.dispatch(1,(now-last)/1000)
         last = now
     end)
+
+    -- moon.repeated(2000,-1,function(  )
+    --     start.printinfo()
+    -- end)
 end)
 
 moon.destroy(function ( )

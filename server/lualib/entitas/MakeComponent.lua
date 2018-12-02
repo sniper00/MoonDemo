@@ -69,7 +69,7 @@ local function make_component(name, ...)
         local tb = table_remove(tmp._cache)
         if not tb then
             tb = {}
-            print("create component",name)
+            --print("create component",name)
             setmetatable(tb, tmp)
         end
         _replace(tb,...)

@@ -46,9 +46,9 @@ M.__tostring = function(t)
 end
 
 function M:matches(entity)
-    local all_cond = not self._all or entity:has(table.unpack(self._all))
-    local any_cond = not self._any or entity:has_any(table.unpack(self._any))
-    local none_cond = not self._none or not entity:has_any(table.unpack(self._none))
+    local all_cond = not self._all or entity:has_all(self._all)
+    local any_cond = not self._any or entity:has_any(self._any)
+    local none_cond = not self._none or not entity:has_any(self._none)
 
     --print(all_cond,any_cond,none_cond)
     return all_cond and any_cond and none_cond
@@ -72,10 +72,28 @@ local function components_intersect( comps1, comps2 )
     return false
 end
 
-function M:mcp(comp)
-    local all_cond = not self._all or components_eql(self._all,comp)
-    local any_cond = not self._any or components_intersect(self._any,comp)
-    local none_cond = not self._none or not components_intersect(self._none,comp)
+local function components_has( comps, comp )
+    for _,v in pairs(comps) do
+        if comp._is(v) then
+            return true
+        end
+    end
+    return false
+end
+
+function M:match(comps)
+    local all_cond = not self._all or components_eql(self._all,comps)
+    local any_cond = not self._any or components_intersect(self._any,comps)
+    local none_cond = not self._none or not components_intersect(self._none,comps)
+
+    --print(all_cond,any_cond,none_cond)
+    return all_cond and any_cond and none_cond
+end
+
+function M:match_one(comp)
+    local all_cond = not self._all or components_has(self._all,comp)
+    local any_cond = not self._any or components_has(self._any,comp)
+    local none_cond = not self._none or not components_has(self._none,comp)
 
     --print(all_cond,any_cond,none_cond)
     return all_cond and any_cond and none_cond

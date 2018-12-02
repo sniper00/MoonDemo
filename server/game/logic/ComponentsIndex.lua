@@ -14,8 +14,8 @@ M[0x0303] = Components.CommandMove
 Components.CommandCreate._id = 0x0301
 Components.CommandMove._id = 0x0303
 
-Components.EnterView._id = 0x0304
-Components.LeaveView._id = 0x0305
+-- Components.EnterView._id = 0x0304
+-- Components.LeaveView._id = 0x0305
 
 Components.Mover._id = 0x0306
 Components.Food._id = 0x0307

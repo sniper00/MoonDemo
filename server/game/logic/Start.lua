@@ -64,10 +64,55 @@ M.dispatch = function ( ... )
     systems:execute()
 end
 
-M.destroy = function ( ... )
+M.destroy = function ()
     systems:cleanup()
     systems:clear_reactive_systems()
     systems:tear_down()
+end
+
+
+local function print_table_size(t)
+    local result = {}
+    local maxtable = {}
+    local print_one
+    print_one = function( _t,key )
+        local count = 0
+        for k,v in pairs(_t) do
+            if type(v) == "table" and k~="__index" then
+                print_one(v,key.."."..tostring(k))
+            end
+            count = count + 1
+        end
+        -- table.insert(result,key)
+        -- table.insert(result," len ")
+        -- table.insert(result,tostring(count))
+        -- table.insert(result,"\n")
+        table.insert(maxtable,{key=key,count =count})
+    end
+    print_one(t,"ROOT")
+
+    table.sort(maxtable, function(a,b) return a.count>b.count end )
+
+    return table.concat(result),maxtable
+end
+
+M.printinfo = function(  )
+    print("context game entitas size:",contexts.game:entity_size())
+    print("context game entity_pool size:",#contexts.game._entities_pool)
+    print("helper aoi cache size:",Helper.aoi.cache_size())
+    local alltable,maxtable = print_table_size(contexts.game)
+    local cache = {}
+    for i=1,20 do
+        local t = maxtable[i]
+        table.insert(cache,"####")
+        table.insert(cache,t.key)
+        table.insert(cache,"####")
+        table.insert(cache," [")
+        table.insert(cache,tostring(t.count))
+        table.insert(cache,"]")
+        table.insert(cache,"\n")
+    end
+    print(table.concat(cache))
 end
 
 return M

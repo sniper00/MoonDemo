@@ -18,13 +18,15 @@ function M:ctor(contexts,helper)
     self.input_entity = contexts.input.input_entity
 end
 
-function M:get_trigger()
-    return {
-        {
-            Matcher({Components.CommandMove}),
-            GroupEvent.ADDED|GroupEvent.UPDATE
-        }
+local trigger = {
+    {
+        Matcher({Components.CommandMove}),
+        GroupEvent.ADDED|GroupEvent.UPDATE
     }
+}
+
+function M:get_trigger()
+    return trigger
 end
 
 function M:filter(entity)

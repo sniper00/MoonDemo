@@ -123,7 +123,7 @@ end
 
 function M:_comp_added(entity, comp_value)
     for _, group in pairs(self._groups) do
-        if group._matcher:mcp({comp_value}) then
+        if group._matcher:match_one(comp_value) then
             group:handle_entity(entity, comp_value)
         end
     end
@@ -131,7 +131,7 @@ end
 
 function M:_comp_removed(entity, comp_value)
     for _, group in pairs(self._groups) do
-        if group._matcher:mcp({comp_value}) then
+        if group._matcher:match_one(comp_value) then
             group:handle_entity(entity, comp_value,true)
         end
     end
@@ -139,7 +139,7 @@ end
 
 function M:_comp_replaced(entity, comp_value)
     for _, group in pairs(self._groups) do
-        if group._matcher:mcp({comp_value}) then
+        if group._matcher:match_one(comp_value) then
             group:update_entity(entity, comp_value)
         end
     end

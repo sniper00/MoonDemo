@@ -41,4 +41,12 @@ function M.get_aoi( id )
     return cache[id]
 end
 
+function M.cache_size( )
+    local count = 0
+    for _ in pairs(cache) do
+        count = count + 1
+    end
+    return count
+end
+
 return M

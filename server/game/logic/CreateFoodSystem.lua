@@ -20,13 +20,15 @@ function M:ctor(contexts, helper)
     self.cfg = helper.cfg
 end
 
-function M:get_trigger()
-    return {
-        {
-            Matcher({Components.InputCreateFood}),
-            GroupEvent.ADDED | GroupEvent.UPDATE
-        }
+local trigger =  {
+    {
+        Matcher({Components.InputCreateFood}),
+        GroupEvent.ADDED | GroupEvent.UPDATE
     }
+}
+
+function M:get_trigger()
+    return trigger
 end
 
 function M:filter(entity)

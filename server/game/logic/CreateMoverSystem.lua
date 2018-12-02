@@ -19,13 +19,15 @@ function M:ctor(contexts, helper)
     self.cfg = helper.cfg
 end
 
-function M:get_trigger()
-    return {
-        {
-            Matcher({Components.CommandCreate}),
-            GroupEvent.ADDED | GroupEvent.UPDATE
-        }
+local trigger = {
+    {
+        Matcher({Components.CommandCreate}),
+        GroupEvent.ADDED | GroupEvent.UPDATE
     }
+}
+
+function M:get_trigger()
+    return trigger
 end
 
 function M:filter(entity)
@@ -34,7 +36,7 @@ end
 
 function M:execute()
     local cmd = self.input_entity:get(Components.CommandCreate)
-    print("create mover", cmd.id)
+    --print("create mover", cmd.id)
     local mover = self.context:create_entity()
     local x = math.random(self.cfg.min_random_edge, self.cfg.max_random_edge)
     local y = math.random(self.cfg.min_random_edge, self.cfg.max_random_edge)

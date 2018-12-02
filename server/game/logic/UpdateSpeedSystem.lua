@@ -16,13 +16,15 @@ function M:ctor(contexts, helper)
     self.movers = self.context:get_group(Matcher({Components.Mover}))
 end
 
-function M:get_trigger()
-    return {
-        {
-            Matcher({Components.Speed}),
-            GroupEvent.ADDED | GroupEvent.UPDATE
-        }
+local trigger = {
+    {
+        Matcher({Components.Speed}),
+        GroupEvent.ADDED | GroupEvent.UPDATE
     }
+}
+
+function M:get_trigger()
+    return trigger
 end
 
 function M:filter(entity)

@@ -15,8 +15,6 @@ local M = {
     Mover = MakeComponent("Mover"),
     Food = MakeComponent("Food"),
     Radius =  MakeComponent("Radius","value"),
-    EnterView =  MakeComponent("EnterView","ids"),
-    LeaveView =  MakeComponent("LeaveView","ids"),
     Dead =  MakeComponent("Dead"),
     Eat =  MakeComponent("Eat","weight")
 }
