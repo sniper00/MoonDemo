@@ -9,6 +9,9 @@ local username = 1
 local config
 
 local function session_read( session )
+    if not session then
+        return false
+    end
     local data,err = session:co_read(2)
     if not data then
         print(session.connid,"session read error",err)
@@ -27,6 +30,9 @@ local function session_read( session )
 end
 
 local function send(session,data)
+    if not session then
+        return false
+    end
     local len = #data
     return session:send(string.pack(">H",len)..data)
 end
@@ -68,6 +74,7 @@ local function session_hander( session,bauth,authdata)
 
         if not send(session,c2s_move) then
             print("send C2SCommandMove encode error")
+            moon.remove_timer(trid)
             return
         end
     end)
@@ -76,6 +83,7 @@ local function session_hander( session,bauth,authdata)
         local _,err = session_read(session)
         if not _ then
             print("close",err)
+            moon.remove_timer(timerid)
             return
         end
 
@@ -96,13 +104,15 @@ moon.start(function()
 
     local sock = socket.new()
 
-    local create_user = function ()
+    local create_user
+    create_user = function ()
         local session = sock:co_connect(config.ip,config.port)
         moon.async(function ()
             local ret = {session,true}
             while true do
                 ret = {session_hander(table.unpack(ret))}
                 if #ret ==0 then
+                    create_user()
                     break
                 end
             end
@@ -116,5 +126,10 @@ moon.start(function()
         end
     end)
 
+    moon.repeated(10000,-1,function (  )
+        collectgarbage("collect")
+        print("memory",moon.memory_use())
+    end)
 end)
+
 

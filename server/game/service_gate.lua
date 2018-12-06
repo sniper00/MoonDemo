@@ -91,6 +91,14 @@ command.S2C = function(playerid, msg)
     tcp.send_message(conn.sessionid,msg)
 end
 
+command.CLOSE_CLIENT = function(playerid)
+    local conn = connects.find_by_player(playerid)
+    if not conn then
+        return
+    end
+    tcp.close(conn.sessionid)
+end
+
 -- 登陆流程step3，gate 保存playerid-sessionid 映射
 command.login_res = function(_, msg)
     local data = seri.unpack(msg:bytes())

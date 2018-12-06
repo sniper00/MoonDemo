@@ -8,7 +8,6 @@ from entities.
 Those containers are called 'components'. They are represented by
 namedtuples for readability.
 ]]
-local table_unpack = table.unpack
 local Delegate = require("entitas.Delegate")
 local M = {}
 
@@ -73,7 +72,7 @@ function M:add(comp_type, ...)
     end
 
     local new_comp = comp_type.new(...)
-    self._components[comp_type] = new_comp
+    self._components[comp_type._name] = new_comp
     self.on_component_added(self, new_comp)
 end
 
@@ -87,7 +86,7 @@ function M:remove(comp_type)
     end
 
     --print("Entity:remove")
-    self:_replace(comp_type, nil)
+    self:_replace(comp_type._name, nil)
 end
 
 function M:replace(comp_type, ...)
@@ -95,23 +94,21 @@ function M:replace(comp_type, ...)
         error("Cannot add component entity is not enabled.")
     end
 
-    local args = {...} or {}
-
     if self:has(comp_type) then
-        self:_replace(comp_type, args)
+        self:_replace(comp_type._name, ...)
     else
         self:add(comp_type, ...)
     end
 end
 
-function M:_replace(comp_type, args)
-    local comp_value = self._components[comp_type]
-    if not args then
-        self._components[comp_type] = nil
-        comp_type.release(comp_value)
+function M:_replace(comp_name, ...)
+    local comp_value = self._components[comp_name]
+    if not ... then
+        self._components[comp_name] = nil
+        comp_value.release(comp_value)
         self.on_component_removed(self, comp_value)
     else
-        comp_value:_replace(table_unpack(args))
+        comp_value:_replace(...)
         self.on_component_replaced(self, comp_value)
     end
 end
@@ -120,11 +117,11 @@ function M:get(comp_type)
     if not self:has(comp_type) then
         error(string.format("entity has not component '%s'",tostring(comp_type)))
     end
-    return self._components[comp_type]
+    return self._components[comp_type._name]
 end
 
 function M:has(comp_type)
-    return self._components[comp_type]
+    return self._components[comp_type._name]
 end
 
 function M:has_all(comp_types)
@@ -132,7 +129,7 @@ function M:has_all(comp_types)
         return false
     end
     for _, v in pairs(comp_types) do
-        if  not self._components[v] then
+        if  not self._components[v._name] then
             return false
         end
     end
@@ -142,7 +139,7 @@ end
 function M:has_any(comp_types)
     if not comp_types then return false end
     for _, v in pairs(comp_types) do
-        if self._components[v] then
+        if self._components[v._name] then
             return true
         end
     end

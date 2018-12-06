@@ -39,6 +39,7 @@ function M:execute()
     local ety = self.idx:get_entity(cmd.id)
     if not ety then
         print("command move not found ", cmd.id)
+        self.net.close(cmd.id)
         return
     end
     local vec = vector2.new(cmd.data.x,cmd.data.y)

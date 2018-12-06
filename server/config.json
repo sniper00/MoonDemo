@@ -6,7 +6,7 @@
         "inner_host": "127.0.0.1",
         "thread": 4,
         "log": "log/#sid_#date.log",
-        "loglevel": "INFO",
+        "loglevel": "DEBUG",
         "path":"./game/?.lua;./game/logic/?.lua;",
         "services": [
             {
@@ -17,7 +17,7 @@
                     "name": "network",
                     "type": "listen",
                     "ip": "#inner_host",
-                    "port": "12345"
+                    "port": "22345"
                 }
             },
             {
@@ -47,7 +47,7 @@
         "inner_host": "127.0.0.1",
         "thread": 1,
         "log": "log/#sid_#date.log",
-        "loglevel": "INFO",
+        "loglevel": "DEBUG",
         "path":"./game/?.lua;./game/logic/?.lua;./robot/?.lua;",
         "services": [
             {
@@ -55,7 +55,7 @@
                 "file": "robot.lua",
                 "unique": true,
                 "ip": "#inner_host",
-                "port": "12345",
+                "port": "22345",
                 "num": 100
             }
         ]

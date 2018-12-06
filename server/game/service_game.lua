@@ -57,6 +57,11 @@ moon.start(function()
     -- moon.repeated(2000,-1,function(  )
     --     start.printinfo()
     -- end)
+
+    moon.repeated(10000,-1,function (  )
+        collectgarbage("collect")
+        print("memory",moon.memory_use())
+    end)
 end)
 
 moon.destroy(function ( )

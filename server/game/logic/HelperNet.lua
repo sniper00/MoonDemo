@@ -15,6 +15,10 @@ M.send =function(uid, msgid, mdata)
     moon.raw_send('lua', gate_service,seri.packs("S2C",uid),MSGID.encode(msgid,mdata))
 end
 
+M.close =function(uid)
+    moon.raw_send('lua', gate_service,seri.packs("CLOSE_CLIENT",uid))
+end
+
 M.send_component = function(uid, entity, comp)
     if entity:has(comp) then
         local entity_id = entity:get(Components.BaseData).id
