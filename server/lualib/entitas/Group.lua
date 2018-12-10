@@ -63,7 +63,7 @@ This is used by the context to manage the group.
 ]]
 function M:handle_entity_silently(entity)
     assert(entity)
-    if self._matcher:matches(entity) then
+    if self._matcher:match_entity(entity) then
         self:_add_entity_silently(entity)
     else
         self:_remove_entity_silently(entity)
@@ -75,7 +75,7 @@ This is used by the context to manage the group.
 :param matcher: Entity
 ]]
 function M:handle_entity(entity, comp_value, isremove)
-    if not isremove and self._matcher:matches(entity) then
+    if not isremove and self._matcher:match_entity(entity) then
         self:_add_entity(entity, comp_value)
     else
         self:_remove_entity(entity, comp_value)

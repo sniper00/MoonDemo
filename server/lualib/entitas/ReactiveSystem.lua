@@ -25,15 +25,15 @@ function M:ctor(context)
 end
 
 function M:get_trigger()
-    error("not imp")
+    error(self.__cname.." 'get_trigger' not implemented")
 end
 
 function M:filter()
-    error("not imp")
+    error(self.__cname.." 'filter' not implemented")
 end
 
 function M:execute()
-    error("not imp")
+    error(self.__cname.." 'execute' not implemented")
 end
 
 function M:activate()

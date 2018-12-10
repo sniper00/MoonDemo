@@ -66,7 +66,7 @@ the context does not contain this entity, a
 ]]
 function M:destroy_entity(entity)
     if not self:has_entity(entity) then
-        error("The context does not contain this entity.")
+        error("The context does not contain this entity:"..tostring(entity))
     end
 
     entity:destroy()

@@ -45,7 +45,7 @@ M.__tostring = function(t)
 )
 end
 
-function M:matches(entity)
+function M:match_entity(entity)
     local all_cond = not self._all or entity:has_all(self._all)
     local any_cond = not self._any or entity:has_any(self._any)
     local none_cond = not self._none or not entity:has_any(self._none)
