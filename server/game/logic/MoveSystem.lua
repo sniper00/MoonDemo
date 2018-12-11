@@ -59,7 +59,6 @@ function M:on_enter( watcher, marker )
             elseif oe:has(Components.Food) then
                 self.net.send_component(watcher,oe,Components.Food)
             end
-
             self.net.send_component(watcher,oe,Components.BaseData)
             self.net.send_component(watcher,oe,Components.Position)
             self.net.send_component(watcher,oe,Components.Radius)

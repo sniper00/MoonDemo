@@ -225,7 +225,7 @@ public class Game : MonoBehaviour {
 
         foreach(var e in entitas.Values)
         {
-            if(!e.Mover || e.Go==null)
+            if(!e.Mover || e.Radius==null)
             {
                 continue;
             }
