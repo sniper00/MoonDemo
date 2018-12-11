@@ -47,11 +47,21 @@ moon.start(function()
 
     --每50ms触发一次CommandUpdate,用来更新玩家位置
     local last = moon.millsecond()
-    moon.repeated(50,-1,function ( )
-        local now = moon.millsecond()
-        --参见ComponentsIndex
-        start.dispatch(1,(now-last)/1000)
-        last = now
+    local sleep_duration  = 0
+    moon.async(function(  )
+        while true do
+            local now = moon.millsecond()
+            local diff = now-last
+            --参见ComponentsIndex
+            start.dispatch(1,(diff)/1000)
+            last = now
+            if diff <= 50 + sleep_duration then
+                sleep_duration = 50 + sleep_duration - diff
+                moon.co_wait(sleep_duration)
+            else
+                sleep_duration = 0
+            end
+        end
     end)
 
     -- moon.repeated(2000,-1,function(  )

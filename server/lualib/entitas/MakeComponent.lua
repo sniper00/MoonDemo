@@ -43,7 +43,7 @@ local function _replace(t, ... )
         if not n then
             return
         end
-        t[v] = args[k]
+        rawset(t,v,n)
     end
 end
 

@@ -49,22 +49,20 @@ end
 function M:on_enter( watcher, marker )
     local entity = self.idx:get_entity(watcher)
     if entity then
-        local p =  entity:get(Components.BaseData)
         local oe = self.idx:get_entity(marker)
         if oe then
-            self.net.send(p.id, "S2CEnterView", {id = marker})
-
+            self.net.send(watcher, "S2CEnterView", {id = marker})
             if oe:has(Components.Mover) then
-                self.net.send_component(p.id,oe,Components.Speed)
-                self.net.send_component(p.id,oe,Components.Direction)
-                self.net.send_component(p.id,oe,Components.Mover)
+                self.net.send_component(watcher,oe,Components.Speed)
+                self.net.send_component(watcher,oe,Components.Direction)
+                self.net.send_component(watcher,oe,Components.Mover)
             elseif oe:has(Components.Food) then
-                self.net.send_component(p.id,oe,Components.Food)
+                self.net.send_component(watcher,oe,Components.Food)
             end
 
-            self.net.send_component(p.id,oe,Components.BaseData)
-            self.net.send_component(p.id,oe,Components.Position)
-            self.net.send_component(p.id,oe,Components.Radius)
+            self.net.send_component(watcher,oe,Components.BaseData)
+            self.net.send_component(watcher,oe,Components.Position)
+            self.net.send_component(watcher,oe,Components.Radius)
             --print("EnterView", marker,"->",p.id)
         end
     else
@@ -75,8 +73,8 @@ end
 function M:on_leave( watcher, marker )
     local entity = self.idx:get_entity(watcher)
     if entity then
-        local p =  entity:get(Components.BaseData)
-        self.net.send(p.id,'S2CLeaveView',{id=marker})
+        self.net.send(watcher,'S2CLeaveView',{id=marker})
+        --print("LeaveView", marker,"->",watcher)
     else
         print("on_leave_failed not found",marker)
     end
@@ -186,6 +184,10 @@ function M:execute()
         end
     )
     self.aoi.update_message()
+
+    if self.aoi.cache_size() > 200 then
+        print("max aoi cache", self.aoi.cache_size())
+    end
 end
 
 return M

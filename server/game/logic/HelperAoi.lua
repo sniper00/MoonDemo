@@ -10,10 +10,12 @@ local scale = 1
 
 function M.update_pos( id, mode, x, y )
     if mode == 'd' then
-        for k,v in pairs(cache) do
-            if k ~= id then
-                v[id]=nil
-                M.on_leave(k,id)
+        for watcher,views in pairs(cache) do
+            if watcher ~= id then
+                if views[id] then
+                    views[id] = nil
+                    M.on_leave(watcher,id)
+                end
             end
         end
         cache[id] = nil
@@ -22,13 +24,8 @@ function M.update_pos( id, mode, x, y )
 end
 
 local function message( watcher,  marker )
-    if not cache[watcher] then
-        cache[watcher] = {}
-    end
-
-    if not cache[watcher][marker] then
+    if M.set(watcher,marker,true) then
         --print("aoi",watcher,"->",marker)
-        cache[watcher][marker] = true
         M.on_enter(watcher,marker)
     end
 end
@@ -41,12 +38,32 @@ function M.get_aoi( id )
     return cache[id]
 end
 
-function M.cache_size( )
-    local count = 0
-    for _ in pairs(cache) do
-        count = count + 1
+function M.set( watcher, marker, value)
+    local v = cache[watcher]
+    if not v then
+        v = {}
+        cache[watcher] = v
     end
-    return count
+    local old = v[marker]
+    if old ~= value then
+        v[marker] = value
+        return true
+    end
+    return false
+end
+
+function M.cache_size()
+    local maxcount = 0
+    for _,views in pairs(cache) do
+        local n = 0
+        for _,_ in pairs(views) do
+            n = n + 1
+        end
+        if n > maxcount then
+            maxcount = n
+        end
+    end
+    return maxcount
 end
 
 return M
