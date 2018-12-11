@@ -56,12 +56,12 @@ function M:execute()
     mover:add(Components.Mover)
 
     self.net.send(cmd.id, "S2CEnterRoom",{id=cmd.id})
-    self.net.send_component(cmd.id,mover,Components.Mover)
     self.net.send_component(cmd.id,mover,Components.BaseData)
     self.net.send_component(cmd.id,mover,Components.Position)
     self.net.send_component(cmd.id,mover,Components.Direction)
     self.net.send_component(cmd.id,mover,Components.Speed)
     self.net.send_component(cmd.id,mover,Components.Radius)
+    self.net.send_component(cmd.id,mover,Components.Mover)
 
     self.aoi.update_message()--触发周围的玩家、Food进入视野
 end

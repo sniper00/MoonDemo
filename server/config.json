@@ -35,7 +35,8 @@
                     "max_random_edge":50,
                     "min_random_edge":-50,
                     "speed":2,
-                    "raduis":0.3          
+                    "raduis":0.3,
+                    "food_raduis":0.25            
                 }
             }
         ]

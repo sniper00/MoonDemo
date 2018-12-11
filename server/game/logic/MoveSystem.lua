@@ -63,7 +63,7 @@ function M:on_enter( watcher, marker )
             self.net.send_component(watcher,oe,Components.BaseData)
             self.net.send_component(watcher,oe,Components.Position)
             self.net.send_component(watcher,oe,Components.Radius)
-            --print("EnterView", marker,"->",p.id)
+            --print("EnterView", marker,"->",watcher)
         end
     else
         print("on_enter_failed not found",marker)
@@ -154,30 +154,30 @@ function M:execute()
             if not near then
                 return
             end
-            local dead = false
+
             local eat = 0
-            for m, _ in pairs(near) do
+            for _, m in pairs(near) do
                 local ne = self.idx:get_entity(m)
                 if ne then
-                    --local nid = ne:get(Components.BaseData).id
+                    local nid = ne:get(Components.BaseData).id
                     local npos = ne:get(Components.Position)
                     local nradius = ne:get(Components.Radius).value
                     local distance = math.sqrt((pos.x - npos.x) ^ 2 + (pos.y - npos.y) ^ 2)
                     --print("near", nid,distance)
                     if distance < (radius + nradius) then
                         if radius < nradius then
-                            dead = true
                             break
-                        else
+                        elseif radius > nradius then
                             eat = eat + 1
-                            ne:replace(Components.Dead)
+                            ne:replace(Components.Dead)--玩家死亡，给玩家添加Dead Component
                         end
+                    elseif distance > 10 then
+                        self.aoi.leave_view(id,nid)
                     end
                 end
             end
-            if dead then
-                e:replace(Components.Dead)--玩家死亡，给玩家添加Dead Component
-            elseif eat>0 then
+
+            if eat>0 then
                 local weight = 0.01*eat
                 e:replace(Components.Eat,weight)--更新玩家Eat组件，用来计算球体半径增加量
             end

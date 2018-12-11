@@ -64,7 +64,7 @@ public class Game : MonoBehaviour {
             if(!entitas.ContainsKey(v.id))
             {
                 entitas.Add(v.id, e);
-                Debug.LogFormat("Entity  id {0} enter view", v.id);
+                //Debug.LogFormat("Entity  id {0} enter view", v.id);
             }
         });
 
@@ -73,7 +73,7 @@ public class Game : MonoBehaviour {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
-                Debug.LogFormat("Entity id {0} leave view", v.id);
+                //Debug.LogFormat("Entity id {0} leave view", v.id);
                 Destroy(e.Go);
                 entitas.Remove(v.id);
             }
@@ -84,12 +84,12 @@ public class Game : MonoBehaviour {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
+                Debug.LogFormat("Entity id {0} dead", v.id);
                 if (v.id == UserData.uid)
                 {
                     SceneManager.LoadScene("Login");
                     return;
                 }
-                // Debug.LogFormat("Entity id {0} leave view", v.id);
                 Destroy(e.Go);
                 entitas.Remove(v.id);
             }
@@ -220,12 +220,12 @@ public class Game : MonoBehaviour {
             dir.Normalize();
             local.Direction = dir;
             Network.Send(new C2SCommandMove { x = dir.x,y= dir.y });
-            Debug.LogFormat("dir {0} {1}", local.Direction.x, local.Direction.y);
+            //Debug.LogFormat("dir {0} {1}", local.Direction.x, local.Direction.y);
         }
 
         foreach(var e in entitas.Values)
         {
-            if(!e.Mover)
+            if(!e.Mover || e.Go==null)
             {
                 continue;
             }

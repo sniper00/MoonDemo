@@ -24,7 +24,7 @@ public class Login : MonoBehaviour
 
         if (Port.text.Length == 0)
         {
-            Port.text = 12345.ToString();
+            Port.text = 22345.ToString();
         }
 
         if (Network.ServerID != 0)

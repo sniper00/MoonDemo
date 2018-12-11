@@ -37,17 +37,14 @@ function M:execute(entites)
     entites:foreach(function( ne )
         local p =  ne:get(Components.BaseData)
         local isfood = ne:has(Components.Food)
-        local npos = ne:get(Components.Position)
-
         if not isfood then
             self.net.send(p.id,"S2CDead",{id=p.id})
+            print("mover dead",p.id)
         end
-        self.aoi.update_pos(p.id, "d", npos.x, npos.y)
+        self.aoi.update_pos(p.id, "d", -10000, -10000)
         self.context:destroy_entity(ne)
         if isfood then
             num = num +1
-        else
-            --print("remove mover", p.id)
         end
     end)
     self.aoi.update_message()

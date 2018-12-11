@@ -35,7 +35,15 @@ function M.update_message()
 end
 
 function M.get_aoi( id )
-    return cache[id]
+    local t = cache[id]
+    if t then
+        local tmp = {}
+        for v,_ in pairs(t) do
+            table.insert( tmp, v )
+        end
+        return tmp
+    end
+    return nil
 end
 
 function M.set( watcher, marker, value)
@@ -50,6 +58,12 @@ function M.set( watcher, marker, value)
         return true
     end
     return false
+end
+
+function M.leave_view( watcher, marker  )
+    if M.set( watcher, marker) then
+        M.on_leave(watcher,marker)
+    end
 end
 
 function M.cache_size()

@@ -36,6 +36,10 @@ function M:execute(entites)
         local weight = e:get(Components.Eat).weight
         local radius = e:get(Components.Radius).value
         local newradius =radius + weight
+        if newradius > 10 then
+            newradius = 0.3
+            print("radius too big")
+        end
         e:replace(Components.Radius,newradius)
     end)
 end
