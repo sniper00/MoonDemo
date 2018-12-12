@@ -37,9 +37,8 @@ local function com_tostring(obj)
 end
 
 local function _replace(t, ... )
-    local args = {...}
     for k, v in pairs(t._keys) do
-        local n = args[k]
+        local n = select(k,...)
         if not n then
             return
         end
