@@ -125,9 +125,10 @@ function M:has(comp_type)
 end
 
 function M:has_all(comp_types)
-    if #comp_types == 0 then
+    if not comp_types or #comp_types == 0 then
         return false
     end
+
     for _, v in pairs(comp_types) do
         if  not self._components[v._name] then
             return false
@@ -137,7 +138,10 @@ function M:has_all(comp_types)
 end
 
 function M:has_any(comp_types)
-    if not comp_types then return false end
+    if not comp_types or #comp_types == 0 then
+        return false
+    end
+
     for _, v in pairs(comp_types) do
         if self._components[v._name] then
             return true

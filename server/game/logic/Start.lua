@@ -1,6 +1,5 @@
 --  Bring your systems together
-
-package.path = "../../lualib/?.lua;"..package.path
+local require = require("import")
 
 local entitas    = require('entitas')
 local Components = require('Components')

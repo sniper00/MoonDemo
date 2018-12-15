@@ -1,11 +1,11 @@
-local util = require("util")
+local require = require("import")
+
+local class = require("util").class
 local entitas = require("entitas")
 local Components = require("Components")
 local ReactiveSystem = entitas.ReactiveSystem
 local Matcher = entitas.Matcher
 local GroupEvent = entitas.GroupEvent
-
-local class = util.class
 
 local M = class("DeadSystem", ReactiveSystem)
 

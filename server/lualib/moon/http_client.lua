@@ -1,6 +1,6 @@
 local moon = require("moon")
-local socket = require("moon.socket")
 local seri = require("seri")
+local socket = require("moon.socket")
 
 -----------------------------------------------------------------
 
@@ -87,6 +87,13 @@ function M.new(host_port, timeout, proxy)
     end
     o.timeout = timeout
     return setmetatable(o, M)
+end
+
+function M:close()
+    if self.conn then
+        self.conn:close()
+        self.conn = nil
+    end
 end
 
 function M:request( method,path,content,header)

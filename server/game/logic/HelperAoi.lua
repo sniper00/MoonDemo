@@ -1,3 +1,5 @@
+local require = require("import")
+
 local aoi = require("aoi")
 
 local M ={}

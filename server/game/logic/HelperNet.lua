@@ -1,6 +1,8 @@
+local require = require("import")
+
 local moon = require("moon")
-local MSGID = require("MSGID")
 local seri = require("seri")
+local MSGID = require("game.MSGID")
 local Components = require("Components")
 
 local M = {}

@@ -1,12 +1,12 @@
-local util = require("util")
+local require = require("import")
+
+local class = require("util").class
 local entitas = require("entitas")
 local Components = require("Components")
 local vector2 = require("vector2")
 local ReactiveSystem = entitas.ReactiveSystem
 local Matcher = entitas.Matcher
 local GroupEvent = entitas.GroupEvent
-
-local class = util.class
 
 local M = class("MoveSystem", ReactiveSystem)
 
@@ -138,6 +138,7 @@ function M:execute()
 
     self.aoi.update_message()
 
+    local max_radius = 0
     --计算玩家碰撞
     movers:foreach(
         function(e)
@@ -154,6 +155,10 @@ function M:execute()
                 return
             end
 
+            if radius > max_radius then
+                max_radius = radius
+            end
+
             local eat = 0
             for _, m in pairs(near) do
                 local ne = self.idx:get_entity(m)
@@ -162,6 +167,10 @@ function M:execute()
                     local npos = ne:get(Components.Position)
                     local nradius = ne:get(Components.Radius).value
                     local distance = math.sqrt((pos.x - npos.x) ^ 2 + (pos.y - npos.y) ^ 2)
+
+                    if nradius > max_radius then
+                        max_radius = nradius
+                    end
                     --print("near", nid,distance)
                     if distance < (radius + nradius) then
                         if radius < nradius then

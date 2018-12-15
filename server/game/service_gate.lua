@@ -1,3 +1,4 @@
+local require = require("import")
 local moon = require("moon")
 local log = require("log")
 local seri = require("seri")

@@ -1,8 +1,7 @@
-local entitas    = require('entitas')
-local Components = require('Components')
-local util       = require("util")
+local require = require("import")
+
 local ComponentsIndex = require("ComponentsIndex")
-local class      = util.class
+local class      =  require("util").class
 
 local M = class("NetworkInputSystem")
 

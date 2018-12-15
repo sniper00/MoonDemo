@@ -1,9 +1,11 @@
+local require = require("import")
+
 local moon = require("moon")
 local seri = require("seri")
 local json = require("json")
-local start = require("Start")
-local HelperNet = require("HelperNet")
-local Helper = require("Helper")
+local start = require("logic.Start")
+local HelperNet = require("logic.HelperNet")
+local Helper = require("logic.Helper")
 
 local command = {}
 

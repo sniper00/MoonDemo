@@ -1,11 +1,11 @@
-local util = require("util")
+local require = require("import")
+
+local class = require("util").class
 local entitas = require("entitas")
 local Components = require("Components")
 local ReactiveSystem = entitas.ReactiveSystem
 local Matcher = entitas.Matcher
 local GroupEvent = entitas.GroupEvent
-
-local class = util.class
 
 local M = class("EatSystem", ReactiveSystem)
 
@@ -36,7 +36,7 @@ function M:execute(entites)
         local weight = e:get(Components.Eat).weight
         local radius = e:get(Components.Radius).value
         local newradius =radius + weight
-        if newradius > 10 then
+        if newradius > 5 then
             newradius = 0.3
             print("radius too big")
         end

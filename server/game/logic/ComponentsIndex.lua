@@ -1,4 +1,6 @@
--- ID - Components 映射，方便处理网络消息
+local require = require("import")
+
+--ID - Components 映射，方便处理网络消息
 
 local Components = require('Components')
 
