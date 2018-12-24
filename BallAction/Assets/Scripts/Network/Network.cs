@@ -347,6 +347,7 @@ namespace Moon
                         }
                         break;
                     }
+                case SocketMessageType.Close:
                 case SocketMessageType.Error:
                     {
                         var errmsg = m as SocketErrorMessage;

@@ -101,7 +101,7 @@ M.printinfo = function(  )
     print("helper aoi cache size:",Helper.aoi.cache_size())
     local alltable,maxtable = print_table_size(contexts.game)
     local cache = {}
-    for i=1,20 do
+    for i=1,5 do
         local t = maxtable[i]
         table.insert(cache,"####")
         table.insert(cache,t.key)

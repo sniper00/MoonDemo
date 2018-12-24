@@ -79,6 +79,10 @@ function M:on_leave( watcher, marker )
     end
 end
 
+local sqrt = math.sqrt
+
+local abs = math.abs
+
 function M:execute()
     --更新玩家位置
     local delta = self.input_entity:get(Components.CommandUpdate).delta
@@ -139,6 +143,7 @@ function M:execute()
     self.aoi.update_message()
 
     local max_radius = 0
+    local max_near = 0
     --计算玩家碰撞
     movers:foreach(
         function(e)
@@ -155,6 +160,10 @@ function M:execute()
                 return
             end
 
+            if #near > max_near then
+                max_near = #near
+            end
+
             if radius > max_radius then
                 max_radius = radius
             end
@@ -162,24 +171,29 @@ function M:execute()
             local eat = 0
             for _, m in pairs(near) do
                 local ne = self.idx:get_entity(m)
-                if ne then
-                    local nid = ne:get(Components.BaseData).id
+                if ne and not ne:has(Components.Dead) then
                     local npos = ne:get(Components.Position)
                     local nradius = ne:get(Components.Radius).value
-                    local distance = math.sqrt((pos.x - npos.x) ^ 2 + (pos.y - npos.y) ^ 2)
 
-                    if nradius > max_radius then
-                        max_radius = nradius
-                    end
-                    --print("near", nid,distance)
-                    if distance < (radius + nradius) then
-                        if radius < nradius then
-                            break
-                        elseif radius > nradius then
-                            eat = eat + 1
-                            ne:replace(Components.Dead)--玩家死亡，给玩家添加Dead Component
+                    local dx = abs(pos.x - npos.x)
+                    local dy = abs(pos.y - npos.y)
+                    if (dx + dy) < 1.5*(radius + nradius) then
+                        local distance = sqrt(dx ^ 2 + dy ^ 2)
+
+                        if nradius > max_radius then
+                            max_radius = nradius
                         end
-                    elseif distance > 10 then
+
+                        if distance < (radius + nradius) then
+                            if radius < nradius then
+                                break
+                            elseif radius > nradius then
+                                eat = eat + 1
+                                ne:replace(Components.Dead)--玩家死亡，给玩家添加Dead Component
+                            end
+                        end
+                    elseif (dx + dy) > 10 then
+                        local nid = ne:get(Components.BaseData).id
                         self.aoi.leave_view(id,nid)
                     end
                 end
@@ -191,10 +205,12 @@ function M:execute()
             end
         end
     )
-    self.aoi.update_message()
-
     if self.aoi.cache_size() > 200 then
         print("max aoi cache", self.aoi.cache_size())
+    end
+
+    if max_near > 50 then
+        print("max near",max_near)
     end
 end
 

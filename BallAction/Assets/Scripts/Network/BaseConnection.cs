@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using UnityEngine;
 
 namespace Moon
 {
@@ -36,7 +37,7 @@ namespace Moon
     {
         public Action<SocketMessage> OnMessage { get; set; }
 
-        public Socket Socket { get; }
+        public Socket Socket { get; private set; }
 
         Queue<Buffer> sendQueue = new Queue<Buffer>();
 
@@ -71,6 +72,7 @@ namespace Moon
                     {
                         Socket.Shutdown(SocketShutdown.Both);
                         Socket.Close();
+                        Socket = null;
                     }
                 }
             }
@@ -93,7 +95,7 @@ namespace Moon
             }
             else
             {
-                OnMessage(new SocketErrorMessage(ConnectionID, SocketMessageType.Close, 0, se.Message));
+                OnMessage(new SocketErrorMessage(ConnectionID, SocketMessageType.Close, 0, e.Message));
             }         
         }
 
@@ -112,13 +114,26 @@ namespace Moon
         {
             if (!Connected())
                 return;
+
             try
             {
-                Socket.BeginReceive(so.Buffer, so.Index + so.BytesTransferred, so.Count - so.BytesTransferred, SocketFlags.None, (ar) => {
+                Socket.BeginReceive(so.Buffer, so.Index + so.BytesTransferred, so.Count, SocketFlags.None, (ar) => {
                     SocketUserToken userToken = (SocketUserToken)ar.AsyncState;
                     try
                     {
-                        int bytesTransferred = Socket.EndReceive(ar);
+                        if(null == Socket)
+                        {
+                            return;
+                        }
+                        SocketError err;
+                        int bytesTransferred = Socket.EndReceive(ar, out err);
+                        Debug.LogFormat("socket recv err {0}", err);
+                        if(err!= SocketError.Success)
+                        {
+                            so.Handler(so.BytesTransferred, new SocketException((int)err));
+                            return;
+                        }
+                        
                         if (0 == bytesTransferred)
                         {
                             userToken.Handler(userToken.BytesTransferred, null);
@@ -207,7 +222,8 @@ namespace Moon
             try
             {
                 var s = (Socket)ar.AsyncState;
-                s.EndSend(ar);
+                SocketError err;
+                s.EndSend(ar, out err);
                 DoSend();
             }
             catch (Exception e)

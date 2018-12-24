@@ -77,6 +77,8 @@ local function session_hander( session,bauth,authdata)
             moon.remove_timer(trid)
             return
         end
+
+        print("C2SCommandMove",session.connid)
     end)
 
     while true do
@@ -88,8 +90,9 @@ local function session_hander( session,bauth,authdata)
         end
 
         if _ == MSGID.S2CDead then
-            --print("LeaveView : ",authdata.uid,"DEAD")
+            print("DEAD: ",authdata.uid)
             moon.remove_timer(timerid)
+            print("cancel timer: ",timerid)
             return session,false,authdata
         end
     end
@@ -106,7 +109,11 @@ moon.start(function()
 
     local create_user
     create_user = function ()
-        local session = sock:co_connect(config.ip,config.port)
+        local session,err = sock:co_connect(config.ip,config.port)
+        if not session then
+            print("connect failed", err)
+            return
+        end
         moon.async(function ()
             local ret = {session,true}
             while true do

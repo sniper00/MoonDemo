@@ -24,7 +24,7 @@ public class Prepare: MonoBehaviour {
 
             Network.OnError = (sessionid, ec, msg) =>
             {
-                var str = string.Format("Network Error, Sessonid{0} ErrorCode{1} ErrorMessage{2}", sessionid, ec, msg);
+                var str = string.Format("Network Error, Sessonid: {0} ErrorCode: {1} ErrorMessage: {2}", sessionid, ec, msg);
                 MessageBox.Show(str,(res)=> {
                     SceneManager.LoadScene("Login");
                 });
