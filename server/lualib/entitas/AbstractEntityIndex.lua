@@ -1,6 +1,9 @@
 local util          = require("util")
 local class         = util.class
 
+--- for luacheck warn: unused params
+local ignore_param = function()end
+
 local M   = class("AbstractEntityIndex")
 
 function M:ctor(comp_type, group, ...)
@@ -31,7 +34,7 @@ function M:_deactivate()
 end
 
 function M:_index_entities()
-    self._group.entities:foreach(function(entity) 
+    self._group.entities:foreach(function(entity)
         local comp_type = entity:get(self.comp_type)
         for _, field in pairs(self._fields) do
             self:_add_entity(comp_type[field], entity)
@@ -61,10 +64,12 @@ end
 
 function M:_add_entity(key, entity)
     error("not imp")
+    ignore_param(self,key,entity)
 end
 
 function M:_remove_entity(key, entity)
     error("not imp")
+    ignore_param(self,key,entity)
 end
 
 return M

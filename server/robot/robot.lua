@@ -78,7 +78,7 @@ local function session_hander( session,bauth,authdata)
             return
         end
 
-        print("C2SCommandMove",session.connid)
+        --print("C2SCommandMove",session.connid)
     end)
 
     while true do
@@ -92,7 +92,6 @@ local function session_hander( session,bauth,authdata)
         if _ == MSGID.S2CDead then
             print("DEAD: ",authdata.uid)
             moon.remove_timer(timerid)
-            print("cancel timer: ",timerid)
             return session,false,authdata
         end
     end
@@ -121,6 +120,8 @@ moon.start(function()
                 if #ret ==0 then
                     create_user()
                     break
+                else
+                    print("closed")
                 end
             end
         end)

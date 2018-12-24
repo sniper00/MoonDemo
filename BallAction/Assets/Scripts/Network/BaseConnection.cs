@@ -127,9 +127,9 @@ namespace Moon
                         }
                         SocketError err;
                         int bytesTransferred = Socket.EndReceive(ar, out err);
-                        Debug.LogFormat("socket recv err {0}", err);
                         if(err!= SocketError.Success)
                         {
+                            Debug.LogFormat("socket recv err {0}", err);
                             so.Handler(so.BytesTransferred, new SocketException((int)err));
                             return;
                         }

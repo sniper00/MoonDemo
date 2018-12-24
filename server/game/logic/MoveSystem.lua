@@ -12,6 +12,8 @@ local M = class("MoveSystem", ReactiveSystem)
 
 local dir_to_vec = vector2.new(0, 0)
 
+local aoi
+
 function M:ctor(contexts, helper)
     M.super.ctor(self, contexts.input)
     self.context = contexts.game
@@ -21,12 +23,12 @@ function M:ctor(contexts, helper)
     --所有可以移动的entity
     self.movers = self.context:get_group(Matcher({Components.Mover}))
     self.net = helper.net
-    self.aoi = helper.aoi--aoi模块
-    self.aoi.on_enter = function ( ... )
+    aoi = helper.aoi--aoi模块
+    aoi.on_enter = function ( ... )
         self:on_enter(...)
     end
 
-    self.aoi.on_leave = function ( ... )
+    aoi.on_leave = function ( ... )
         self:on_leave(...)
     end
 end
@@ -48,25 +50,33 @@ end
 
 function M:on_enter( watcher, marker )
     local entity = self.idx:get_entity(watcher)
-    if entity then
-        local oe = self.idx:get_entity(marker)
-        if oe then
-            self.net.send(watcher, "S2CEnterView", {id = marker})
-            if oe:has(Components.Mover) then
-                self.net.send_component(watcher,oe,Components.Speed)
-                self.net.send_component(watcher,oe,Components.Direction)
-                self.net.send_component(watcher,oe,Components.Mover)
-            elseif oe:has(Components.Food) then
-                self.net.send_component(watcher,oe,Components.Food)
-            end
-            self.net.send_component(watcher,oe,Components.BaseData)
-            self.net.send_component(watcher,oe,Components.Position)
-            self.net.send_component(watcher,oe,Components.Radius)
-            --print("EnterView", marker,"->",watcher)
-        end
-    else
-        print("on_enter_failed not found",marker)
+    if not entity then
+        print("on_enter_failed not found watcher",watcher)
+        return
     end
+
+    local oe = self.idx:get_entity(marker)
+    if not oe or oe:has(Components.Dead) then
+        print("on_enter_failed not found marker, or marker dead",watcher)
+        return
+    end
+
+    if not aoi.set(watcher,marker,true) then
+        return
+    end
+
+    self.net.send(watcher, "S2CEnterView", {id = marker})
+    if oe:has(Components.Mover) then
+        self.net.send_component(watcher,oe,Components.Speed)
+        self.net.send_component(watcher,oe,Components.Direction)
+        self.net.send_component(watcher,oe,Components.Mover)
+    elseif oe:has(Components.Food) then
+        self.net.send_component(watcher,oe,Components.Food)
+    end
+    self.net.send_component(watcher,oe,Components.BaseData)
+    self.net.send_component(watcher,oe,Components.Position)
+    self.net.send_component(watcher,oe,Components.Radius)
+    --print("EnterView", marker,"->",watcher)
 end
 
 function M:on_leave( watcher, marker )
@@ -78,10 +88,6 @@ function M:on_leave( watcher, marker )
         print("on_leave_failed not found",marker)
     end
 end
-
-local sqrt = math.sqrt
-
-local abs = math.abs
 
 function M:execute()
     --更新玩家位置
@@ -130,7 +136,7 @@ function M:execute()
 
             e:replace(Components.Position, x, y)
 
-            self.aoi.update_pos(id, "wm", x, y)
+            aoi.update_pos(id, "wm", x, y)
 
             if out_range  then
                 dir_to_vec:normalize()
@@ -140,7 +146,7 @@ function M:execute()
         end
     )
 
-    self.aoi.update_message()
+    aoi.update_message()
 
     local max_radius = 0
     local max_near = 0
@@ -151,11 +157,10 @@ function M:execute()
                 return
             end
 
-            local pos = e:get(Components.Position)
             local id = e:get(Components.BaseData).id
             local radius = e:get(Components.Radius).value
 
-            local near = self.aoi.get_aoi(id)
+            local near = aoi.get_aoi(id)
             if not near then
                 return
             end
@@ -172,19 +177,19 @@ function M:execute()
             for _, m in pairs(near) do
                 local ne = self.idx:get_entity(m)
                 if ne and not ne:has(Components.Dead) then
-                    local npos = ne:get(Components.Position)
                     local nradius = ne:get(Components.Radius).value
+                    local nid = ne:get(Components.BaseData).id
 
-                    local dx = abs(pos.x - npos.x)
-                    local dy = abs(pos.y - npos.y)
-                    if (dx + dy) < 1.5*(radius + nradius) then
-                        local distance = sqrt(dx ^ 2 + dy ^ 2)
+                    local mdist = aoi.md_distance(id,nid)
+
+                    if mdist < 1.5*(radius + nradius) then
+                        local distance = aoi.distance(id,nid)
 
                         if nradius > max_radius then
                             max_radius = nradius
                         end
 
-                        if distance < (radius + nradius) then
+                        if distance < (radius + nradius)^2 then
                             if radius < nradius then
                                 break
                             elseif radius > nradius then
@@ -192,9 +197,8 @@ function M:execute()
                                 ne:replace(Components.Dead)--玩家死亡，给玩家添加Dead Component
                             end
                         end
-                    elseif (dx + dy) > 10 then
-                        local nid = ne:get(Components.BaseData).id
-                        self.aoi.leave_view(id,nid)
+                    elseif mdist > 15 then
+                        aoi.leave_view(id,nid)
                     end
                 end
             end
@@ -205,8 +209,8 @@ function M:execute()
             end
         end
     )
-    if self.aoi.cache_size() > 200 then
-        print("max aoi cache", self.aoi.cache_size())
+    if aoi.cache_size() > 200 then
+        print("max aoi cache", aoi.cache_size())
     end
 
     if max_near > 50 then
