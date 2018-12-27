@@ -8,8 +8,6 @@ local space = aoi.create()
 
 local cache = {}
 
-local scale = 1
-
 function M.update_pos( id, mode, x, y )
     if mode == 'd' then
         for watcher,views in pairs(cache) do
@@ -22,14 +20,11 @@ function M.update_pos( id, mode, x, y )
         end
         cache[id] = nil
     end
-    space:update(id,mode,x*scale,y*scale,0)
+    space:update(id,mode,x,y,0)
 end
 
 local function message( watcher,  marker )
-    if M.set(watcher,marker,true) then
-        --print("aoi",watcher,"->",marker)
-        M.on_enter(watcher,marker)
-    end
+    M.on_enter(watcher,marker)
 end
 
 function M.update_message()
@@ -80,6 +75,14 @@ function M.cache_size()
         end
     end
     return maxcount
+end
+
+function M.distance(from, to)
+    return space:distance(from, to)
+end
+
+function M.md_distance(from, to)
+    return space:md_distance(from, to)
 end
 
 return M

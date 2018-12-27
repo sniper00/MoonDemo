@@ -60,5 +60,6 @@ void aoi_release(struct aoi_space *);
 // w(atcher) m(arker) d(rop)
 void aoi_update(struct aoi_space * space , uint32_t id, const char * mode , float pos[3]);
 void aoi_message(struct aoi_space *space, aoi_Callback cb, void *ud);
-
+float aoi_distance(struct aoi_space *space, uint32_t from, uint32_t to);
+float aoi_md_distance(struct aoi_space *space, uint32_t from, uint32_t to);
 #endif

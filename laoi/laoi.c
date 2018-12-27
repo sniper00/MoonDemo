@@ -78,6 +78,31 @@ static int laoi_message(lua_State *L)
 	return 0;
 }
 
+static int laoi_distance(lua_State *L)
+{
+    struct aoi_space_box *ab = lua_touserdata(L, 1);
+    if (ab == NULL || ab->space == NULL)
+        return luaL_error(L, "Invalid aoi_space pointer");
+    uint32_t from = luaL_checkinteger(L, -2);
+    uint32_t to = luaL_checkinteger(L, -1);
+    float dist = aoi_distance(ab->space, from, to);
+    lua_pushnumber(L, dist);
+    return 1;
+}
+
+
+static int laoi_md_distance(lua_State *L)
+{
+    struct aoi_space_box *ab = lua_touserdata(L, 1);
+    if (ab == NULL || ab->space == NULL)
+        return luaL_error(L, "Invalid aoi_space pointer");
+    uint32_t from = luaL_checkinteger(L, -2);
+    uint32_t to = luaL_checkinteger(L, -1);
+    float dist = aoi_md_distance(ab->space, from, to);
+    lua_pushnumber(L, dist);
+    return 1;
+}
+
 static int laoi_create(lua_State *L)
 {
 	struct aoi_space* as = aoi_new();
@@ -88,6 +113,8 @@ static int laoi_create(lua_State *L)
 		luaL_Reg l[] = {
 			{ "update",laoi_update },
 			{ "message",laoi_message },
+            { "distance",laoi_distance },
+            { "md_distance",laoi_md_distance },
 			{ NULL,NULL }
 		};
 		luaL_newlib(L, l); {}

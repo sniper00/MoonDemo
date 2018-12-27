@@ -21,17 +21,11 @@ local function com_tostring(obj)
             lua = lua .. com_tostring(k) .. "=" .. com_tostring(v)
             first = false
         end
-        -- local metatable = getmetatable(obj)
-        -- if metatable ~= nil and type(metatable.__index) == "table" then
-        --     for k, v in pairs(metatable.__index) do
-        --         lua = lua ..com_tostring(k) .. "=" .. com_tostring(v) .. ","
-        --     end
-        -- end
         lua = lua .. "}"
     elseif t == "nil" then
         return nil
     else
-        --error("can not com_tostring a " .. t .. " type.")
+        error("can not tostring" .. t .. " type.")
     end
     return lua
 end

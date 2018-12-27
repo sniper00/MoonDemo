@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "aoi.h"
 
-#define AOI_RADIS 10.0f
+#define AOI_RADIS 5.0f
 
 #define INVALID_ID (~0)
 #define PRE_ALLOC 16
@@ -115,6 +115,24 @@ map_query(struct aoi_space *space, struct map * m, uint32_t id) {
 	struct object * obj = new_object(space, id);
 	map_insert(space, m , id , obj);
 	return obj;
+}
+
+static struct object *
+map_find(struct aoi_space *space, struct map * m, uint32_t id) {
+    struct map_slot *s = mainposition(m, id);
+    for (;;) {
+        if (s->id == id) {
+            if (s->obj == NULL) {
+                s->obj = new_object(space, id);
+            }
+            return s->obj;
+        }
+        if (s->next < 0) {
+            break;
+        }
+        s = &m->slot[s->next];
+    }
+    return NULL;
 }
 
 static void
@@ -337,6 +355,28 @@ aoi_update(struct aoi_space * space , uint32_t id, const char * modestring , flo
 		obj->mode |= MODE_MOVE;
 		++obj->version;
 	} 
+}
+
+float aoi_distance(struct aoi_space *space, uint32_t from, uint32_t to)
+{
+    struct object * obj_from = map_find(space, space->object, from);//查找
+    struct object * obj_to = map_find(space, space->object, to);//查找
+    if (NULL == obj_from || NULL == obj_to)
+    {
+        return 9999999;
+    }
+    return DIST2(obj_from->position, obj_to->position);
+}
+
+float aoi_md_distance(struct aoi_space *space, uint32_t from, uint32_t to)
+{
+    struct object * obj_from = map_find(space, space->object, from);//查找
+    struct object * obj_to = map_find(space, space->object, to);//查找
+    if (NULL == obj_from || NULL == obj_to)
+    {
+        return 9999999;
+    }
+    return abs(obj_from->position[0] - obj_to->position[0])+ abs(obj_from->position[1] - obj_to->position[1]);
 }
 
 static void
