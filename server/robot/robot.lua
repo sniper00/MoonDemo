@@ -130,6 +130,7 @@ moon.start(function()
     moon.async(function(  )
         for _=1,config.num do
             create_user()
+            moon.co_wait(10)
         end
     end)
 
