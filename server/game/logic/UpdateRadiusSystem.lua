@@ -35,9 +35,10 @@ end
 function M:execute(entites)
     local movers = self.movers.entities
     entites:foreach(function(entity)
+        local rdsid = self.net.prepare(entity,Components.Radius)
         movers:foreach(function(other)
                 local id = other:get(Components.BaseData).id
-                self.net.send_component(id,entity,Components.Radius)
+                self.net.send_prepare(id,rdsid)
             end)
     end)
 end

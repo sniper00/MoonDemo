@@ -35,9 +35,10 @@ end
 function M:execute(entites)
     local movers = self.movers.entities
     entites:foreach(function(entity)
+        local speedid = self.net.prepare(entity,Components.Speed)
         movers:foreach(function(other)
                 local id = other:get(Components.BaseData).id
-                self.net.send_component(id,entity,Components.Speed)
+                self.net.send_prepare(id,speedid)
             end)
     end)
 end

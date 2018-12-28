@@ -30,4 +30,16 @@ M.send_component = function(uid, entity, comp)
     end
 end
 
+M.prepare =function(entity, comp)
+    local entity_id = entity:get(Components.BaseData).id
+    local c = entity:get(comp)
+    local t = {id = entity_id,data=c}
+    local comp_id = comp._id
+    return moon.prepare(MSGID.encode(comp_id,t))
+end
+
+M.send_prepare =function(uid, prepareid)
+    moon.send_prepare(gate_service,prepareid,seri.packs("S2C",uid),0,moon.PTYPE_LUA)
+end
+
 return M

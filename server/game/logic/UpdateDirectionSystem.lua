@@ -35,10 +35,12 @@ end
 function M:execute(entites)
     local movers = self.movers.entities
     entites:foreach(function(entity)
+        local dirid = self.net.prepare(entity,Components.Direction)
+        local posid = self.net.prepare(entity,Components.Position)
         movers:foreach(function(other)
                 local id = other:get(Components.BaseData).id
-                self.net.send_component(id,entity,Components.Direction)
-                self.net.send_component(id,entity,Components.Position)
+                self.net.send_prepare(id,dirid)
+                self.net.send_prepare(id,posid)
             end)
     end)
 end
