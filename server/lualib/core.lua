@@ -17,16 +17,6 @@ function core.remove_timer(timerid)
     ignore_param(timerid)
 end
 
----Pause all timer.<br>
-function core.pause_timer()
-    -- body
-end
-
----Start all timer.<br>
-function core.start_all_timer()
-    -- body
-end
-
 ---Return current millsecond.<br>
 ---@return int
 function core.millsecond()

@@ -120,8 +120,6 @@ moon.start(function()
                 if #ret ==0 then
                     create_user()
                     break
-                else
-                    print("closed")
                 end
             end
         end)

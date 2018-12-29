@@ -50,7 +50,7 @@ moon.start(function()
     --每50ms触发一次CommandUpdate,用来更新玩家位置
     local last = moon.millsecond()
 
-    moon.repeated(50,-1,function (  )
+    moon.repeated(100,-1,function (  )
         local now = moon.millsecond()
         local diff = now-last
         start.dispatch(1,(diff)/1000)

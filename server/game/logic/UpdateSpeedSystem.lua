@@ -14,7 +14,8 @@ function M:ctor(contexts, helper)
     M.super.ctor(self, contexts.game)
     self.context = contexts.game
     self.net = helper.net
-    self.movers = self.context:get_group(Matcher({Components.Mover}))
+    self.aoi = helper.aoi
+    self.idx = contexts.idx--用来根据id查询玩家entity
 end
 
 local trigger = {
@@ -33,13 +34,19 @@ function M:filter(entity)
 end
 
 function M:execute(entites)
-    local movers = self.movers.entities
     entites:foreach(function(entity)
+        local eid = entity:get(Components.BaseData).id
         local speedid = self.net.prepare(entity,Components.Speed)
-        movers:foreach(function(other)
-                local id = other:get(Components.BaseData).id
+        local near = self.aoi.get_aoi(eid)
+        if not near then
+            return
+        end
+        for _,id in pairs(near) do
+            local ne = self.idx:get_entity(id)
+            if ne:has(Components.Mover) then
                 self.net.send_prepare(id,speedid)
-            end)
+            end
+        end
     end)
 end
 

@@ -10,6 +10,9 @@ local login_service -- login 服务id
 local match_service -- 匹配服务id(暂时没有实现)
 local game_service
 
+local recv_count = 0
+local send_count = 0
+
 tcp.on("accept",function(sessionid, msg)
 	print("accept ",sessionid,msg:bytes())
 end)
@@ -20,6 +23,8 @@ tcp.on("message",function(sessionid, msg)
         tcp.close(sessionid)
         return
     end
+
+    recv_count = recv_count + 1
 
     -- 协议结构
     -- 2Byte(msgid)+data
@@ -89,6 +94,7 @@ command.S2C = function(playerid, msg)
     if not conn then
         return
     end
+    send_count = send_count + 1
     tcp.send_message(conn.sessionid,msg)
 end
 
@@ -148,6 +154,13 @@ moon.start(function()
 		local sender = msg:sender()
         local header = msg:header()
         docmd(sender, header, msg)
+    end)
+
+    moon.repeated(10000,-1,function ()
+        print("recv rate ", recv_count/10, "per second")
+        print("send rate ", send_count/10, "per second")
+        recv_count = 0
+        send_count = 0
     end)
 end)
 
