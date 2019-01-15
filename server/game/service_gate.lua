@@ -1,8 +1,8 @@
 local require = require("import")
 local moon = require("moon")
-local log = require("log")
+local log = require("moon.log")
+local tcp = require("moon.net.tcpserver")
 local seri = require("seri")
-local tcp = require("moon.tcpserver")
 local connects = require("connects")
 local MSGID = require("MSGID")
 

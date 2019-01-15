@@ -1,7 +1,7 @@
 local require = require("import")
 
 local ComponentsIndex = require("ComponentsIndex")
-local class      =  require("util").class
+local class = class or require("base.class")
 
 local M = class("NetworkInputSystem")
 

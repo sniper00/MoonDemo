@@ -7,6 +7,7 @@
         "thread": 4,
         "log": "log/#sid_#date.log",
         "loglevel": "DEBUG",
+        "path": ["./lualib/base"],
         "services": [
             {
                 "name": "gate",

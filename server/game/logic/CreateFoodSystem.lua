@@ -1,6 +1,5 @@
 local require = require("import")
-
-local class      = require("util").class
+local class = class or require("base.class")
 local entitas = require("entitas")
 local Components = require("Components")
 local ReactiveSystem = entitas.ReactiveSystem

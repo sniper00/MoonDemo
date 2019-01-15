@@ -1,6 +1,5 @@
 local require = require("import")
-
-local class = require("util").class
+local class = class or require("base.class")
 local entitas = require("entitas")
 local Components = require("Components")
 local vector2 = require("vector2")
@@ -105,40 +104,17 @@ function M:execute()
 
             dir_to_vec:mul(speed.value*delta)
 
-            local x = pos.x + dir_to_vec.x
-            local y = pos.y + dir_to_vec.y
+            local x, xout = math.clamp(pos.x + dir_to_vec.x, self.cfg.min_edge, self.cfg.max_edge)
+            local y, yout = math.clamp(pos.y + dir_to_vec.y, self.cfg.min_edge, self.cfg.max_edge)
 
-            local out_range = false
-
-            if x>self.cfg.max_edge then
-                x = self.cfg.max_edge
-                out_range = true
-                dir_to_vec.x = 0
-            end
-
-            if x<self.cfg.min_edge then
-                x = self.cfg.min_edge
-                out_range = true
-                dir_to_vec.x = 0
-            end
-
-            if y>self.cfg.max_edge then
-                y = self.cfg.max_edge
-                out_range = true
-                dir_to_vec.y = 0
-            end
-
-            if y<self.cfg.min_edge then
-                y = self.cfg.min_edge
-                out_range = true
-                dir_to_vec.y = 0
-            end
+            if xout then dir_to_vec.x = 0 end
+            if yout then dir_to_vec.y = 0 end
 
             e:replace(Components.Position, x, y)
 
             aoi.update_pos(id, "wm", x, y)
 
-            if out_range  then
+            if xout or yout  then
                 dir_to_vec:normalize()
                 e:replace(Components.Direction,dir_to_vec.x,dir_to_vec.y)
             end

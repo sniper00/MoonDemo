@@ -1,8 +1,7 @@
-local set           = require("set")
-local util           = require("util")
+local set           = require("base.set")
+local class         = class or ("base.class")
 local set_insert    = set.insert
 local set_remove    = set.remove
-local class         = util.class
 
 local AbstractEntityIndex = require("entitas.AbstractEntityIndex")
 

@@ -1,5 +1,8 @@
 
 local json = require("json")
+local seri = require("seri")
+
+local concats = seri.concats
 
 local M = {
     MsgUnknown = 0x0000,
@@ -34,7 +37,7 @@ M.encode = function (id,t)
         id = M[id]
     end
     local data = bytes[id] or pack(id)
-    return table.concat({data,json.encode(t)})
+    return concats(data,json.encode(t))
 end
 
 return M

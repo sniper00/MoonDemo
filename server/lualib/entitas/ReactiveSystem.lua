@@ -1,7 +1,6 @@
-local util = require("util")
-local array = require("array")
+local class         = class or  require("base.class")
+local array = require("base.array")
 local Collector = require("entitas.Collector")
-local class = util.class
 
 local M = class("ReactiveSystem")
 

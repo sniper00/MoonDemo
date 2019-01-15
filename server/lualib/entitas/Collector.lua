@@ -1,4 +1,4 @@
-local set           = require("set")
+local set           = require("base.set")
 local GroupEvent    = require("entitas.GroupEvent")
 local set_insert    = set.insert
 local set_remove    = set.remove

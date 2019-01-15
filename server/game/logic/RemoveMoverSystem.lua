@@ -6,7 +6,7 @@ local ReactiveSystem = entitas.ReactiveSystem
 local Matcher = entitas.Matcher
 local GroupEvent = entitas.GroupEvent
 
-local class =  require("util").class
+local class = class or require("base.class")
 
 local M = class("CreateMoverSystem", ReactiveSystem)
 

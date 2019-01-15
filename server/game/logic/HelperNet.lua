@@ -21,21 +21,20 @@ M.close =function(uid)
     moon.raw_send('lua', gate_service,seri.packs("CLOSE_CLIENT",uid))
 end
 
+local t = {id = 0,data=nil}
+
 M.send_component = function(uid, entity, comp)
     if entity:has(comp) then
-        local entity_id = entity:get(Components.BaseData).id
-        local c = entity:get(comp)
-        local t = {id = entity_id,data=c}
+        t.id = entity:get(Components.BaseData).id
+        t.data = entity:get(comp)
         moon.raw_send('lua', gate_service,seri.packs("S2C",uid),MSGID.encode(comp._id,t))
     end
 end
 
 M.prepare =function(entity, comp)
-    local entity_id = entity:get(Components.BaseData).id
-    local c = entity:get(comp)
-    local t = {id = entity_id,data=c}
-    local comp_id = comp._id
-    return moon.prepare(MSGID.encode(comp_id,t))
+    t.id = entity:get(Components.BaseData).id
+    t.data = entity:get(comp)
+    return moon.prepare(MSGID.encode(comp._id,t))
 end
 
 M.send_prepare =function(uid, prepareid)

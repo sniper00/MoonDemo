@@ -58,7 +58,7 @@ moon.start(function()
     end)
 
     moon.repeated(60000,-1,function()
-        start.printinfo()
+        --start.printinfo()
     end)
 
     moon.repeated(60000,-1,function (  )

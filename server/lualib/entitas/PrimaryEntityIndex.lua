@@ -1,5 +1,4 @@
-local util          = require("util")
-local class         = util.class
+local class         = class or  require("base.class")
 
 local AbstractEntityIndex = require("entitas.AbstractEntityIndex")
 

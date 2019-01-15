@@ -1,6 +1,6 @@
 local moon = require("moon")
 local json = require("json")
-local socket = require("moon.socket")
+local socket = require("moon.net.socket")
 local MSGID = require("game.MSGID")
 local vector2 = require("game.logic.vector2")
 
