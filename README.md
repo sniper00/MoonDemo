@@ -19,14 +19,6 @@
 
 [moon编译](https://github.com/sniper00/moon)
 
-需要用到laoi，请自行编译为lua动态库,把laoi：
-1. 在服务器源码lualib-src目录下新建文件夹laoi
-2. 把laoi目录的源码拷贝到新建的文件夹
-3. 在服务器目录下的 premake.lua 最后新加
-```lua
-add_lua_module("./lualib-src/laoi", "aoi",function()
-    language "C++"
-end)
 ```
 4. 编译
 
