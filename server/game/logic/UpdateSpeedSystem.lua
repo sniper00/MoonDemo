@@ -20,7 +20,7 @@ end
 
 local trigger = {
     {
-        Matcher({Components.Speed}),
+        Matcher({Components.Speed,Components.Mover}),
         GroupEvent.ADDED | GroupEvent.UPDATE
     }
 }
@@ -29,8 +29,10 @@ function M:get_trigger()
     return trigger
 end
 
+local all_comps = {Components.Speed,Components.Mover}
+
 function M:filter(entity)
-    return entity:has(Components.Speed)
+    return entity:has_all(all_comps)
 end
 
 function M:execute(entites)
@@ -41,9 +43,9 @@ function M:execute(entites)
         if not near then
             return
         end
-        for _,id in pairs(near) do
+        for id,_ in pairs(near) do
             local ne = self.idx:get_entity(id)
-            if ne:has(Components.Mover) then
+            if ne and ne:has(Components.Mover) then
                 self.net.send_prepare(id,speedid)
             end
         end

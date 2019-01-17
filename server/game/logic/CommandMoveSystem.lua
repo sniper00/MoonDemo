@@ -32,6 +32,7 @@ function M:filter(entity)
     return entity:has(Components.CommandMove)
 end
 
+local vec = vector2.new()
 -- Net entites
 function M:execute()
     local cmd = self.input_entity:get(Components.CommandMove)
@@ -41,7 +42,8 @@ function M:execute()
         --self.net.close(cmd.id)
         return
     end
-    local vec = vector2.new(cmd.data.x,cmd.data.y)
+    vec:set_x(cmd.data.x)
+    vec:set_y(cmd.data.y)
     vec:normalize()
     ety:replace(Components.Direction,vec.x,vec.y)
     --print("CommandMove",vec.x,vec.y)

@@ -47,6 +47,9 @@ function M:execute()
     local vec = vector2.new(x,y)
     vec:normalize()
 
+    print("add", cmd.id)
+    self.aoi.insert(cmd.id, x, y, true)
+
     mover:add(Components.Position, x, y)
     mover:add(Components.Direction,vec.x, vec.y)
     mover:add(Components.BaseData, cmd.id, cmd.data.name,spriteid)
@@ -61,7 +64,6 @@ function M:execute()
     self.net.send_component(cmd.id,mover,Components.Direction)
     self.net.send_component(cmd.id,mover,Components.Speed)
     self.net.send_component(cmd.id,mover,Components.Radius)
-
 
     self.aoi.update_message()--触发周围的玩家、Food进入视野
 end

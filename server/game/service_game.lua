@@ -33,6 +33,7 @@ end
 
 moon.init(function ( cfg )
     Helper.cfg = cfg.game
+    Helper.aoi.create(cfg.game.min_edge, cfg.game.min_edge, 2*cfg.game.max_edge,2*cfg.game.max_edge)
     return true
 end)
 
@@ -50,7 +51,7 @@ moon.start(function()
     --每50ms触发一次CommandUpdate,用来更新玩家位置
     local last = moon.millsecond()
 
-    moon.repeated(100,-1,function (  )
+    moon.repeated(50,-1,function (  )
         local now = moon.millsecond()
         local diff = now-last
         start.dispatch(1,(diff)/1000)

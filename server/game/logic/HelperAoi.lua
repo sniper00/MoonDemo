@@ -2,72 +2,69 @@ local require = require("import")
 
 local aoi = require("aoi")
 
-local M ={}
+local M = {}
 
-local space = aoi.create()
+local space
 
 local cache = {}
 
-function M.update_pos( id, mode, x, y )
-    if mode == 'd' then
-        for watcher,views in pairs(cache) do
-            if watcher ~= id then
-                if views[id] then
-                    views[id] = nil
-                    M.on_leave(watcher,id)
-                end
-            end
-        end
-        cache[id] = nil
-    end
-    space:update(id,mode,x,y,0)
+function M.create(...)
+    space = aoi.create(...)
 end
 
-local function message( watcher,  marker )
-    M.on_enter(watcher,marker)
+function M.insert(id, x, y, mover)
+    space:insert(id, x, y)
+    if mover then
+        cache[id] = {ver = 1, view = {}}
+    end
 end
+
+function M.update(...)
+    space:update(...)
+end
+
+local removed = {}
 
 function M.update_message()
-    space:message(message)
-end
-
-function M.get_aoi( id )
-    local t = cache[id]
-    if t then
-        local tmp = {}
-        for v,_ in pairs(t) do
-            table.insert( tmp, v )
+    for id, value in pairs(cache) do
+        value.ver = space:query(id, 20, 10, value.ver, value.view)
+        local index = 0
+        for oid, v in pairs(value.view) do
+            if v == value.ver + 1 then
+                M.on_enter(id, oid)
+            elseif v ~= value.ver then
+                index = index + 1
+                removed[index] = oid
+                M.on_leave(id, oid)
+            end
         end
-        return tmp
+        for i=1, index  do
+            value.view[removed[i]] = nil
+        end
     end
-    return nil
 end
 
-function M.set( watcher, marker, value)
-    local v = cache[watcher]
-    if not v then
-        v = {}
-        cache[watcher] = v
+function M.get_aoi(id)
+    if not cache[id] then
+        print("!!!", id)
+        return
     end
-    local old = v[marker]
-    if old ~= value then
-        v[marker] = value
-        return true
-    end
-    return false
+    return cache[id].view
 end
 
-function M.leave_view( watcher, marker  )
-    if M.set( watcher, marker) then
-        M.on_leave(watcher,marker)
+function M.erase(id, mover)
+    if mover then
+        print("erase", id)
+        cache[id] = nil
     end
+    return space:erase(id)
 end
 
 function M.cache_size()
     local maxcount = 0
-    for _,views in pairs(cache) do
+    for _, value in pairs(cache) do
         local n = 0
-        for _,_ in pairs(views) do
+        for _, _ in pairs(value.view) do
             n = n + 1
         end
         if n > maxcount then
@@ -75,14 +72,6 @@ function M.cache_size()
         end
     end
     return maxcount
-end
-
-function M.distance(from, to)
-    return space:distance(from, to)
-end
-
-function M.md_distance(from, to)
-    return space:md_distance(from, to)
 end
 
 return M

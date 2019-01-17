@@ -24,7 +24,9 @@
 2. 把laoi目录的源码拷贝到新建的文件夹
 3. 在服务器目录下的 premake.lua 最后新加
 ```lua
-add_lua_module("./lualib-src/laoi", "aoi")
+add_lua_module("./lualib-src/laoi", "aoi",function()
+    language "C++"
+end)
 ```
 4. 编译
 

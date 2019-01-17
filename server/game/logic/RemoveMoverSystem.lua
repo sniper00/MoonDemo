@@ -38,8 +38,7 @@ function M:execute()
 
     local e = self.idx:get_entity(cmd.id)
     if e then
-        local npos = e:get(Components.Position)
-        self.aoi.update_pos(cmd.id, "d", npos.x, npos.y)
+        self.aoi.erase(cmd.id,true)
         self.aoi.update_message()
         self.context:destroy_entity(e)
     end

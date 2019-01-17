@@ -99,19 +99,25 @@ M.printinfo = function(  )
     print("context game entitas size:",contexts.game:entity_size())
     print("context game entity_pool size:",#contexts.game._entities_pool)
     print("helper aoi cache size:",Helper.aoi.cache_size())
-    local alltable,maxtable = print_table_size(contexts.game)
-    local cache = {}
-    for i=1,5 do
-        local t = maxtable[i]
-        table.insert(cache,"####")
-        table.insert(cache,t.key)
-        table.insert(cache,"####")
-        table.insert(cache," [")
-        table.insert(cache,tostring(t.count))
-        table.insert(cache,"]")
-        table.insert(cache,"\n")
+
+    local n = 0
+    for _,_ in pairs(contexts.idx._indexes) do
+        n = n + 1
     end
-    print(table.concat(cache))
+    print("index size:",n)
+    -- local alltable,maxtable = print_table_size(contexts.game)
+    -- local cache = {}
+    -- for i=1,5 do
+    --     local t = maxtable[i]
+    --     table.insert(cache,"####")
+    --     table.insert(cache,t.key)
+    --     table.insert(cache,"####")
+    --     table.insert(cache," [")
+    --     table.insert(cache,tostring(t.count))
+    --     table.insert(cache,"]")
+    --     table.insert(cache,"\n")
+    -- end
+    -- print(table.concat(cache))
 end
 
 return M

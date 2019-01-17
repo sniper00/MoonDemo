@@ -37,7 +37,7 @@ local function send(session,data)
     return session:send(string.pack(">H",len)..data)
 end
 
-local function session_hander( session,bauth,authdata)
+local function session_hander( session, bauth, authdata)
     if bauth then
         username = username + 1
         local c2slogin = MSGID.encode(MSGID.C2SLogin,{username = "user"..tostring(username)})

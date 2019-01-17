@@ -60,10 +60,6 @@ function M:on_enter( watcher, marker )
         return
     end
 
-    if not aoi.set(watcher,marker,true) then
-        return
-    end
-
     self.net.send(watcher, "S2CEnterView", {id = marker})
     if oe:has(Components.Mover) then
         self.net.send_component(watcher,oe,Components.Speed)
@@ -84,7 +80,7 @@ function M:on_leave( watcher, marker )
         self.net.send(watcher,'S2CLeaveView',{id=marker})
         --print("LeaveView", marker,"->",watcher)
     else
-        print("on_leave_failed not found",marker)
+        print("on_leave_failed not found",watcher)
     end
 end
 
@@ -112,7 +108,7 @@ function M:execute()
 
             e:replace(Components.Position, x, y)
 
-            aoi.update_pos(id, "wm", x, y)
+            aoi.update(id, x, y)
 
             if xout or yout  then
                 dir_to_vec:normalize()
@@ -135,6 +131,7 @@ function M:execute()
 
             local id = e:get(Components.BaseData).id
             local radius = e:get(Components.Radius).value
+            local pos = e:get(Components.Position)
 
             local near = aoi.get_aoi(id)
             if not near then
@@ -150,22 +147,22 @@ function M:execute()
             end
 
             local eat = 0
-            for _, m in pairs(near) do
+            for m, _ in pairs(near) do
                 local ne = self.idx:get_entity(m)
                 if ne and not ne:has(Components.Dead) then
                     local nradius = ne:get(Components.Radius).value
-                    local nid = ne:get(Components.BaseData).id
+                    local npos = ne:get(Components.Position)
 
-                    local mdist = aoi.md_distance(id,nid)
+                    local mdist = math.abs(pos.x - npos.x) + math.abs(pos.y - npos.y)
 
-                    if mdist < 1.5*(radius + nradius) then
-                        local distance = aoi.distance(id,nid)
+                    if mdist < 2*(radius + nradius) then
+                        local distance = math.sqrt((pos.x - npos.x)^2 + (pos.y - npos.y)^2 )
 
                         if nradius > max_radius then
                             max_radius = nradius
                         end
 
-                        if distance < (radius + nradius)^2 then
+                        if distance < (radius + nradius) then
                             if radius < nradius then
                                 break
                             elseif radius > nradius then
@@ -173,8 +170,6 @@ function M:execute()
                                 ne:replace(Components.Dead)--玩家死亡，给玩家添加Dead Component
                             end
                         end
-                    elseif mdist > 15 then
-                        aoi.leave_view(id,nid)
                     end
                 end
             end
