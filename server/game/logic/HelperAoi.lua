@@ -30,9 +30,9 @@ function M.update_message()
         value.ver = space:query(id, 20, 10, value.ver, value.view)
         local index = 0
         for oid, v in pairs(value.view) do
-            if v == value.ver + 1 then
+            if v == value.ver then
                 M.on_enter(id, oid)
-            elseif v ~= value.ver then
+            elseif v ~= (value.ver -1) then
                 index = index + 1
                 removed[index] = oid
                 M.on_leave(id, oid)
