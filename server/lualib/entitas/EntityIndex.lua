@@ -14,7 +14,7 @@ end
 function M:get_entities(key)
     --print("key", key)
     if not self._indexes[key] then
-        self._indexes[key] = set.new()
+        self._indexes[key] = set.new(true)
     end
     return self._indexes[key]
 end

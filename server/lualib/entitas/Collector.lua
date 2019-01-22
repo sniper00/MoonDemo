@@ -8,7 +8,7 @@ M.__index = M
 
 function M.new(groups)
     local tb = {}
-    tb.entities = set.new()
+    tb.entities = set.new(true)
     tb._groups = groups
     tb.add_entity = function(...) return tb._add_entity(tb, ...) end
     tb.remove_entity = function(...) return tb._remove_entity(tb, ...) end

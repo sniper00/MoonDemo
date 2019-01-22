@@ -1,5 +1,5 @@
 
-local math_floor = math.floor
+local floor = math.floor
 
 function checknumber(value, base)
     return tonumber(value, base) or 0
@@ -7,7 +7,7 @@ end
 
 function checkint(value)
     value = tonumber(value) or 0
-    return math_floor(value + 0.5)
+    return floor(value + 0.5)
 end
 
 function checkbool(value)
