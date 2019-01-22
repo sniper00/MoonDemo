@@ -1,4 +1,3 @@
-local class         = class or  require("base.class")
 local array = require("base.array")
 local Collector = require("entitas.Collector")
 

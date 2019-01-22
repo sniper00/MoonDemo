@@ -1,5 +1,3 @@
-local class         = class or  require("base.class")
-
 local AbstractEntityIndex = require("entitas.AbstractEntityIndex")
 
 local M = class("PrimaryEntityIndex", AbstractEntityIndex)

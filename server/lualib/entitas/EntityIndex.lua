@@ -1,5 +1,4 @@
 local set           = require("base.set")
-local class         = class or ("base.class")
 local set_insert    = set.insert
 local set_remove    = set.remove
 

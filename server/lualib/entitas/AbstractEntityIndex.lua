@@ -1,5 +1,3 @@
-local class = class or require("base.class")
-
 --- for luacheck warn: unused params
 local ignore_param = function()end
 

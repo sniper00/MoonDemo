@@ -1,7 +1,6 @@
 local require = require("import")
 
 local Components = require('Components')
-local class = class or require("base.class")
 local M = class("FoodInitSystem")
 
 function M:ctor(contexts,helper)

@@ -6,8 +6,6 @@ local ReactiveSystem = entitas.ReactiveSystem
 local Matcher = entitas.Matcher
 local GroupEvent = entitas.GroupEvent
 
-local class = class or require("base.class")
-
 local M = class("UpdateSpeedSystem", ReactiveSystem)
 
 function M:ctor(contexts, helper)

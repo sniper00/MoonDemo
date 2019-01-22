@@ -1,3 +1,4 @@
+require("base.class")
 return {
     AbstractEntityIndex = require("entitas.AbstractEntityIndex"),
     Collector = require("entitas.Collector"),
