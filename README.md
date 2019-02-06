@@ -19,9 +19,6 @@
 
 [moon编译](https://github.com/sniper00/moon)
 
-```
-4. 编译
-
 # 简介
 服务端使用了 [Entitas lua版](https://github.com/sniper00/entitas-lua),有些改动，原版Matcher会匹配 任意组件发生变化的Entity,不太适合服务端编写，这里做了改动，Matcher感兴趣的组件发生变化的Entity.
 
