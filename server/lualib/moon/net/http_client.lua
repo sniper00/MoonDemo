@@ -1,4 +1,4 @@
-local moon = require("moon")
+local http = require("http")
 local seri = require("seri")
 local socket = require("moon.net.socket")
 
@@ -18,7 +18,7 @@ local function read_chunked(session, chunkdata)
     if not data then
         return false,err
     end
-    local length = tonumber(data)
+    local length = tonumber(data,"16")
     if not length then
         return false, "protocol error"
     end
@@ -34,22 +34,24 @@ local function read_chunked(session, chunkdata)
         end
     elseif length <0 then
         return false, "protocol error"
+    else
+        return "E"
     end
     return true
 end
 
-local function response_handler(conn,parser)
+local function response_handler(conn,response)
     local data, err = conn:co_read("\r\n\r\n")
     if not data then
         return false, err
     else
         --print("raw data",data)
-        if parser:parse(data) == -1 then
-            return false, "header parser error"
+        if response:parse(data) == -1 then
+            return false, "header response error"
         end
 
-        if parser:has_header("Content-Length") then
-            local content_length = tonumber(parser:header("Content-Length"))
+        if response:has_header("Content-Length") then
+            local content_length = tonumber(response:header("Content-Length"))
             if not content_length then
                 return false, "Content-Length is not number"
             end
@@ -59,11 +61,20 @@ local function response_handler(conn,parser)
                 return false,err
             end
             return data
-        elseif parser:header("Transfer-Encoding") == 'chunked' then
+        elseif response:header("Transfer-Encoding") == 'chunked' then
             local chunkdata = {}
+            while true do
             local result,errmsg = read_chunked(conn,chunkdata)
             if not result then
                 return false,errmsg
+            end
+                if result == "E" then
+                    break
+                end
+            end
+            data, err = conn:co_read('\r\n')
+            if not data then
+                return false,err
             end
             return table.concat( chunkdata )
         end
@@ -126,7 +137,7 @@ function M:request( method,path,content,header)
         end
     end
 
-    if #content > 0 then
+    if content and #content > 0 then
         header = header or {}
         local v = header["Content-Length"]
         if not v then
@@ -153,17 +164,17 @@ function M:request( method,path,content,header)
             return false,err
         end
         self.conn = conn
-        self.parser = moon.http_response_parser.new()
+        self.response = http.response.new()
     end
 
     --print(seri.concats(cache))
     self.conn:send(seri.concat(cache))
 
-    local data,err = response_handler(self.conn,self.parser)
+    local data,err = response_handler(self.conn,self.response)
     if not data then
         return false, err
     end
-    return self.parser,data
+    return self.response,data
 end
 
 return M

@@ -7,7 +7,8 @@ local pairs = pairs
 local setmetatable = setmetatable
 local tonumber = tonumber
 local tostring = tostring
-
+local select = select
+local rawget = rawget
 local seri	= require("seri")
 local moon	= require("moon")
 local socket = require("moon.net.socket")
@@ -30,6 +31,7 @@ local common_cmds = {
 	"linsert", -- Lists
 	"hexists",
 	"hget",
+	"hgetall",
 	"hset",
 	"hmget",
 	--[[ "hmset", ]]

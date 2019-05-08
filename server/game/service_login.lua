@@ -47,7 +47,7 @@ end
 
 moon.start(function()
 
-	gate_service = moon.unique_service("gate")
+	gate_service = moon.queryservice("gate")
 
     moon.dispatch('lua',function(msg,_)
 		local sender = msg:sender()

@@ -10,6 +10,7 @@ local core = require("moon.core")
 local json = require("json")
 local seri = require("seri")
 
+local pairs = pairs
 local json_encode = json.encode
 local json_decode = json.decode
 local co_create = coroutine.create
@@ -77,8 +78,6 @@ local protocol = {}
 
 local services_exited = {}
 local response_wacther = {}
-
-local waitallco = {}
 
 local function co_resume(co, ...)
     local ok, err = _co_resume(co, ...)
@@ -150,7 +149,7 @@ end
 local function _default_dispatch(msg, PTYPE)
     local p = protocol[PTYPE]
     if not p then
-        error(string.format( "handle unknown PTYPE: %s",PTYPE))
+        error(string.format( "handle unknown PTYPE: %s. sender %u",PTYPE, msg:sender()))
     end
 
     local responseid = msg:responseid()
@@ -158,16 +157,16 @@ local function _default_dispatch(msg, PTYPE)
         response_wacther[responseid] = nil
         local co = resplistener[responseid]
         if co then
+            resplistener[responseid] = nil
             --print(coroutine.status(co))
             co_resume(co, p.unpack(msg))
             --print(coroutine.status(co))
-            resplistener[responseid] = nil
             return
         end
-        error(string.format( "response [%u] can not find co", responseid))
+        error(string.format( "%s: response [%u] can not find co.",moon.name(), responseid))
 	else
         if not p.dispatch then
-			error(string.format( "[%s] dispatch null [%u]",moon.name(), p.PTYPE))
+			error(string.format( "[%s] dispatch PTYPE [%u] is nil",moon.name(), p.PTYPE))
 			return
         end
         p.dispatch(msg, p)
@@ -205,10 +204,10 @@ end
 ---param receiver:接收者服务id<br>
 ---param header:message header<br>
 ---param data 消息内容 string 类型<br>
----@param PTYPE string
----@param receiver int
----@param header string
----@param data string|userdata
+---@param PTYPE string 协议类型
+---@param receiver int 接收者服务id
+---@param header string message header
+---@param data string|userdata 消息内容
 ---@param responseid int
 ---@return boolean
 function moon.raw_send(PTYPE, receiver, header, data, responseid)
@@ -235,7 +234,7 @@ end
 ---创建一个新的服务<br>
 ---param stype 服务类型，根据所注册的服务类型，可选有 'lua'<br>
 ---param config 服务的启动配置，数据类型table, 可以用来向服务传递初始化配置(moon.init)<br>
----param unique 是否是唯一服务，唯一服务可以用moon.unique_service(name) 查询服务id<br>
+---param unique 是否是唯一服务，唯一服务可以用moon.queryservice(name) 查询服务id<br>
 ---param shared 可选，是否共享工作者线程，默认true<br>
 ---workerid 可选，工作者线程ID,在指定工作者线程创建该服务。默认0,服务将轮询加入工作者
 ---线程中<br>
@@ -290,21 +289,17 @@ end
 ---根据服务name获取服务id,注意只能查询创建时配置unique=true的服务
 ---@param name string
 ---@return int
-function moon.unique_service(name)
+function moon.queryservice(name)
 	if type(name)=='string' then
-		return core.unique_service(name)
+		return core.queryservice(name)
 	end
 	return name
 end
 
----@param name string
----@param id int
-function moon.set_unique_service(name,id)
-	core.set_unique_service(name,id)
-end
-
 -------------------------协程操作封装--------------------------
 local co_pool = setmetatable({}, {__mode = "kv"})
+
+local waitallco = setmetatable({}, {__mode = "k"})
 
 local function check_wait_all( ... )
     local co = co_running()
@@ -321,11 +316,11 @@ local function check_wait_all( ... )
     return co
 end
 
-local function routine(func)
+local function routine(f)
     while true do
-        local co = check_wait_all(func())
+        local co = check_wait_all(f())
         co_pool[#co_pool + 1] = co
-        func = co_yield()
+        f = co_yield()
     end
 end
 
@@ -357,6 +352,10 @@ function moon.wait_all( ... )
         end
     end
     return co_yield()
+end
+
+function moon.coroutine_num()
+    return #co_pool
 end
 
 --------------------------timer-------------
@@ -449,6 +448,7 @@ end
 ---@param receiver int
 ---@param responseid int
 function moon.response(PTYPE, receiver, responseid, ...)
+    if responseid == 0 then return end
     local p = protocol[PTYPE]
     if not p then
         error("handle unknown message")
@@ -545,6 +545,61 @@ reg_protocol {
     end
 }
 
+local system_command = {}
+
+local ref_services = {}
+
+--- mark a service, should not exit before this service
+moon.retain =function(name)
+    local id = moon.queryservice(name)
+    moon.send("system", id, "retain", moon.name())
+end
+
+moon.release =function(name)
+    local id = moon.queryservice(name)
+    moon.send("system", id, "release", moon.name())
+end
+
+moon.co_wait_exit = function()
+    while true do
+        local num = 0
+        for _,_ in pairs(ref_services) do
+            num=num+1
+        end
+        if num ==0 then
+            break
+        else
+            moon.co_wait(100)
+        end
+    end
+    moon.removeself()
+end
+
+system_command.exit = function(sender, msg)
+    local data = msg:bytes()
+    services_exited[sender] = true
+    for k, v in pairs(response_wacther) do
+        if v == sender then
+            local co = resplistener[k]
+            if co then
+                co_resume(co, false, data)
+                resplistener[k] = nil
+                return
+            end
+        end
+    end
+end
+
+system_command.retain = function(_, msg)
+    local data = msg:bytes()
+    ref_services[data] = true
+end
+
+system_command.release = function(_, msg)
+    local data = msg:bytes()
+    ref_services[data] = nil
+end
+
 reg_protocol {
     name = "system",
     PTYPE = PTYPE_SYSTEM,
@@ -561,21 +616,10 @@ reg_protocol {
     dispatch = function(msg, _)
         local sender = msg:sender()
         local header = msg:header()
-        if header == "exit" then
-            local data = msg:bytes()
-            services_exited[sender] = true
-            for k, v in pairs(response_wacther) do
-                if v == sender then
-                    local co = resplistener[k]
-                    if co then
-                        co_resume(co, false, data)
-                        resplistener[k] = nil
-                        return
-                    end
-                end
-            end
+        local func = system_command[header]
+        if func then
+            func(sender, msg)
         end
-        return true
     end
 }
 

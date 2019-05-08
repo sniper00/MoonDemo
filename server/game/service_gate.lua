@@ -146,9 +146,9 @@ end
 ------------------------------------
 
 moon.start(function()
-    login_service = moon.unique_service("login")
-    match_service = moon.unique_service("match")
-    game_service = moon.unique_service("game")
+    login_service = moon.queryservice("login")
+    match_service = moon.queryservice("match")
+    game_service = moon.queryservice("game")
 
     moon.dispatch('lua',function(msg,p)
 		local sender = msg:sender()

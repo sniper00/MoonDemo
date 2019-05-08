@@ -33,6 +33,10 @@ function M.size(self)
     return self._cur
 end
 
+function M.data(self)
+    return self._data
+end
+
 function M.foreach(self,f)
     for i=1,self._cur do
         f(self._data[i])
