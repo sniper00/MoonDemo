@@ -36,7 +36,7 @@ end
 function M:execute(entites)
     entites:foreach(function(entity)
         local eid = entity:get(Components.BaseData).id
-        local speedid = self.net.prepare(entity,Components.Speed)
+        local speedid = self.net.make_prefab(entity,Components.Speed)
         local near = self.aoi.get_aoi(eid)
         if not near then
             return
@@ -44,7 +44,7 @@ function M:execute(entites)
         for id,_ in pairs(near) do
             local ne = self.idx:get_entity(id)
             if ne and ne:has(Components.Mover) then
-                self.net.send_prepare(id,speedid)
+                self.net.send_prefab(id,speedid)
             end
         end
     end)

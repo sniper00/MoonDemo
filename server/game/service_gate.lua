@@ -1,7 +1,7 @@
 local require = require("import")
 local moon = require("moon")
 local log = require("moon.log")
-local tcp = require("moon.net.tcpserver")
+local socket = require("moon.socket")
 local seri = require("seri")
 local connects = require("connects")
 local MSGID = require("MSGID")
@@ -13,14 +13,14 @@ local game_service
 local recv_count = 0
 local send_count = 0
 
-tcp.on("accept",function(sessionid, msg)
-	print("accept ",sessionid,msg:bytes())
+socket.on("accept",function(fd, msg)
+	print("accept ",fd,msg:bytes())
 end)
 
-tcp.on("message",function(sessionid, msg)
+socket.on("message",function(fd, msg)
     if msg:size() < 2 then
         -- 消息数据非法，没有消息ID
-        tcp.close(sessionid)
+        socket.close(fd)
         return
     end
 
@@ -31,16 +31,16 @@ tcp.on("message",function(sessionid, msg)
     -- 获取消息ID
     local id = string.unpack("<H",msg:substr(0,2))
 
-    local conn = connects.find(sessionid)
+    local conn = connects.find(fd)
     if not conn then --玩家没有login
         --玩家必须先login
         if id&0xFF00 ~= 0x0100 then
-            log.warn("CLIENT %u SEND invalid message %d, will close. not login",sessionid,id)
-            tcp.close(sessionid)
+            log.warn("CLIENT %u SEND invalid message %d, will close. not login",fd,id)
+            socket.close(fd)
             return
         end
 
-        local ctx = seri.packs("login",sessionid)
+        local ctx = seri.packs("login",fd)
         --登陆流程step1 转发给login service
         msg:redirect(ctx,login_service,moon.PTYPE_LUA)
         return
@@ -59,14 +59,14 @@ tcp.on("message",function(sessionid, msg)
     end
 
     --收到非法数据
-	log.warn("CLIENT %u SEND invalid message %d, will close.",sessionid,id)
-    tcp.close(sessionid)
+	log.warn("CLIENT %u SEND invalid message %d, will close.",fd,id)
+    socket.close(fd)
 end)
 
-tcp.on("close",function(sessionid, msg)
-    print("close ",sessionid, msg:bytes())
+socket.on("close",function(fd, msg)
+    print("close ",fd, msg:bytes())
 
-    local conn = connects.find(sessionid)
+    local conn = connects.find(fd)
     if not conn then
         return
     end
@@ -78,11 +78,11 @@ tcp.on("close",function(sessionid, msg)
 
     moon.send('lua', game_service,ctx,"")
 
-    connects.remove(sessionid)
+    connects.remove(fd)
 end)
 
-tcp.on("error",function(sessionid, msg)
-	print("error ",sessionid, msg:bytes())
+socket.on("error",function(fd, msg)
+	print("error ",fd, msg:bytes())
 end)
 
 -----------------服务间消息处理-------------------
@@ -95,7 +95,7 @@ command.S2C = function(playerid, msg)
         return
     end
     send_count = send_count + 1
-    tcp.send_message(conn.sessionid,msg)
+    socket.write_message(conn.fd,msg)
 end
 
 command.CLOSE_CLIENT = function(playerid)
@@ -103,16 +103,16 @@ command.CLOSE_CLIENT = function(playerid)
     if not conn then
         return
     end
-    tcp.close(conn.sessionid)
+    socket.close(conn.fd)
 end
 
--- 登陆流程step3，gate 保存playerid-sessionid 映射
+-- 登陆流程step3，gate 保存playerid-fd 映射
 command.login_res = function(_, msg)
     local data = seri.unpack(msg:bytes())
     if data.ret == "OK" then
-        connects.set(data.sessionid,data.playerid)
+        connects.set(data.fd,data.playerid)
     else
-        log.warn("session %d login failed %s",data.sessionid, data.ret)
+        log.warn("fd %d login failed %s",data.fd, data.ret)
     end
 
     -- 登陆结果返回给客户端
@@ -121,7 +121,7 @@ command.login_res = function(_, msg)
         uid = data.playerid
     }
 
-    tcp.send(data.sessionid, MSGID.encode(MSGID.S2CLogin,S2CLogin))
+    socket.write(data.fd, MSGID.encode(MSGID.S2CLogin,S2CLogin))
 end
 
 -- command.set_room_id = function(playerid, msg)
@@ -145,23 +145,35 @@ local function docmd(sender,header,msg)
 end
 ------------------------------------
 
-moon.start(function()
-    login_service = moon.unique_service("login")
-    match_service = moon.unique_service("match")
-    game_service = moon.unique_service("game")
+moon.init(function(conf)
+    moon.start(function()
+        login_service = moon.queryservice("login")
+        match_service = moon.queryservice("match")
+        game_service = moon.queryservice("game")
 
-    moon.dispatch('lua',function(msg,p)
-		local sender = msg:sender()
-        local header = msg:header()
-        docmd(sender, header, msg)
-    end)
+        moon.dispatch('lua',function(msg,p)
+            local sender = msg:sender()
+            local header = msg:header()
+            docmd(sender, header, msg)
+        end)
 
-    moon.repeated(10000,-1,function ()
-        print("recv rate ", recv_count/10, "per second")
-        print("send rate ", send_count/10, "per second")
-        recv_count = 0
-        send_count = 0
+        moon.repeated(10000,-1,function ()
+            print("recv rate ", recv_count/10, "per second")
+            print("send rate ", send_count/10, "per second")
+            recv_count = 0
+            send_count = 0
+        end)
+
+        local listenfd = socket.listen(conf.host,conf.port,moon.PTYPE_SOCKET)
+        socket.start(listenfd)
+
+        moon.destroy(function()
+            socket.close(listenfd)
+        end)
     end)
+    return true
 end)
+
+
 
 

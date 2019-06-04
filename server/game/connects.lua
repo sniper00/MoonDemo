@@ -1,19 +1,19 @@
 
 local M = {}
 
-local map_sessions = {}
+local map_fd = {}
 local map_players = {}
 
-function M.set(sessionid, playerid)
-    assert(not map_sessions[sessionid])
+function M.set(fd, playerid)
+    assert(not map_fd[fd])
     assert(not map_players[playerid])
     local conn = {
-        sessionid = sessionid,
+        fd = fd,
         playerid = playerid,
         roomid = 0
     }
 
-    map_sessions[sessionid] = conn
+    map_fd[fd] = conn
     map_players[playerid] = conn
 end
 
@@ -24,10 +24,10 @@ function M.set_roomid(playerid, roomid)
     end
 end
 
-function M.remove( sessionid )
-    local conn = map_sessions[sessionid]
+function M.remove( fd )
+    local conn = map_fd[fd]
     if conn then
-        map_sessions[sessionid] = nil
+        map_fd[fd] = nil
         map_players[conn.playerid] = nil
     end
 end
@@ -35,13 +35,13 @@ end
 function M.remove_by_player( playerid )
     local conn = map_players[playerid]
     if conn then
-        map_sessions[conn.sessionid] = nil
+        map_fd[conn.fd] = nil
         map_players[playerid] = nil
     end
 end
 
-function M.find( sessionid )
-    return  map_sessions[sessionid]
+function M.find( fd )
+    return  map_fd[fd]
 end
 
 function M.find_by_player( playerid )

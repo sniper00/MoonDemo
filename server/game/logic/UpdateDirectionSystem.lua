@@ -36,10 +36,10 @@ end
 function M:execute(entites)
     entites:foreach(function(entity)
         local eid = entity:get(Components.BaseData).id
-        local dirid = self.net.prepare(entity,Components.Direction)
-        local posid = self.net.prepare(entity,Components.Position)
-        self.net.send_prepare(eid,dirid)
-        self.net.send_prepare(eid,posid)
+        local dirid = self.net.make_prefab(entity,Components.Direction)
+        local posid = self.net.make_prefab(entity,Components.Position)
+        self.net.send_prefab(eid,dirid)
+        self.net.send_prefab(eid,posid)
         local near = self.aoi.get_aoi(eid)
         if not near then
             return
@@ -47,8 +47,8 @@ function M:execute(entites)
         for id,_ in pairs(near) do
             local ne = self.idx:get_entity(id)
             if ne and ne:has(Components.Mover) then
-                self.net.send_prepare(id,dirid)
-                self.net.send_prepare(id,posid)
+                self.net.send_prefab(id,dirid)
+                self.net.send_prefab(id,posid)
             end
         end
     end)

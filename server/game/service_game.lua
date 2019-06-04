@@ -38,7 +38,7 @@ moon.init(function ( cfg )
 end)
 
 moon.start(function()
-    HelperNet.set_gate_service(moon.unique_service("gate"))
+    HelperNet.set_gate_service(moon.queryservice("gate"))
 
     moon.dispatch('lua',function(msg,_)
 		local sender = msg:sender()

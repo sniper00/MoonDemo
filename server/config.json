@@ -13,12 +13,8 @@
                 "name": "gate",
                 "file": "service_gate.lua",
                 "unique": true,
-                "network": {
-                    "name": "network",
-                    "type": "listen",
-                    "ip": "#inner_host",
-                    "port": "22345"
-                }
+                "host": "#inner_host",
+                "port": 22345
             },
             {
                 "name": "login",
@@ -54,8 +50,8 @@
                 "name": "robot",
                 "file": "robot.lua",
                 "unique": true,
-                "ip": "#inner_host",
-                "port": "22345",
+                "host": "#inner_host",
+                "port": 22345,
                 "num": 100
             }
         ]

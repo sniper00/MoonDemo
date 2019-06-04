@@ -22,9 +22,9 @@ local function docmd(_,header,msg)
 end
 
 --登陆流程step2 进行认证，并返回给gate_service
-command.login = function(sessionid, msg)
+command.login = function(fd, msg)
 	local data = json.decode(msg:substr(2,-1))
-	local res = {ret="OK",sessionid=sessionid,playerid=0}
+	local res = {ret="OK",fd=fd,playerid=0}
 	if login_state[data.username]  then
 		res.ret="ONLINE"
 	else
@@ -47,7 +47,7 @@ end
 
 moon.start(function()
 
-	gate_service = moon.unique_service("gate")
+	gate_service = moon.queryservice("gate")
 
     moon.dispatch('lua',function(msg,_)
 		local sender = msg:sender()

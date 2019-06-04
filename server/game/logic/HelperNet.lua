@@ -31,14 +31,14 @@ M.send_component = function(uid, entity, comp)
     end
 end
 
-M.prepare =function(entity, comp)
+M.make_prefab =function(entity, comp)
     t.id = entity:get(Components.BaseData).id
     t.data = entity:get(comp)
-    return moon.prepare(MSGID.encode(comp._id,t))
+    return moon.make_prefab(MSGID.encode(comp._id,t))
 end
 
-M.send_prepare =function(uid, prepareid)
-    moon.send_prepare(gate_service,prepareid,seri.packs("S2C",uid),0,moon.PTYPE_LUA)
+M.send_prefab =function(uid, prefabid)
+    moon.send_prefab(gate_service,prefabid,seri.packs("S2C",uid),0,moon.PTYPE_LUA)
 end
 
 return M
