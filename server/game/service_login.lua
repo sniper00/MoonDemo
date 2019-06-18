@@ -34,10 +34,10 @@ command.login = function(fd, msg)
 		map_playerid_username[res.playerid] = data.username
 		uuid=uuid+1
 	end
-	moon.raw_send('lua', gate_service,seri.packs("login_res"),seri.pack(res))
+	moon.raw_send('lua', gate_service,seri.packs("login"),seri.pack(res))
 end
 
-command.client_close = function(playerid, _)
+command.logout = function(playerid, _)
 	local username = map_playerid_username[playerid]
 	if username then
 		login_state[username] = nil

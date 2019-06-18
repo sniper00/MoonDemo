@@ -18,7 +18,7 @@ M.send =function(uid, msgid, mdata)
 end
 
 M.close =function(uid)
-    moon.raw_send('lua', gate_service,seri.packs("CLOSE_CLIENT",uid))
+    moon.raw_send('lua', gate_service,seri.packs("logout",uid))
 end
 
 local t = {id = 0,data=nil}
@@ -27,14 +27,14 @@ M.send_component = function(uid, entity, comp)
     if entity:has(comp) then
         t.id = entity:get(Components.BaseData).id
         t.data = entity:get(comp)
-        moon.raw_send('lua', gate_service,seri.packs("S2C",uid),MSGID.encode(comp._id,t))
+        moon.raw_send('lua', gate_service,seri.packs("S2C",uid),MSGID.encode(Components.GetID(comp),t))
     end
 end
 
 M.make_prefab =function(entity, comp)
     t.id = entity:get(Components.BaseData).id
     t.data = entity:get(comp)
-    return moon.make_prefab(MSGID.encode(comp._id,t))
+    return moon.make_prefab(MSGID.encode(Components.GetID(comp),t))
 end
 
 M.send_prefab =function(uid, prefabid)

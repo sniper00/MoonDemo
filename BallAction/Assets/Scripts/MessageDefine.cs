@@ -16,7 +16,7 @@ public class S2CLogin
 }
 
 [System.Serializable]
-public class C2SEnterRoom
+public class CommandCreate
 {
     public string username;
 }
@@ -28,7 +28,7 @@ public class S2CEnterRoom
 }
 
 [System.Serializable]
-public class C2SCommandMove
+public class CommandMove
 {
     public float x;
     public float y;
@@ -53,54 +53,54 @@ public class S2CDead
 }
 
 [System.Serializable]
-public class S2CMover
+public class Mover
 {
     public int id;
 }
 
 [System.Serializable]
-public class S2CFood
+public class Food
 {
     public int id;
 }
 
 [System.Serializable]
-public class S2CBaseData
+public class BaseData
 {
     public int id;
     public Component.BaseData data;
 }
 
 [System.Serializable]
-public class S2CPosition
+public class Position
 {
     public int id;
     public Component.Position data;
 }
 
 [System.Serializable]
-public class S2CDirection
+public class Direction
 {
     public int id;
     public Vector2 data;
 }
 
 [System.Serializable]
-public class S2CSpeed
+public class Speed
 {
     public int id;
     public Component.Speed data;
 }
 
 [System.Serializable]
-public class S2CColor
+public class Color
 {
     public int id;
     public Component.Color data;
 }
 
 [System.Serializable]
-public class S2CRadius
+public class Radius
 {
     public int id;
     public Component.Radius data;

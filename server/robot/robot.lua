@@ -51,7 +51,7 @@ local function client_handler( fd, bauth, authdata)
         authdata = data
     end
 
-    local c2s_enterroom = MSGID.encode(MSGID.C2SEnterRoom,{username = authdata.username})
+    local c2s_enterroom = MSGID.encode(MSGID.CommandCreate,{username = authdata.username})
     if not c2s_enterroom then
         print("MSGID.C2SEnterRoom encode error")
         return
@@ -65,7 +65,7 @@ local function client_handler( fd, bauth, authdata)
         vec2:set_x(x)
         vec2:set_y(y)
         vec2:normalize()
-        local c2s_move = MSGID.encode(MSGID.C2SCommandMove,{x = vec2.x,y=vec2.y})
+        local c2s_move = MSGID.encode(MSGID.CommandMove,{x = vec2.x,y=vec2.y})
         if not c2s_move then
             print("MSGID.C2SCommandMove encode error")
             moon.remove_timer(trid)

@@ -1,6 +1,5 @@
 local require = require("import")
-
-local ComponentsIndex = require("ComponentsIndex")
+local Components = require("Components")
 
 local M = class("NetworkInputSystem")
 
@@ -9,7 +8,7 @@ function M:ctor(contexts)
 end
 
 function M:dispatch(id,...)
-    local comp = ComponentsIndex[id]
+    local comp = Components.GetComponent(id)
     assert(comp,"unknown comp "..string.format( "0x%04x",id))
     self.input_entity:replace(comp,...)
     --print("net_input",comp)

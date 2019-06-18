@@ -95,7 +95,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CMover>(v => {
+        Network.Register<Mover>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -103,7 +103,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CFood>(v => {
+        Network.Register<Food>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -111,7 +111,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CBaseData>(v => {
+        Network.Register<BaseData>(v => {
             Entity e;
             if(entitas.TryGetValue(v.id,out e))
             {
@@ -148,7 +148,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CPosition>(v => {
+        Network.Register<Position>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -161,7 +161,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CDirection>(v => {
+        Network.Register<Direction>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -169,7 +169,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CSpeed>(v => {
+        Network.Register<Speed>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -177,7 +177,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CColor>(v => {
+        Network.Register<Color>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -185,7 +185,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CRadius>(v => {
+        Network.Register<Radius>(v => {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
@@ -195,7 +195,7 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Send(new C2SEnterRoom { username = UserData.username });
+        Network.Send(new CommandCreate { username = UserData.username });
     }
 
     void SetLocalPosition(Vector2 pos)
@@ -219,7 +219,7 @@ public class Game : MonoBehaviour {
             var dir = target - local.Go.transform.localPosition;
             dir.Normalize();
             local.Direction = dir;
-            Network.Send(new C2SCommandMove { x = dir.x,y= dir.y });
+            Network.Send(new CommandMove { x = dir.x,y= dir.y });
             //Debug.LogFormat("dir {0} {1}", local.Direction.x, local.Direction.y);
         }
 

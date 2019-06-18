@@ -6,6 +6,7 @@ local json = require("json")
 local start = require("logic.Start")
 local HelperNet = require("logic.HelperNet")
 local Helper = require("logic.Helper")
+local Components = require("logic.Components")
 
 local command = {}
 
@@ -26,9 +27,8 @@ command.C2S = function(playerid, msg)
     start.dispatch(id,playerid,json.decode(msg:substr(2,-1)))
 end
 
-command.client_close = function(playerid)
-    --参见ComponentsIndex
-    start.dispatch(2,playerid)
+command.logout = function(playerid)
+    start.dispatch(Components.GetID(Components.CommandRemove),playerid)
 end
 
 moon.init(function ( cfg )
@@ -54,17 +54,8 @@ moon.start(function()
     moon.repeated(50,-1,function (  )
         local now = moon.millsecond()
         local diff = now-last
-        start.dispatch(1,(diff)/1000)
+        start.dispatch(Components.GetID(Components.CommandUpdate),(diff)/1000)
         last = now
-    end)
-
-    moon.repeated(60000,-1,function()
-        --start.printinfo()
-    end)
-
-    moon.repeated(60000,-1,function (  )
-        collectgarbage("collect")
-        print("memory",moon.memory_use())
     end)
 end)
 

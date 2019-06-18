@@ -71,7 +71,7 @@ socket.on("close",function(fd, msg)
         return
     end
 
-    local ctx = seri.packs("client_close",conn.playerid)
+    local ctx = seri.packs("logout",conn.playerid)
 
     moon.send('lua', login_service,ctx,"")
     --moon.send('lua', match_service,ctx,"")
@@ -98,7 +98,7 @@ command.S2C = function(playerid, msg)
     socket.write_message(conn.fd,msg)
 end
 
-command.CLOSE_CLIENT = function(playerid)
+command.logout = function(playerid)
     local conn = connects.find_by_player(playerid)
     if not conn then
         return
@@ -107,7 +107,7 @@ command.CLOSE_CLIENT = function(playerid)
 end
 
 -- 登陆流程step3，gate 保存playerid-fd 映射
-command.login_res = function(_, msg)
+command.login = function(_, msg)
     local data = seri.unpack(msg:bytes())
     if data.ret == "OK" then
         connects.set(data.fd,data.playerid)
@@ -123,16 +123,6 @@ command.login_res = function(_, msg)
 
     socket.write(data.fd, MSGID.encode(MSGID.S2CLogin,S2CLogin))
 end
-
--- command.set_room_id = function(playerid, msg)
---     local conn = connects.find_by_player(playerid)
---     if not conn then
---         log.warn("set_room_id: player %s not connect",playerid);
---         return
---     end
---     local roomid = seri.unpack(msg:bytes())
---     connects.set_roomid(playerid,roomid)
--- end
 
 local function docmd(sender,header,msg)
     local cmd,playerid = seri.unpack(header)
@@ -155,13 +145,6 @@ moon.init(function(conf)
             local sender = msg:sender()
             local header = msg:header()
             docmd(sender, header, msg)
-        end)
-
-        moon.repeated(10000,-1,function ()
-            print("recv rate ", recv_count/10, "per second")
-            print("send rate ", send_count/10, "per second")
-            recv_count = 0
-            send_count = 0
         end)
 
         local listenfd = socket.listen(conf.host,conf.port,moon.PTYPE_SOCKET)
