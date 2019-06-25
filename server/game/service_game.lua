@@ -8,6 +8,8 @@ local HelperNet = require("logic.HelperNet")
 local Helper = require("logic.Helper")
 local Components = require("logic.Components")
 
+local conf = ...
+
 local command = {}
 
 local function docmd(_,header,msg)
@@ -31,11 +33,8 @@ command.logout = function(playerid)
     start.dispatch(Components.GetID(Components.CommandRemove),playerid)
 end
 
-moon.init(function ( cfg )
-    Helper.cfg = cfg.game
-    Helper.aoi.create(cfg.game.min_edge, cfg.game.min_edge, 2*cfg.game.max_edge,2*cfg.game.max_edge)
-    return true
-end)
+Helper.cfg = conf.game
+Helper.aoi.create(conf.game.min_edge, conf.game.min_edge, 2*conf.game.max_edge,2*conf.game.max_edge)
 
 moon.start(function()
     HelperNet.set_gate_service(moon.queryservice("gate"))

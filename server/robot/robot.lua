@@ -6,7 +6,7 @@ local vector2 = require("game.logic.vector2")
 
 local username = 1
 
-local config
+local conf = ...
 
 local function client_read( fd )
     if not fd then
@@ -97,15 +97,10 @@ local function client_handler( fd, bauth, authdata)
     end
 end
 
-moon.init(function (cfg )
-    config = cfg
-    return true
-end)
-
 moon.start(function()
     local create_user
     create_user = function ()
-        local fd, err = socket.connect(config.host, config.port, moon.PTYPE_TEXT)
+        local fd, err = socket.connect(conf.host, conf.port, moon.PTYPE_TEXT)
         if not fd then
             print("connect failed", err)
             return
@@ -124,7 +119,7 @@ moon.start(function()
 
 
     moon.async(function(  )
-        for _=1,config.num do
+        for _=1,conf.num do
             create_user()
             moon.co_wait(10)
         end

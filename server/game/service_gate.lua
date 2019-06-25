@@ -6,6 +6,8 @@ local seri = require("seri")
 local connects = require("connects")
 local MSGID = require("MSGID")
 
+local conf = ...
+
 local login_service -- login 服务id
 local match_service -- 匹配服务id(暂时没有实现)
 local game_service
@@ -135,28 +137,24 @@ local function docmd(sender,header,msg)
 end
 ------------------------------------
 
-moon.init(function(conf)
-    moon.start(function()
-        login_service = moon.queryservice("login")
-        match_service = moon.queryservice("match")
-        game_service = moon.queryservice("game")
+moon.start(function()
+    login_service = moon.queryservice("login")
+    match_service = moon.queryservice("match")
+    game_service = moon.queryservice("game")
 
-        moon.dispatch('lua',function(msg,p)
-            local sender = msg:sender()
-            local header = msg:header()
-            docmd(sender, header, msg)
-        end)
-
-        local listenfd = socket.listen(conf.host,conf.port,moon.PTYPE_SOCKET)
-        socket.start(listenfd)
-
-        moon.destroy(function()
-            socket.close(listenfd)
-        end)
+    moon.dispatch('lua',function(msg,p)
+        local sender = msg:sender()
+        local header = msg:header()
+        docmd(sender, header, msg)
     end)
-    return true
-end)
 
+    local listenfd = socket.listen(conf.host,conf.port,moon.PTYPE_SOCKET)
+    socket.start(listenfd)
+
+    moon.destroy(function()
+        socket.close(listenfd)
+    end)
+end)
 
 
 

@@ -34,18 +34,7 @@
                     "raduis":0.3,
                     "food_raduis":0.25            
                 }
-            }
-        ]
-    },
-    {
-        "sid": 2,
-        "name": "server_#sid",
-        "outer_host": "127.0.0.1",
-        "inner_host": "127.0.0.1",
-        "thread": 1,
-        "log": "log/#sid_#date.log",
-        "loglevel": "DEBUG",
-        "services": [
+            },
             {
                 "name": "robot",
                 "file": "robot.lua",
