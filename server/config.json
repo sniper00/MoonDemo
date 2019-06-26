@@ -11,19 +11,19 @@
         "services": [
             {
                 "name": "gate",
-                "file": "service_gate.lua",
+                "file": "game/service_gate.lua",
                 "unique": true,
                 "host": "#inner_host",
                 "port": 22345
             },
             {
                 "name": "login",
-                "file": "service_login.lua",
+                "file": "game/service_login.lua",
                 "unique": true
             },
             {
                 "name": "game",
-                "file": "service_game.lua",
+                "file": "game/service_game.lua",
                 "unique": true,
                 "game":{
                     "max_edge":50,
@@ -37,7 +37,7 @@
             },
             {
                 "name": "robot",
-                "file": "robot.lua",
+                "file": "robot/robot.lua",
                 "unique": true,
                 "host": "#inner_host",
                 "port": 22345,
