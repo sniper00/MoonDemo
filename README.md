@@ -1,5 +1,5 @@
 # BallGame
-多人简易版球球大作战，MoonNetLua的一个使用示例，同时演示如何在服务端使用Entitas lua(Entity Component System)
+多人简易版球球大作战，游戏服务器[moon](https://github.com/sniper00/moon)的一个使用示例，同时演示如何在服务端使用Entitas lua(Entity Component System)
 
 ![image](https://github.com/sniper00/BallGame/raw/master/image/start.png)
 
@@ -12,8 +12,7 @@
 
 - client 请使用unity2018 启动执行第一个场景Prepare。
 
-# 运行机器人
-- ```./moon -r 2 ``` 运行机器人。 config.json 可以修改机器人数量
+- server 默认会自动运行机器人服务。 config.json 可以修改机器人数量
 
 # 编译Server
 
