@@ -8,7 +8,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <ProjectGuid>{714C8FA3-4EE9-3003-024F-1B3AAFC66C88}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -69,6 +70,7 @@
     <Compile Include="Assets\Scripts\Network.cs" />
     <Compile Include="Assets\Scripts\Network\BaseConnection.cs" />
     <Compile Include="Assets\Scripts\Network\Buffer.cs" />
+    <Compile Include="Assets\Scripts\Network\CustomConnection.cs" />
     <Compile Include="Assets\Scripts\Network\MoonConnection.cs" />
     <Compile Include="Assets\Scripts\Network\Network.cs" />
     <Compile Include="Assets\Scripts\Prepare\Prepare.cs" />

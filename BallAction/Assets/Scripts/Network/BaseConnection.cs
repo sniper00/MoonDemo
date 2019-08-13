@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Moon
 {
-    enum ReadMode
+    public enum ReadMode
     {
         Unknown,
         Some,
@@ -99,14 +99,14 @@ namespace Moon
             }         
         }
 
-        public void AsyncRead(byte[] buffer, int index, int count, Action<int, Exception> handler)
+        public void AsyncRead(byte[] buffer, int index, int count, Action<int, Exception> handler, ReadMode mode = ReadMode.FixCount)
         {
             readToken.Clear();
             readToken.Buffer = buffer;
             readToken.Index = index;
             readToken.Count = count;
             readToken.Handler = handler;
-            readToken.Mode = ReadMode.FixCount;
+            readToken.Mode = mode;
             BeginReceive(readToken);
         }
 

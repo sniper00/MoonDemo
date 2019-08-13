@@ -51,13 +51,6 @@ namespace Moon
         }
     }
 
-    public class SocketAsyncResult
-    {
-        public int ConnectionID { set; get; }
-        public int ErrorCode { set; get; }
-        public string Message { set; get; }
-    }
-
     public class Network<TEMsg, TSerializer>
         where TSerializer : ISerializer, new()
     {
