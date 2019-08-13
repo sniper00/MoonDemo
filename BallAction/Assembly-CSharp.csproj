@@ -75,11 +75,11 @@
     <Compile Include="Assets\Scripts\Network\Socket.cs" />
     <Compile Include="Assets\Scripts\Prepare\Prepare.cs" />
     <Compile Include="Assets\Scripts\UserData.cs" />
-    <Reference Include="UnityEditor.StandardEvents">
-      <HintPath>G:/Project/BallAction/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.PackageManagerUI.Editor">
-      <HintPath>G:/Project/BallAction/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
+      <HintPath>G:/GitProjects/BallGame/BallAction/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor.StandardEvents">
+      <HintPath>G:/GitProjects/BallGame/BallAction/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule">
       <HintPath>D:/Program Files/Unity/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>
