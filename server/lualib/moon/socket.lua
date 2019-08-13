@@ -24,6 +24,8 @@ linedelim['\n'] = 3
 
 local close_flag = moon.buffer_flag.close
 local ws_text_flag = moon.buffer_flag.ws_text
+local ws_ping_flag = moon.buffer_flag.ws_ping
+local ws_pong_flag = moon.buffer_flag.ws_pong
 
 ---@class socket : socketcore
 local socket = {}
@@ -55,7 +57,7 @@ end
 function socket.connect(host, port, protocol, timeout)
     timeout = timeout or 0
     local sessionid = make_response()
-    connect(host, port, sessionid, id, protocol, timeout)
+    connect(host, port, sessionid, protocol, timeout)
     local fd,err = yield()
     if not fd then
         return nil,err
@@ -64,7 +66,7 @@ function socket.connect(host, port, protocol, timeout)
 end
 
 function socket.sync_connect(host, port, type)
-    local fd = connect(host, port, 0, id, type, 0)
+    local fd = connect(host, port, 0, type, 0)
     if fd == 0 then
         return nil,"connect failed"
     end
@@ -99,12 +101,22 @@ function socket.write_text(fd, data)
     write_with_flag(fd ,data, ws_text_flag)
 end
 
+function socket.write_ping(fd, data)
+    write_with_flag(fd ,data, ws_ping_flag)
+end
+
+function socket.write_pong(fd, data)
+    write_with_flag(fd ,data, ws_pong_flag)
+end
+
 local socket_data_type = {
     connect = 1,
     accept = 2,
     message = 3,
     close = 4,
-    error = 5
+    error = 5,
+    ping = 6,
+    pong = 7,
 }
 
 --- tow bytes len protocol callbacks
@@ -143,6 +155,8 @@ function socket.on(name, cb)
     local n = socket_data_type[name]
     if n then
         callbacks[n] = cb
+    else
+        error("register unsupport socket data type "..name)
     end
 end
 
@@ -152,6 +166,8 @@ function socket.wson(name, cb)
     local n = socket_data_type[name]
     if n then
         wscallbacks[n] = cb
+    else
+        error("register unsupport websocket data type "..name)
     end
 end
 

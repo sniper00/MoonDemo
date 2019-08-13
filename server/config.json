@@ -1,39 +1,41 @@
 [
     {
         "sid": 1,
-        "name": "server_#sid",
+        "name": "game_#sid",
         "outer_host": "127.0.0.1",
         "inner_host": "127.0.0.1",
         "thread": 4,
+        "startup": "main.lua",
         "log": "log/#sid_#date.log",
-        "loglevel": "DEBUG",
-        "path": ["./lualib/base"],
+        "path":["game"],
         "services": [
             {
-                "name": "gate",
-                "file": "game/service_gate.lua",
                 "unique": true,
+                "name": "login",
+                "file": "game/login.lua",
+                "host": "#outer_host",
+                "port": 42346,
+                "count":4,
+                "master":true
+            },
+            {
+                "unique": true,
+                "name": "gate",
+                "file": "game/gate.lua",
                 "host": "#inner_host",
                 "port": 22345
             },
             {
-                "name": "login",
-                "file": "game/service_login.lua",
-                "unique": true
-            },
-            {
-                "name": "game",
-                "file": "game/service_game.lua",
                 "unique": true,
-                "game":{
-                    "max_edge":50,
-                    "min_edge":-50,
-                    "max_random_edge":50,
-                    "min_random_edge":-50,
-                    "speed":2,
-                    "raduis":0.3,
-                    "food_raduis":0.25            
-                }
+                "name": "room",
+                "file": "game/room.lua",
+                "max_edge":50,
+                "min_edge":-50,
+                "max_random_edge":50,
+                "min_random_edge":-50,
+                "speed":2,
+                "raduis":0.3,
+                "food_raduis":0.25
             },
             {
                 "name": "robot",
@@ -41,7 +43,11 @@
                 "unique": true,
                 "host": "#inner_host",
                 "port": 22345,
-                "num": 100
+                "num": 100,
+                "login":{
+                    "host": "#inner_host",
+                    "port":42346
+                }
             }
         ]
     }

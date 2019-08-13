@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Prepare: MonoBehaviour {
@@ -22,13 +20,16 @@ public class Prepare: MonoBehaviour {
             isInit = true;
             DontDestroyOnLoad(go);
 
-            Network.OnError = (sessionid, ec, msg) =>
+            Network.OnError = (connectId, errmsg) =>
             {
-                var str = string.Format("Network Error, Sessonid: {0} ErrorCode: {1} ErrorMessage: {2}", sessionid, ec, msg);
-                MessageBox.Show(str,(res)=> {
-                    SceneManager.LoadScene("Login");
-                });
-                Debug.Log(msg);
+                var str = string.Format("Sessonid: {0} ErrorMessage: {1}", connectId, errmsg);
+                if(connectId == UserData.GameSeverID)
+                {
+                    MessageBox.Show(str, (res) => {
+                        SceneManager.LoadScene("Login");
+                    });
+                }
+                Debug.Log(str);
             };
         }
     }

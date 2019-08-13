@@ -15,6 +15,7 @@ public class Entity
     public Component.Speed Speed { get; set; }
     public Component.Color Color { get; set; }
     public Component.Radius Radius { get; set; }
+    public GameObject NameText { get; set; }
 }
 
 public class Game : MonoBehaviour {
@@ -25,6 +26,8 @@ public class Game : MonoBehaviour {
 
     Text xpos;
     Text ypos;
+
+    Transform scene;
 
     Entity local;
     // Use this for initialization
@@ -49,9 +52,10 @@ public class Game : MonoBehaviour {
         playersprite.Add(5, "Texture/bean_polygon5_5");
         playersprite.Add(6, "Texture/bean_polygon5_6");
 
-        var parent = transform.parent;
-        xpos = parent.Find("UI/Xpos").GetComponent<Text>();
-        ypos = parent.Find("UI/Ypos").GetComponent<Text>();
+        xpos = transform.Find("UI/Xpos").GetComponent<Text>();
+        ypos = transform.Find("UI/Ypos").GetComponent<Text>();
+
+        scene = UnityUtils.FindTransform("Scene/World");
 
         Network.Register<S2CEnterRoom>(v => {
             var e = new Entity();
@@ -64,7 +68,7 @@ public class Game : MonoBehaviour {
             if(!entitas.ContainsKey(v.id))
             {
                 entitas.Add(v.id, e);
-                //Debug.LogFormat("Entity  id {0} enter view", v.id);
+                Debug.LogFormat("Entity  id {0} enter view", v.id);
             }
         });
 
@@ -73,6 +77,11 @@ public class Game : MonoBehaviour {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
+                if(e.Mover)
+                {
+                    e.NameText.transform.SetParent(null);
+                }
+
                 //Debug.LogFormat("Entity id {0} leave view", v.id);
                 Destroy(e.Go);
                 entitas.Remove(v.id);
@@ -84,6 +93,7 @@ public class Game : MonoBehaviour {
             Entity e;
             if (entitas.TryGetValue(v.id, out e))
             {
+                e.NameText.transform.SetParent(null);
                 Debug.LogFormat("Entity id {0} dead", v.id);
                 if (v.id == UserData.uid)
                 {
@@ -140,11 +150,23 @@ public class Game : MonoBehaviour {
                 }
 
                 spr.sprite = UnityUtils.LoadSprite(source);
-                go.transform.localPosition = new Vector3(0, 0, 0);
-                go.transform.SetParent(transform);
+                spr.sortingLayerName = "Player";
+                go.transform.position = new Vector3(0, 0, 0);
+                go.transform.SetParent(scene);
                 //go.AddComponent<LineRenderer>();
-
                 e.Go = go;
+
+                if(e.Mover)
+                {
+                    e.NameText  = Instantiate(Resources.Load<GameObject>("Prefab/TextName"));
+                    e.NameText.transform.SetParent(transform);
+                    var text = e.NameText.GetComponent<Text>();
+                    text.text = e.BaseData.name;
+                    text.color = UnityEngine.Color.green;
+                    text.alignment = TextAnchor.UpperCenter;
+                    text.fontStyle = FontStyle.Bold;
+                    text.fontSize = 21;
+                }
             }
         });
 
@@ -155,8 +177,8 @@ public class Game : MonoBehaviour {
                 e.Position = v.data;
                 if(null != e.Go)
                 {
-                    e.Go.transform.localPosition = new Vector3(e.Position.x, e.Position.y, 0);
-                    //Debug.LogFormat("Entity id {0} Position {1} {2}", v.id, e.Position.x, e.Position.y);
+                    e.Go.transform.position = new Vector3(e.Position.x, e.Position.y, e.Go.transform.position.z);
+                    Debug.LogFormat("Entity id {0} Position {1} {2}", v.id, e.Position.x, e.Position.y);
                 }
             }
         });
@@ -195,12 +217,12 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Send(new CommandCreate { username = UserData.username });
+        Network.Send(UserData.GameSeverID, new C2SEnterRoom { username = UserData.username });
     }
 
-    void SetLocalPosition(Vector2 pos)
+    void Setposition(Vector2 pos)
     {
-        local.Go.transform.localPosition = pos;
+        local.Go.transform.position = pos;
         xpos.text = string.Format("{0:F}", pos.x);
         ypos.text = string.Format("{0:F}", pos.y);
     }
@@ -211,15 +233,15 @@ public class Game : MonoBehaviour {
         {
             return;
         }
-
+        
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector3 target = new Vector3(mousePosition.x, mousePosition.y, 0);
-            var dir = target - local.Go.transform.localPosition;
+            var dir = target - local.Go.transform.position;
             dir.Normalize();
             local.Direction = dir;
-            Network.Send(new CommandMove { x = dir.x,y= dir.y });
+            Network.Send(UserData.GameSeverID, new CommandMove { x = dir.x,y= dir.y });
             //Debug.LogFormat("dir {0} {1}", local.Direction.x, local.Direction.y);
         }
 
@@ -230,18 +252,22 @@ public class Game : MonoBehaviour {
                 continue;
             }
 
-            Vector2 pos = e.Go.transform.localPosition;
-            Vector2 newPosition = pos + e.Direction.normalized* e.Speed.value * Time.deltaTime;
+            Vector2 pos = e.Go.transform.position;
+            var deltalen = e.Direction.normalized * e.Speed.value * Time.deltaTime; ;
+            Vector2 newPosition = pos + deltalen;
             if (e == local)
             {
-
-                SetLocalPosition(newPosition);
-                Camera.main.transform.localPosition = new Vector3(newPosition.x, newPosition.y, Camera.main.transform.localPosition.z);
+                Setposition(newPosition);
+                Camera.main.transform.position = new Vector3(newPosition.x, newPosition.y, Camera.main.transform.position.z);
             }
             else
             {
-                e.Go.transform.localPosition = newPosition;
+                e.Go.transform.position = newPosition;
             }
+
+            var uipos = Camera.main.WorldToScreenPoint(e.Go.transform.position);
+
+            e.NameText.transform.position = new Vector3(uipos.x, uipos.y+10, 0);
 
             //var lr = e.Go.GetComponent<LineRenderer>();
             //lr.positionCount = nline;

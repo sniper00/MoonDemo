@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Sockets;
-using UnityEngine;
+using System.Text;
 
 namespace Moon
 {
@@ -35,22 +34,31 @@ namespace Moon
 
     public class BaseConnection
     {
-        public Action<SocketMessage> OnMessage { get; set; }
+        public Action<SocketMessage> HandleMessage { get; set; }
 
-        public Socket Socket { get; private set; }
+        public System.Net.Sockets.Socket Socket { get; private set; }
 
         Queue<Buffer> sendQueue = new Queue<Buffer>();
 
         SocketUserToken readToken = new SocketUserToken();
 
-        public int ConnectionID { get; }
+        public int ConnectionID { get; set; } = 0;
 
         bool sending = false;
 
-        public BaseConnection(int id)
+        public BaseConnection()
         {
-            ConnectionID = id;
-            Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket = new System.Net.Sockets.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        }
+
+        public virtual void Start()
+        {
+
+        }
+
+        public virtual void Read(bool line, int count, int sessionid)
+        {
+
         }
 
         public bool Connected()
@@ -86,17 +94,22 @@ namespace Moon
             }
         }
 
-        protected void OnClose(Exception e)
+        public static byte[] GetErrorMessage(Exception e)
         {
             SocketException se = e as SocketException;
-            if(null != se)
+            if(null!=se)
             {
-                OnMessage(new SocketErrorMessage(ConnectionID, SocketMessageType.Close, se.ErrorCode, se.Message));
+                var s = string.Format("{0}:{1}.(NativeErrorCode: {2})", se.SocketErrorCode, se.Message, se.NativeErrorCode);
+                return Encoding.Default.GetBytes(s);
             }
-            else
-            {
-                OnMessage(new SocketErrorMessage(ConnectionID, SocketMessageType.Close, 0, e.Message));
-            }         
+
+            return Encoding.Default.GetBytes(e.Message);
+        }
+
+        protected void Error(Exception e)
+        {
+            var m = new SocketMessage(ConnectionID, SocketMessageType.Close, GetErrorMessage(e), 0);
+            HandleMessage(m);
         }
 
         public void AsyncRead(byte[] buffer, int index, int count, Action<int, Exception> handler, ReadMode mode = ReadMode.FixCount)
@@ -129,7 +142,6 @@ namespace Moon
                         int bytesTransferred = Socket.EndReceive(ar, out err);
                         if(err!= SocketError.Success)
                         {
-                            Debug.LogFormat("socket recv err {0}", err);
                             so.Handler(so.BytesTransferred, new SocketException((int)err));
                             return;
                         }
@@ -166,24 +178,28 @@ namespace Moon
             }
         }
 
-        public void Send(Buffer data)
+        virtual public bool Send(Buffer data)
         {
-            if (null == data || !Connected())
+            if (null == data || data.Count == 0)
             {
-                return;
+                return false;
             }
 
-            var len = (short)data.Count;
-            len = IPAddress.HostToNetworkOrder(len);
-            data.WriteFront(len);
-            lock(sendQueue)
+            if(!Connected())
+            {
+                return false;
+            }
+
+            lock (sendQueue)
             {
                 sendQueue.Enqueue(data);
-                if(!sending)
+                if (!sending)
                 {
                     DoSend();
                 }
             }
+
+            return true;
         }
 
         void DoSend()
@@ -212,7 +228,7 @@ namespace Moon
                 }
                 catch (Exception e)
                 {
-                    OnClose(e);
+                    Error(e);
                 }
             }
         }
@@ -221,14 +237,14 @@ namespace Moon
         {
             try
             {
-                var s = (Socket)ar.AsyncState;
+                var s = (System.Net.Sockets.Socket)ar.AsyncState;
                 SocketError err;
                 s.EndSend(ar, out err);
                 DoSend();
             }
             catch (Exception e)
             {
-                OnClose(e);
+                Error(e);
             }
         }
     }

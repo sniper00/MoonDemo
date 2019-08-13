@@ -14,6 +14,7 @@ globals = {
     "string.ucfirst",
     "os.gettimezone",
     "os.gettime",
+    "table.new",
     "table.arraycopy",
     "table.contains",
     "table.shallowcopy",
@@ -50,5 +51,7 @@ globals = {
     "checkint",
     "checkbool",
     "checktable",
-    "unused"
+    "unused",
+    "get_script_path",
+    "print_r"
 }

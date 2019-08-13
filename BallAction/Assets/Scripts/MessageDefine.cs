@@ -5,18 +5,17 @@ using UnityEngine;
 [System.Serializable]
 public class C2SLogin
 {
-    public string username;
+    public string token;
 }
 
 [System.Serializable]
 public class S2CLogin
 {
-    public string ret;
-    public int uid;
+    public string res;
 }
 
 [System.Serializable]
-public class CommandCreate
+public class C2SEnterRoom
 {
     public string username;
 }

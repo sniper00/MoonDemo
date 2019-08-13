@@ -1,31 +1,50 @@
 ﻿using System;
+using System.Text;
 
 namespace Moon
 {
     public class Buffer
     {
-        public byte[] Data { get; private set; }
-        int wpos = 0;
-        int totalcapacity = 0;
+        int capacity = 0;
         readonly int headreserved = 0;
 
-        public int Count { get { return wpos - Index; } }
-        public int Index { get; private set; } = 0;
+        public byte[] Data { get; private set; }
+
+        /// <summary>
+        /// read pos
+        /// </summary>
+        public int Index { get;  set; } = 0;
+
+        public int WritePos { get; private set; } = 0;
+
+        /// <summary>
+        /// readable size
+        /// </summary>
+        public int Count { get { return WritePos - Index; } }
 
         public Buffer(int capacity = 248, int headreserved = 8)
         {
-            wpos = Index = headreserved;
-            totalcapacity = capacity + headreserved;
-            totalcapacity = NextPowOf2(totalcapacity);
+            WritePos = Index = headreserved;
+            this.capacity = capacity + headreserved;
+            this.capacity = NextPowOf2(this.capacity);
             this.headreserved = headreserved;
-            Data = new byte[totalcapacity];
+            Data = new byte[this.capacity];
+        }
+
+        public Buffer(byte[] data, int index, int count)
+        {
+            headreserved = index;
+            Index = index;
+            WritePos = index + count;
+            capacity = count + headreserved;
+            Data = data;
         }
 
         public void Write(short value)
         {
             CheckSize(sizeof(short));
-            Data[wpos++] = (byte)(value & 0xFF);
-            Data[wpos++] = (byte)((value >> 8) & 0xFF);
+            Data[WritePos++] = (byte)(value & 0xFF);
+            Data[WritePos++] = (byte)((value >> 8) & 0xFF);
         }
 
         public void Write(ushort value)
@@ -36,10 +55,10 @@ namespace Moon
         public void Write(int value)
         {
             CheckSize(sizeof(int));
-            Data[wpos++] = (byte)(value & 0xFF);
-            Data[wpos++] = (byte)((value >> 8) & 0xFF);
-            Data[wpos++] = (byte)((value >> 16) & 0xFF);
-            Data[wpos++] = (byte)((value >> 24) & 0xFF);
+            Data[WritePos++] = (byte)(value & 0xFF);
+            Data[WritePos++] = (byte)((value >> 8) & 0xFF);
+            Data[WritePos++] = (byte)((value >> 16) & 0xFF);
+            Data[WritePos++] = (byte)((value >> 24) & 0xFF);
         }
 
         public void Write(uint value)
@@ -50,14 +69,14 @@ namespace Moon
         public void Write(long value)
         {
             CheckSize(sizeof(long));
-            Data[wpos++] = (byte)(value & 0xFF);
-            Data[wpos++] = (byte)((value >> 8) & 0xFF);
-            Data[wpos++] = (byte)((value >> 16) & 0xFF);
-            Data[wpos++] = (byte)((value >> 24) & 0xFF);
-            Data[wpos++] = (byte)((value >> 32) & 0xFF);
-            Data[wpos++] = (byte)((value >> 40) & 0xFF);
-            Data[wpos++] = (byte)((value >> 48) & 0xFF);
-            Data[wpos++] = (byte)((value >> 56) & 0xFF);
+            Data[WritePos++] = (byte)(value & 0xFF);
+            Data[WritePos++] = (byte)((value >> 8) & 0xFF);
+            Data[WritePos++] = (byte)((value >> 16) & 0xFF);
+            Data[WritePos++] = (byte)((value >> 24) & 0xFF);
+            Data[WritePos++] = (byte)((value >> 32) & 0xFF);
+            Data[WritePos++] = (byte)((value >> 40) & 0xFF);
+            Data[WritePos++] = (byte)((value >> 48) & 0xFF);
+            Data[WritePos++] = (byte)((value >> 56) & 0xFF);
         }
 
         public void Write(ulong value)
@@ -68,8 +87,8 @@ namespace Moon
         public void Write(byte[] value, int index, int len)
         {
             CheckSize(len);
-            System.Buffer.BlockCopy(value, index, Data, wpos, len);
-            wpos += len;
+            System.Buffer.BlockCopy(value, index, Data, WritePos, len);
+            WritePos += len;
         }
 
         public void WriteFront(short value)
@@ -157,16 +176,25 @@ namespace Moon
             Index += len;
         }
 
-        public int CanWriteSize()
+        public int WriteAbleSize()
         {
-            return totalcapacity - wpos;
+            return capacity - WritePos;
         }
 
-        void CheckSize(int need)
+        public void CheckSize(int need)
         {
-            if (CanWriteSize() < need)
+            if (WriteAbleSize() < need)
             {
                 Grow(need);
+            }
+        }
+
+        public void OffsetWritePos(int offset)
+        {
+            WritePos += offset;
+            if (WritePos > capacity)
+            {
+                WritePos = capacity;
             }
         }
 
@@ -180,13 +208,13 @@ namespace Moon
 
         void Grow(int need)
         {
-            if (CanWriteSize() + Index < need + headreserved)
+            if (WriteAbleSize() + Index < need + headreserved)
             {
-                int size = wpos + need;
+                int size = WritePos + need;
                 size = NextPowOf2(size);
                 var newdata = new byte[size];
-                System.Buffer.BlockCopy(Data, 0, newdata, 0, wpos);
-                totalcapacity = size;
+                System.Buffer.BlockCopy(Data, 0, newdata, 0, WritePos);
+                capacity = size;
                 Data = newdata;
             }
             else
@@ -197,7 +225,7 @@ namespace Moon
                     System.Buffer.BlockCopy(Data, Index, Data, headreserved, readable);
                 }
                 Index = headreserved;
-                wpos = Index + readable;
+                WritePos = Index + readable;
             }
         }
 
@@ -213,6 +241,11 @@ namespace Moon
             x |= x >> 8;
             x |= x >> 16;
             return x + 1;
+        }
+
+        public string GetString()
+        {
+            return Encoding.Default.GetString(Data, Index, Count);
         }
     };
 }

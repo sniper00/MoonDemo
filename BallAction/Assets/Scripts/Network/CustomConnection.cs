@@ -1,30 +1,50 @@
-﻿using System.Net;
-
-namespace Moon
+﻿namespace Moon
 {
     public class CustomConnection : BaseConnection
     {
-        //two bytes len head
-        byte[] readBuff = new byte[1024];
-        Buffer data = new Buffer(1024);
-        public CustomConnection(int id)
-            : base(id)
+        class ReadRequest
         {
-
+            public int Count { get; set; } = 0;
+            public int SessionId { get; set; } = 0;
+            public bool IsLine { get; set; } = false;
         }
 
-        void ReadLine()
-        {
+        Buffer buffer = new Buffer(1024);
 
+        ReadRequest request = new ReadRequest();
+
+        public override void Start()
+        {
+            base.Start();
+
+            ReadSome();
+        }
+
+        public override void Read(bool line, int count, int sessionid)
+        {
+            lock(request)
+            {
+                if (Connected() && request.SessionId == 0)
+                {
+                    request.IsLine = line;
+                    request.Count = count;
+                    request.SessionId = sessionid;
+                    if (buffer.Count > 0)
+                    {
+                        HandleReadRequest();
+                    }
+                }
+            }
         }
 
         void ReadSome()
         {
-            AsyncRead(readBuff, 0, readBuff.Length, (bytesTransferred, e) =>
+            buffer.CheckSize(1024);
+            AsyncRead(buffer.Data, buffer.WritePos, buffer.WriteAbleSize(), (bytesTransferred, e) =>
             {
                 if (null != e)
                 {
-                    OnClose(e);
+                    Error(e);
                     return;
                 }
 
@@ -33,9 +53,66 @@ namespace Moon
                     ReadSome();
                     return;
                 }
+
+                buffer.OffsetWritePos(bytesTransferred);
+
+                lock (request)
+                {
+                    HandleReadRequest();
+                }
+
+                ReadSome();
             },ReadMode.Some);
         }
 
+        void HandleReadRequest()
+        {
+            if(buffer.Count == 0 || request.SessionId == 0)
+            {
+                return;
+            }
 
+            if(request.IsLine)
+            {
+                for (int i = 0; i < buffer.Count; ++i)
+                {
+                    int pos = buffer.Index + i;
+                    if (buffer.Data[pos] == '\n')
+                    {
+                        int n = i + 1;
+                        var buf = new byte[n-1];//ignore \n
+                        System.Buffer.BlockCopy(buffer.Data, buffer.Index, buf, 0, buf.Length);
+                        buffer.Index += n;
+                        var m = new SocketMessage(ConnectionID, SocketMessageType.Recv, buf, request.SessionId);
+                        Response(m);
+                        return;
+                    }
+                }
+                
+                if(request.Count!=0 && buffer.Count> request.Count)
+                {
+                    //outoff limit
+                }
+            }
+            else
+            {
+                if(buffer.Count>=request.Count)
+                {
+                    var buf = new byte[request.Count];
+                    System.Buffer.BlockCopy(buffer.Data, buffer.Index, buf, 0, buf.Length);
+                    buffer.Index += request.Count;
+                    var m = new SocketMessage(ConnectionID, SocketMessageType.Recv, buf, request.SessionId);
+                    Response(m);
+                }
+            }
+        }
+
+        void Response(SocketMessage m)
+        {
+            HandleMessage(m);
+            request.Count = 0;
+            request.SessionId = 0;
+            request.IsLine = false;
+        }
     }
 }

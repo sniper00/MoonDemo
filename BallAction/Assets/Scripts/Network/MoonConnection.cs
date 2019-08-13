@@ -8,10 +8,18 @@ namespace Moon
         const int headLen = sizeof(ushort);
         readonly byte[] head_ = new byte[headLen];
 
-        public MoonConnection(int id)
-            :base(id)
+        override public void Start() 
         {
+            base.Start();
+            ReadHead();
+        }
 
+        public override bool Send(Buffer data)
+        {
+            var len = (short)data.Count;
+            len = IPAddress.HostToNetworkOrder(len);
+            data.WriteFront(len);
+            return base.Send(data);
         }
 
         public void ReadHead()
@@ -20,7 +28,7 @@ namespace Moon
             {
                 if (null != e)
                 {
-                    OnClose(e);
+                    Error(e);
                     return;
                 }
 
@@ -39,11 +47,11 @@ namespace Moon
         void ReadBody(short size)
         {
             Buffer buf = new Buffer(size, 0);
-            AsyncRead(buf.Data, buf.Index, size, (bytesTransferred, e) =>
+            AsyncRead(buf.Data, buf.WritePos, size, (bytesTransferred, e) =>
             {
                 if (null != e)
                 {
-                    OnClose(e);
+                    Error(e);
                     return;
                 }
 
@@ -53,11 +61,10 @@ namespace Moon
                     return;
                 }
 
-                var m = new SocketMessage(ConnectionID, SocketMessageType.Recv, buf.Data, 0)
-                {
-                    Count = bytesTransferred
-                };
-                OnMessage(m);
+                buf.OffsetWritePos(bytesTransferred);
+
+                var m = new SocketMessage(ConnectionID, SocketMessageType.Recv, buf, 0);
+                HandleMessage(m);
                 ReadHead();
             });
         }
