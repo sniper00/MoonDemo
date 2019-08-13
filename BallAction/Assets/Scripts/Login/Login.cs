@@ -68,7 +68,7 @@ public class Login : MonoBehaviour
             Debug.Log(string.Format("2. sceret is {0}", Crypt.ToHex(BitConverter.GetBytes(secret))));
             Network.Send(UserData.LoginSeverID, Crypt.HMAC64_BASE64(challenge, secret) + "\n");
 
-            string server = "game_3";
+            string server = "game_1";
             string user = userName.text;
             string pass = "password";
 

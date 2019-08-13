@@ -53,7 +53,7 @@ local function login(username)
     writeline(fd, crypt.base64encode(hmac))
 
     local token = {
-        server = "game_3",
+        server = "game_1",
         user = username,
         pass = "password",
     }
