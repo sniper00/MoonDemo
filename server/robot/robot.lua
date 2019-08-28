@@ -174,7 +174,7 @@ moon.start(function()
 
     moon.repeated(10000,-1,function (  )
         collectgarbage("collect")
-        print("memory",moon.memory_use())
+        print("memory",collectgarbage("count"),"kb")
     end)
 end)
 

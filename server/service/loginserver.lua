@@ -164,7 +164,7 @@ end
 local function run_master(conf)
 
     moon.dispatch("lua", function(msg, p)
-        moon.response("lua",msg:sender(),msg:sessionid(), conf.command_handler(p.unpack(msg:bytes())))
+        moon.response("lua",msg:sender(),msg:sessionid(), conf.command_handler(p.unpack(msg)))
     end)
 
     local listenfd  = socket.listen(conf.host,conf.port,moon.PTYPE_TEXT)

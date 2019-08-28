@@ -46,10 +46,10 @@ return function(context)
         end
     end)
 
-    moon.dispatch("lua",function(msg)
+    moon.dispatch("lua",function(msg,p)
         local sessionid = msg:sessionid()
         local sender = msg:sender()
-        docmd(sender, sessionid, unpack(msg:bytes()))
+        docmd(sender, sessionid, p.unpack(msg))
     end)
 
     moon.register_protocol({
