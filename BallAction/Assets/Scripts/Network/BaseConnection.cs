@@ -42,7 +42,7 @@ namespace Moon
 
         SocketUserToken readToken = new SocketUserToken();
 
-        public int ConnectionID { get; set; } = 0;
+        public string ConnectionID { get; set; }="";
 
         bool sending = false;
 

@@ -3,7 +3,6 @@ using Moon;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 public static class Serializer
@@ -30,7 +29,7 @@ public class Network:MonoBehaviour
 
     static int uuid = 0xFFFF;
 
-    static int MakeUUID()
+    static int MakeSessionID()
     {
         do
         {
@@ -53,19 +52,19 @@ public class Network:MonoBehaviour
 
     static public Task<SocketMessage> AsyncConnect(string host, int port, SocketProtocolType protocolType)
     {
-        var sessionid = MakeUUID();
+        var sessionid = MakeSessionID();
         var task = new TaskCompletionSource<SocketMessage>();
         tasks.Add(sessionid, task);
         socket.AsyncConnect(host, port, protocolType, sessionid);
         return task.Task;
     }
 
-    static public Action<int, string> OnError
+    static public Action<string, string> OnError
     {
         set; private get;
     }
 
-    static public async Task<Response> Call<Response>(int connectionId, object msg)
+    static public async Task<Response> Call<Response>(string connectionId, object msg)
     {
         var requestId = ToMessageID(msg.GetType());
         var responseId = (int)Convert.ChangeType(ToMessageID(typeof(Response)),typeof(int));
@@ -89,27 +88,27 @@ public class Network:MonoBehaviour
         return Serializer.Decode<Response>(res.Data.Data, res.Data.Index, res.Data.Count);
     }
 
-    static public void Send(int connectionId, string data)
+    static public void Send(string connectionId, string data)
     {
         socket.Send(connectionId, Encoding.Default.GetBytes(data));
     }
 
-    static public void Send(int connectionId, byte[] data)
+    static public void Send(string connectionId, byte[] data)
     {
         socket.Send(connectionId, data);
     }
 
-    static public void Send(int connectionId, Moon.Buffer data)
+    static public void Send(string connectionId, Moon.Buffer data)
     {
         socket.Send(connectionId, data);
     }
 
-    static public bool Send<Message>(int connectionId, Message msg)
+    static public bool Send<Message>(string connectionId, Message msg)
     {
         var bytes = Serializer.Encode(msg);
         if (null == bytes)
         {
-            OnError(0,  string.Format("Send Message {0}, Serialize error", msg.ToString()));
+            OnError("",  string.Format("Send Message {0}, Serialize error", msg.ToString()));
             return false;
         }
 
@@ -121,12 +120,21 @@ public class Network:MonoBehaviour
         return true;
     }
 
-    static public Task<SocketMessage> ReadLine(int connectionId, int limit = 1024)
+    static public Task<SocketMessage> Read(string connectionId, int count)
     {
-        var sessionid = MakeUUID();
+        var sessionid = MakeSessionID();
         var task = new TaskCompletionSource<SocketMessage>();
         tasks.Add(sessionid, task);
-        socket.Read(connectionId, true, 1024, sessionid);
+        socket.Read(connectionId, false, count, sessionid);
+        return task.Task;
+    }
+
+    static public Task<SocketMessage> ReadLine(string connectionId, int limit = 1024)
+    {
+        var sessionid = MakeSessionID();
+        var task = new TaskCompletionSource<SocketMessage>();
+        tasks.Add(sessionid, task);
+        socket.Read(connectionId, true, limit, sessionid);
         return task.Task;
     }
 
@@ -142,7 +150,7 @@ public class Network:MonoBehaviour
         return id;
     }
 
-    static public void Close(int connectionId)
+    static public void Close(string connectionId)
     {
         socket.Close(connectionId);
     }
@@ -183,7 +191,7 @@ public class Network:MonoBehaviour
                         }
                         else
                         {
-                            OnError(0, string.Format("session{0} not register!!", m.SessionId));
+                            OnError("", string.Format("session{0} not register!!", m.SessionId));
                         }
                         break;
                     }
@@ -206,7 +214,7 @@ public class Network:MonoBehaviour
                         else
                         {
                             string sss = m.Data.GetString();
-                            OnError(0, string.Format("message{0} not register!!{1}", msgId, sss));
+                            OnError("", string.Format("message{0} not register!!{1}", msgId, sss));
                         }
                     }
                     break;

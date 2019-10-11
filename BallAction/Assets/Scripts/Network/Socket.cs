@@ -27,11 +27,11 @@ namespace Moon
     public class SocketMessage
     {
         public SocketMessageType MessageType { get; }
-        public int ConnectionId { get; }
+        public string ConnectionId { get; }
         public int SessionId { get; }
         public Buffer Data { get; }
 
-        public SocketMessage(int connectionId, SocketMessageType messageType, Buffer data, int sessionId)
+        public SocketMessage(string connectionId, SocketMessageType messageType, Buffer data, int sessionId)
         {
             ConnectionId = connectionId;
             MessageType = messageType;
@@ -39,7 +39,7 @@ namespace Moon
             SessionId = sessionId;
         }
 
-        public SocketMessage(int connectionId, SocketMessageType messageType, byte[] data, int sessionId)
+        public SocketMessage(string connectionId, SocketMessageType messageType, byte[] data, int sessionId)
         {
             ConnectionId = connectionId;
             MessageType = messageType;
@@ -50,29 +50,11 @@ namespace Moon
 
     public class Socket
     {
-        Dictionary<int, BaseConnection> connections = new Dictionary<int, BaseConnection>();
+        Dictionary<string, BaseConnection> connections = new Dictionary<string, BaseConnection>();
 
         Queue<SocketMessage> messageQueue = new Queue<SocketMessage>();
 
         public Action<SocketMessage> HandleMessage { get; set; }
-
-        int uuid = 1;
-
-        int MakeUUID()
-        {
-            do
-            {
-                if (uuid == 0xFFFF)
-                {
-                    uuid = 1;
-                }
-                else
-                {
-                    uuid++;
-                }
-            } while (connections.ContainsKey(uuid));
-            return uuid;
-        }
 
         BaseConnection MakeConnection(SocketProtocolType protocolType)
         {
@@ -93,9 +75,9 @@ namespace Moon
 
         public SocketMessage Connect(string host, int port, SocketProtocolType protocolType)
         {
-            int connectionID = MakeUUID();
             try
             {
+                var connectionID = Guid.NewGuid().ToString();
                 var connection = MakeConnection(protocolType);
                 connection.HandleMessage = PushMessage;
                 connection.Socket.Connect(host, port);
@@ -108,17 +90,17 @@ namespace Moon
             }
             catch (SocketException se)
             {
-                return new SocketMessage(0, SocketMessageType.Error,BaseConnection.GetErrorMessage(se),0);
+                return new SocketMessage("", SocketMessageType.Error,BaseConnection.GetErrorMessage(se),0);
             }
             catch (Exception e)
             {
-                return new SocketMessage(0, SocketMessageType.Error, BaseConnection.GetErrorMessage(e),0);
+                return new SocketMessage("", SocketMessageType.Error, BaseConnection.GetErrorMessage(e),0);
             }
         }
 
         public void AsyncConnect(string host, int port, SocketProtocolType protocolType, int sessionid)
         {
-            int connectionID = MakeUUID();
+            var connectionID = Guid.NewGuid().ToString();
             try
             {
                 var connection = MakeConnection(protocolType);
@@ -137,23 +119,23 @@ namespace Moon
                     }
                     catch (SocketException se)
                     {
-                        PushMessage(new SocketMessage(0, SocketMessageType.Connect, BaseConnection.GetErrorMessage(se),sessionid));
+                        PushMessage(new SocketMessage("", SocketMessageType.Connect, BaseConnection.GetErrorMessage(se),sessionid));
                     }
                     catch (Exception e)
                     {
-                        PushMessage(new SocketMessage(0, SocketMessageType.Connect, BaseConnection.GetErrorMessage(e), sessionid));
+                        PushMessage(new SocketMessage("", SocketMessageType.Connect, BaseConnection.GetErrorMessage(e), sessionid));
                     }
                 }, socket);
             }
             catch (SocketException se)
             {
                 connections.Remove(connectionID);
-                PushMessage(new SocketMessage(0, SocketMessageType.Connect, BaseConnection.GetErrorMessage(se), sessionid));
+                PushMessage(new SocketMessage("", SocketMessageType.Connect, BaseConnection.GetErrorMessage(se), sessionid));
             }
             catch (Exception e)
             {
                 connections.Remove(connectionID);
-                PushMessage(new SocketMessage(0, SocketMessageType.Connect, BaseConnection.GetErrorMessage(e), sessionid));
+                PushMessage(new SocketMessage("", SocketMessageType.Connect, BaseConnection.GetErrorMessage(e), sessionid));
             }
         }
 
@@ -165,7 +147,7 @@ namespace Moon
             }
         }
 
-        public void Close(int connectionID)
+        public void Close(string connectionID)
         {
             if (connections.ContainsKey(connectionID))
             {
@@ -181,14 +163,14 @@ namespace Moon
             }
         }
 
-        public void Send(int connectionID, byte[] data)
+        public void Send(string connectionID, byte[] data)
         {
             Buffer buf = new Buffer();
             buf.Write(data, 0, data.Length);
             Send(connectionID, buf);
         }
 
-        public bool Send(int connectionID, Buffer data)
+        public bool Send(string connectionID, Buffer data)
         {
             if (connections.ContainsKey(connectionID))
             {
@@ -198,7 +180,7 @@ namespace Moon
             return false;
         }
 
-        public bool Read(int connectionId, bool line, int count, int sessionid)
+        public bool Read(string connectionId, bool line, int count, int sessionid)
         {
             if (connections.ContainsKey(connectionId))
             {

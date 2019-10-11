@@ -28,25 +28,25 @@ public class Login : MonoBehaviour
             Port.text = 22345.ToString();
         }
 
-        if (UserData.LoginSeverID != 0)
+        if (UserData.LoginSeverID.Length!=0)
         {
             Network.Close(UserData.LoginSeverID);
-            UserData.LoginSeverID = 0;
+            UserData.LoginSeverID = "";
         }
 
-        if (UserData.GameSeverID != 0)
+        if (UserData.GameSeverID.Length != 0)
         {
             Network.Close(UserData.GameSeverID);
-            UserData.GameSeverID = 0;
+            UserData.GameSeverID = "";
         }
     }
 
     public async void OnClickLogin()
     {
-        if (UserData.LoginSeverID == 0)
+        if (UserData.LoginSeverID.Length == 0)
         {
             var result = await Network.AsyncConnect("127.0.0.1", 42346, Moon.SocketProtocolType.Text);
-            if (result.ConnectionId == 0)
+            if (result.ConnectionId.Length == 0)
             {
                 MessageBox.Show(result.Data.GetString());
                 return;
@@ -85,7 +85,7 @@ public class Login : MonoBehaviour
                 return;
             }
             Network.Close(UserData.LoginSeverID);
-            UserData.LoginSeverID = 0;
+            UserData.LoginSeverID = "";
 
             var subid = Crypt.Base64Decode(result.Substring(4));
             Debug.Log("login ok, subid= " + Encoding.Default.GetString(subid));
@@ -98,7 +98,7 @@ public class Login : MonoBehaviour
         }
 
 
-        if (UserData.GameSeverID == 0)
+        if (UserData.GameSeverID.Length == 0)
         {
             if(Ip.text.Length == 0)
             {
@@ -111,7 +111,7 @@ public class Login : MonoBehaviour
             }
 
             var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.Socket);
-            if (result.ConnectionId == 0)
+            if (result.ConnectionId.Length == 0)
             {
                 MessageBox.Show(result.Data.GetString());
                 return;
