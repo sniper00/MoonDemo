@@ -1,0 +1,3 @@
+[submodule "server/moon"]
+	path = server/moon
+	url = https://github.com/sniper00/moon.git
