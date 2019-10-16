@@ -14,7 +14,7 @@
 
 - client 请使用unity2018 启动执行第一个场景Prepare。
 
-- server 默认会自动运行机器人服务。 config.json 可以修改机器人数量
+- 使用start_server 脚本运行。默认会自动运行机器人服务。config.json 可以修改机器人数量
 
 # 简介
 服务端使用了 [Entitas lua](https://github.com/sniper00/entitas-lua)
