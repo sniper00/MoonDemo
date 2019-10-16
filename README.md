@@ -7,7 +7,7 @@
 
 # 运行
 
-- server 包含编译好的windows版可执行文件,可以直接双击运行。(如果没有安装vs2017,则需要vs2017运行环境VC_redist.x64.exe[可在这里下载](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads)).
+- server 包含编译好的windows版可执行文件,可以直接`start_server.bat`运行。(如果没有安装vs2017,则需要vs2017运行环境VC_redist.x64.exe[可在这里下载](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads)).
 
 
 - client 请使用unity2018 启动执行第一个场景Prepare。

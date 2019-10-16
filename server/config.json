@@ -7,7 +7,7 @@
         "thread": 4,
         "startup": "main.lua",
         "log": "log/#sid_#date.log",
-        "path":["game"],
+        "path":["game","lualib"],
         "services": [
             {
                 "unique": true,
