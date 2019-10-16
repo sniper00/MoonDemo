@@ -18,7 +18,7 @@ git clone --recursive https://github.com/sniper00/BallGame.git --depth==1
 
 - client 请使用unity2018 启动执行第一个场景Prepare。
 
-- 使用start_server 脚本运行。默认会自动运行机器人服务。config.json 可以修改机器人数量
+- 使用 `start_server` 脚本运行。默认会自动运行机器人服务。`server/config.json` 可以修改机器人数量
 
 # 简介
 服务端使用了 [Entitas lua](https://github.com/sniper00/entitas-lua)
