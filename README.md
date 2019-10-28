@@ -9,7 +9,9 @@
 
 1. clone
 ```
-git clone --recursive https://github.com/sniper00/BallGame.git
+git clone --recursive https://github.com/sniper00/BallGame.git --depth=1
+cd BallGame
+git submodule update --init --recursive
 ```
 
 2. [参考moon编译](https://github.com/sniper00/moon#%E7%BC%96%E8%AF%91)
