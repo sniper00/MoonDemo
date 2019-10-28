@@ -1,1 +1,0 @@
-moon\moon.exe -c server\config.json

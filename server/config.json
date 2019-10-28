@@ -7,7 +7,8 @@
         "thread": 4,
         "startup": "main.lua",
         "log": "log/#sid_#date.log",
-        "path":["game","lualib"],
+        "cpath":["moon/clib"],
+        "path":["moon/lualib","game","lualib"],
         "services": [
             {
                 "unique": true,
