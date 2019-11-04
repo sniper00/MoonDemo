@@ -15,7 +15,7 @@ local UpdateSpeedSystem = require('room.system.UpdateSpeedSystem')
 
 local conf = ...
 
-aoi.create(conf.min_edge, conf.min_edge, 2*conf.max_edge,2*conf.max_edge)
+aoi.create(conf.map.x, conf.map.y, conf.map.len, 8)
 
 local mdecode = msgutil.decode
 
@@ -105,7 +105,6 @@ moon.start(function()
     --     collectgarbage("collect")
     --     print("room memory",moon.memory_use())
     -- end)
-
 
     moon.repeated(5000,-1,function()
         moon.async(function()

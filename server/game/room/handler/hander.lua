@@ -17,8 +17,8 @@ local CMD = {}
 
 function CMD.C2SEnterRoom(uid, req)
 	local mover = ecs_context:create_entity()
-    local x = math.random(conf.min_random_edge, conf.max_random_edge)
-    local y = math.random(conf.min_random_edge, conf.max_random_edge)
+    local x = math.random(conf.map.x, conf.map.x + conf.map.len)
+    local y = math.random(conf.map.y, conf.map.y + conf.map.len)
     local speed = conf.speed
     local raduis = conf.raduis
 
@@ -63,8 +63,8 @@ end
 function CMD.CreateFood(count)
 	for _ = 1, count do
         local food = ecs_context:create_entity()
-        local x = math.random(conf.min_edge, conf.max_edge)
-        local y = math.random(conf.min_edge, conf.max_edge)
+        local x = math.random(conf.map.x, conf.map.x + conf.map.len)
+        local y = math.random(conf.map.y, conf.map.y + conf.map.len)
         local spriteid = math.random(1,12)
         food:add(Components.Position, x, y)
         food:add(Components.BaseData, context.fooduid, "",spriteid)

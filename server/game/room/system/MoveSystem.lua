@@ -78,8 +78,8 @@ function M:update(...)
 
             dir_to_vec:mul(speed.value*delta)
 
-            local x, xout = math.clamp(pos.x + dir_to_vec.x, self.cfg.min_edge, self.cfg.max_edge)
-            local y, yout = math.clamp(pos.y + dir_to_vec.y, self.cfg.min_edge, self.cfg.max_edge)
+            local x, xout = math.clamp(pos.x + dir_to_vec.x, self.cfg.map.x, self.cfg.map.x + self.cfg.map.len)
+            local y, yout = math.clamp(pos.y + dir_to_vec.y, self.cfg.map.y, self.cfg.map.y + self.cfg.map.len)
 
             if xout then dir_to_vec.x = 0 end
             if yout then dir_to_vec.y = 0 end
