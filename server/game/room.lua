@@ -106,10 +106,12 @@ moon.start(function()
     --     print("room memory",moon.memory_use())
     -- end)
 
+    local workernum = tonumber(moon.get_env("THREAD_NUM"))
+
     moon.repeated(5000,-1,function()
         moon.async(function()
             local t = {}
-            for i=1,moon.workernum() do
+            for i=1,workernum do
                 table.insert(t, moon.co_runcmd("worker."..i..".stat"))
             end
             print_r(t)
