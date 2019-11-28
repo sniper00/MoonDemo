@@ -63,6 +63,7 @@
     <Compile Include="Assets\Scripts\Components.cs" />
     <Compile Include="Assets\Scripts\Game\Game.cs" />
     <Compile Include="Assets\Scripts\Login\Login.cs" />
+    <Compile Include="Assets\Scripts\MatchWait\MatchWait.cs" />
     <Compile Include="Assets\Scripts\MessageBox\MessageBox.cs" />
     <Compile Include="Assets\Scripts\MessageBox\MessageBoxWnd.cs" />
     <Compile Include="Assets\Scripts\MessageDefine.cs" />

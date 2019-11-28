@@ -156,6 +156,9 @@ function M:update(...)
             if eat>0 then
                 local weight = 0.01*eat
                 e:replace(Components.Eat,weight)--更新玩家Eat组件，用来计算球体半径增加量
+
+                local score = e:get(Components.Score).score
+                e:replace(Components.Score,score + eat)
             end
         end
     )

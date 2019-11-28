@@ -39,6 +39,12 @@ public class Login : MonoBehaviour
             Network.Close(UserData.GameSeverID);
             UserData.GameSeverID = "";
         }
+
+        Network.Register<S2CMatchSuccess>((res) =>
+        {
+            MessageBox.SetVisible(false);
+            SceneManager.LoadScene("Game");
+        });
     }
 
     public async void OnClickLogin()
@@ -123,8 +129,8 @@ public class Login : MonoBehaviour
         if (v.res == "200 OK")
         {
             UserData.username = userName.text;
-
-            SceneManager.LoadScene("Game");
+            await Network.Call<S2CMatch>(UserData.GameSeverID, new C2SMatch {});
+            SceneManager.LoadScene("MatchWait");
         }
         else
         {

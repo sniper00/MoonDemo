@@ -28,16 +28,9 @@
             },
             {
                 "unique": true,
-                "name": "room",
-                "file": "game/room.lua",
-                "map":{
-                    "x":-64,
-                    "y":-64,
-                    "len":128
-                },
-                "speed":2,
-                "raduis":0.3,
-                "food_raduis":0.25
+                "name": "center",
+                "file": "game/center.lua",
+                "max_room_player_number":50
             },
             {
                 "name": "robot",

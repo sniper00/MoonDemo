@@ -15,6 +15,24 @@ public class S2CLogin
 }
 
 [System.Serializable]
+public class C2SMatch
+{
+    public bool res;
+}
+
+[System.Serializable]
+public class S2CMatch
+{
+    public bool res;
+}
+
+[System.Serializable]
+public class S2CMatchSuccess
+{
+
+}
+
+[System.Serializable]
 public class C2SEnterRoom
 {
     public string username;
@@ -103,4 +121,10 @@ public class Radius
 {
     public int id;
     public Component.Radius data;
+}
+
+[System.Serializable]
+public class S2CGameOver
+{
+    public int score;
 }

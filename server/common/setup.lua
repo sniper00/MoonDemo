@@ -23,12 +23,14 @@ local function docmd(sender, sessionid, cmd, ...)
     end
 end
 
-return function(context)
+return function(context, sname)
 
     context.docmd = docmd
 
+    sname = sname or moon.name()
+
     -- Load Handlers
-    local dir = string.format("game/%s/handler/",moon.name())
+    local dir = string.format("game/%s/handler/", sname)
     fs.traverse_folder(dir, 100, function(filepath,isdir)
         if not isdir then
             local name = fs.filename(filepath)

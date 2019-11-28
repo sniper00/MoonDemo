@@ -37,8 +37,9 @@ local context ={
     conf = conf,
     ecs_context = ecs_context,
     uid_index = uid_index,
+    docmd = false,
     fooduid = 1000000,
-    docmd = 0
+    uid_address = {}
 }
 
 local systems = Systems.new()
@@ -80,7 +81,7 @@ context.send_prefab =function(uid, prefabid)
     moon.send_prefab(context.gate,prefabid,seri.packs(uid),0,PTOCLIENT)
 end
 
-local _,command = setup(context)
+local _,command = setup(context,"room")
 
 moon.dispatch("client",function(msg)
     local uid = seri.unpack(msg:header())
@@ -96,25 +97,23 @@ end)
 
 moon.start(function()
     context.gate = moon.queryservice("gate")
-    -- context.center = moon.queryservice("center")
 
     context.docmd(0,0,"CreateFood",500)
 
+    -- local workernum = tonumber(moon.get_env("THREAD_NUM"))
+
     -- moon.repeated(5000,-1,function()
-    --     print("aoi mover number ", aoi.mover_count())
-    --     collectgarbage("collect")
-    --     print("room memory",moon.memory_use())
+    --     moon.async(function()
+    --         local t = {}
+    --         for i=1,workernum do
+    --             table.insert(t, moon.co_runcmd("worker."..i..".stat"))
+    --         end
+    --         print_r(t)
+    --     end)
     -- end)
 
-    local workernum = tonumber(moon.get_env("THREAD_NUM"))
-
-    moon.repeated(5000,-1,function()
-        moon.async(function()
-            local t = {}
-            for i=1,workernum do
-                table.insert(t, moon.co_runcmd("worker."..i..".stat"))
-            end
-            print_r(t)
-        end)
+    -- 1分钟后Game Over,结算积分
+    moon.repeated(60000, 1 , function()
+        context.docmd(0,0,"GameOver")
     end)
 end)

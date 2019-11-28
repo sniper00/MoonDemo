@@ -26,8 +26,12 @@ public class Game : MonoBehaviour {
 
     Text xpos;
     Text ypos;
+    Text countDown;
+    int time = 60;
 
     Transform scene;
+
+    bool gameOver = false;
 
     Entity local;
     // Use this for initialization
@@ -54,6 +58,7 @@ public class Game : MonoBehaviour {
 
         xpos = transform.Find("UI/Xpos").GetComponent<Text>();
         ypos = transform.Find("UI/Ypos").GetComponent<Text>();
+        countDown = transform.Find("UI/CountDown").GetComponent<Text>();
 
         scene = UnityUtils.FindTransform("Scene/World");
 
@@ -217,7 +222,26 @@ public class Game : MonoBehaviour {
             }
         });
 
+        Network.Register<S2CGameOver>(v => {
+            gameOver = true;
+            MessageBox.Show(string.Format("Game Over, Score : {0}", v.score),(res)=> {
+                SceneManager.LoadScene("Login");
+            });
+        });
+
         Network.Send(UserData.GameSeverID, new C2SEnterRoom { username = UserData.username });
+
+        InvokeRepeating("CountDown", 1f, 1.0f);
+    }
+
+    void CountDown()
+    {
+        time--;
+        if(time<=0)
+        {
+            time = 0;
+        }
+        countDown.text = string.Format("{0}s", time);
     }
 
     void Setposition(Vector2 pos)
@@ -229,7 +253,7 @@ public class Game : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        if(null == local || local.Go == null)
+        if(null == local || local.Go == null || gameOver)
         {
             return;
         }

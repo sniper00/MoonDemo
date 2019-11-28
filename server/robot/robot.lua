@@ -86,14 +86,31 @@ local function login(username)
     return subid,handshake_str
 end
 
+--游戏逻辑流程
 local function client_handler( fd, subid, handshake ,uname)
 
+    --login 逻辑服务器
     local c2slogin = msgutil.encode(MSGID.C2SLogin,{token = handshake})
     send(fd,c2slogin)
 
     local _,data = client_read(fd)
     assert(data.res=="200 OK",data)
 
+    --请求匹配
+    local C2SMatch = msgutil.encode(MSGID.C2SMatch)
+    send(fd,C2SMatch)
+
+    local _,data = client_read(fd)
+    assert(data.res, "C2SMatch failed")
+
+    --等待匹配成功
+    repeat
+        local id = client_read(fd)
+    until id == MSGID.S2CMatchSuccess
+
+    --print("robot match success")
+
+    --请求进入房间
     local c2s_enterroom = msgutil.encode(MSGID.C2SEnterRoom,{username = uname})
     if not c2s_enterroom then
         print("MSGID.C2SEnterRoom encode error")
@@ -101,6 +118,10 @@ local function client_handler( fd, subid, handshake ,uname)
     end
     send(fd,c2s_enterroom)
 
+    local _,data = client_read(fd)
+    assert(_ == MSGID.S2CEnterRoom, "C2SEnterRoom failed")
+
+    --进入房间成功后，模拟随机移动
     local timerid = moon.repeated(3000,-1,function ( trid )
         local vec2 = vector2.new(0,0)
         local x = math.random(-10, 10)
@@ -127,6 +148,10 @@ local function client_handler( fd, subid, handshake ,uname)
 
         if _ == MSGID.S2CDead then
             print("ROBOT DEAD: ", subid)
+            moon.remove_timer(timerid)
+            return
+        elseif _ == MSGID.S2CGameOver then
+            print("GAME OVER: ", subid)
             moon.remove_timer(timerid)
             return
         end

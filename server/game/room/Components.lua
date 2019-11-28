@@ -12,7 +12,8 @@ local M = {
     Food = MakeComponent("Food"),
     Radius =  MakeComponent("Radius","value"),
     Dead =  MakeComponent("Dead"),
-    Eat =  MakeComponent("Eat","weight")
+    Eat =  MakeComponent("Eat","weight"),
+    Score =  MakeComponent("Score","score")
 }
 
 --根据name映射组件和消息ID

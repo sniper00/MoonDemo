@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Game.unity
     guid: 2967181af8cda414499e7fe9bac17c7d
+  - enabled: 1
+    path: Assets/Scenes/MatchWait.unity
+    guid: 9561f1445870880408c22083620fcdc0
   m_configObjects: {}

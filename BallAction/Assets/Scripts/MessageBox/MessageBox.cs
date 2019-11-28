@@ -40,4 +40,9 @@ public class MessageBox : MonoBehaviour
     {
         instace.Add(new MessageBoxContext(text, callBack));
     }
+
+    public static  void SetVisible(bool show)
+    {
+        instace.wnd.SetVisible(show);
+    }
 }

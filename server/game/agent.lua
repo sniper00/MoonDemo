@@ -7,43 +7,56 @@ local mdecode = msgutil.decode
 
 local PCLIENT = constant.PTYPE.CLIENT
 
-local context ={
+---@class agent_context
+local context = {
     openid = 0,
-	uid = 0
+    uid = 0,
+    ismatching = false,
+    room = false
 }
 
+context.send = function(msgid, mdata)
+    moon.raw_send("toclient", context.gate, seri.packs(context.uid), msgutil.encode(msgid, mdata))
+end
+
 local function forward(msg)
-    local msgid = string.unpack("<H",msg:substr(0,2))
-    if(msgid&0xFF00) == 0x0200 then
+    local msgid = string.unpack("<H", msg:substr(0, 2))
+    if (msgid & 0xFF00) == 0x0200 then
         local header = seri.packs(context.uid)
-        msg:redirect(header,context.center,PCLIENT)
+        msg:redirect(header, context.center, PCLIENT)
         return true
-    elseif (msgid&0xFF00) == 0x0300 then
+    elseif (msgid & 0xFF00) == 0x0300 and context.room then
         local header = seri.packs(context.uid)
-        msg:redirect(header,context.room,PCLIENT)
+        msg:redirect(header, context.room, PCLIENT)
         return true
     end
     return false
 end
 
+context.forward = forward
+
 local _, command = setup(context)
 
-moon.dispatch("client",function(msg)
-    if forward(msg) then
-        return
+moon.dispatch(
+    "client",
+    function(msg)
+        local cmd, data = mdecode(msg)
+        local f = command[cmd]
+        if f then
+            moon.async(
+                function()
+                    f(data, msg)
+                end
+            )
+        elseif forward(msg) then
+            return
+        else
+            error(string.format("agent: PTYPE_CLIENT receive unknown cmd %s. uid %u", tostring(cmd), context.uid))
+        end
     end
-
-    local cmd,data = mdecode(msg)
-    local f = command[cmd]
-    if f then
-        f(data, msg)
-    else
-        error(string.format("agent: PTYPE_CLIENT receive unknown cmd %s. uid %u", tostring(cmd), context.uid))
-    end
-end)
+)
 
 moon.start(function()
-    context.gate = moon.queryservice("gate")
-    context.center = moon.queryservice("center")
-    context.room = moon.queryservice("room")
+        context.gate = moon.queryservice("gate")
+        context.center = moon.queryservice("center")
 end)
