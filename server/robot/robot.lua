@@ -159,7 +159,7 @@ moon.start(function()
         moon.async(function ()
             pcall(client_handler,fd, un, handshake, "robot"..tostring(un))
             socket.close(fd)
-            moon.co_wait(20)
+            moon.sleep(20)
             create_user(un)
         end)
     end
@@ -168,7 +168,7 @@ moon.start(function()
     moon.async(function(  )
         for _=1,conf.num do
             create_user()
-            moon.co_wait(10)
+            moon.sleep(10)
         end
     end)
 
