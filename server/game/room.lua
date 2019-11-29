@@ -81,14 +81,15 @@ context.send_prefab =function(uid, prefabid)
     moon.send_prefab(context.gate,prefabid,seri.packs(uid),0,PTOCLIENT)
 end
 
-local _,command = setup(context,"room")
+local docmd, command = setup(context,"room")
+context.docmd = docmd
 
 moon.dispatch("client",function(msg)
     local uid = seri.unpack(msg:header())
-    local cmd,data = mdecode(msg)
+    local cmd, data = mdecode(msg)
     local f = command[cmd]
     if f then
-        f(uid, data, msg)
+        f(uid, data)
         systems:execute()
     else
         error(string.format("room: PTYPE_CLIENT receive unknown cmd %s. uid %u", tostring(cmd), uid))

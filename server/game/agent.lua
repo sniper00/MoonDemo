@@ -43,11 +43,9 @@ moon.dispatch(
         local cmd, data = mdecode(msg)
         local f = command[cmd]
         if f then
-            moon.async(
-                function()
-                    f(data, msg)
-                end
-            )
+            moon.async(function()
+                f(data)
+            end)
         elseif forward(msg) then
             return
         else
@@ -57,6 +55,6 @@ moon.dispatch(
 )
 
 moon.start(function()
-        context.gate = moon.queryservice("gate")
-        context.center = moon.queryservice("center")
+    context.gate = moon.queryservice("gate")
+    context.center = moon.queryservice("center")
 end)

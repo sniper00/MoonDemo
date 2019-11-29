@@ -7,14 +7,29 @@ local msgutil = require("common.msgutil")
 
 local unpack = seri.unpack
 
+local unpack_one = seri.unpack_one
+
 local mdecode = msgutil.decode
 
 local command = {}
 
-local function docmd(sender, sessionid, cmd, ...)
+local function docmd(sender, sessionid, msg)
+    local buffer = msg:buffer()
+    local cmd = unpack_one(buffer)
     local f = command[cmd]
     if f then
-        local args = {...}
+        moon.async(function()
+            moon.response("lua", sender, sessionid, f(unpack(buffer)))
+        end)
+    else
+        assert("recv unknown cmd "..cmd)
+    end
+end
+
+local function direct_docmd(sender, sessionid, cmd, ...)
+    local args = {...}
+    local f = command[cmd]
+    if f then
         moon.async(function()
             moon.response("lua", sender, sessionid, f(table.unpack(args)))
         end)
@@ -24,8 +39,6 @@ local function docmd(sender, sessionid, cmd, ...)
 end
 
 return function(context, sname)
-
-    context.docmd = docmd
 
     sname = sname or moon.name()
 
@@ -48,22 +61,26 @@ return function(context, sname)
         end
     end)
 
-    moon.dispatch("lua",function(msg,p)
+    moon.dispatch("lua",function(msg)
         local sessionid = msg:sessionid()
         local sender = msg:sender()
-        docmd(sender, sessionid, p.unpack(msg))
+        docmd(sender, sessionid, msg)
     end)
 
     moon.register_protocol({
         name = "client",
         PTYPE = constant.PTYPE.CLIENT,
+        -- 定义默认的，agent 转发的客户端消息处理
         dispatch = function(msg)
-            -- message id to name
+            -- agent 会把uid保存在header中
+            local uid = seri.unpack(msg:header())
+            -- message id to string
             local cmd,data = mdecode(msg)
+            -- find handler
             local f = command[cmd]
             if f then
                 -- mark 处理返回？？？
-                f(data, msg)
+                f(uid, data)
             else
                 assert("PTYPE_CLIENT receive unknown cmd "..tostring(cmd))
             end
@@ -76,7 +93,7 @@ return function(context, sname)
         dispatch = nil
     })
 
-    return docmd, command
+    return direct_docmd, command
 end
 
 
