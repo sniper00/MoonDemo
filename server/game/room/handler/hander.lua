@@ -35,7 +35,7 @@ function CMD.C2SEnterRoom(uid, req)
     vec:normalize()
 
     print("ROOM: enter", uid)
-    aoi.insert(uid, x, y, true)
+
 
     mover:add(Components.Position, x, y)
     mover:add(Components.Direction,vec.x, vec.y)
@@ -47,13 +47,13 @@ function CMD.C2SEnterRoom(uid, req)
 
     context.send(uid, "S2CEnterRoom",{id=uid})
     context.send_component(uid,mover,Components.Mover)
-    context.send_component(uid,mover,Components.BaseData)
     context.send_component(uid,mover,Components.Position)
     context.send_component(uid,mover,Components.Direction)
     context.send_component(uid,mover,Components.Speed)
     context.send_component(uid,mover,Components.Radius)
+    context.send_component(uid,mover,Components.BaseData)
 
-    aoi.update_message()--触发周围的玩家、Food进入视野
+    aoi.insert(uid, x, y, true)
 end
 
 -- call by agent 玩家离开房间，
@@ -61,7 +61,6 @@ function CMD.LeaveRoom(uid)
     local e = uid_index:get_entity(uid)
     if e then
         aoi.erase(uid,true)
-        aoi.update_message()
         ecs_context:destroy_entity(e)
         context.uid_address[uid] = nil
         print("ROOM: leave", uid)
@@ -81,7 +80,6 @@ function CMD.CreateFood(count)
         aoi.insert(context.fooduid, x, y)
         context.fooduid = context.fooduid + 1
     end
-    aoi.update_message()
 end
 
 function CMD.CommandMove(uid, req)

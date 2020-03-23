@@ -46,9 +46,9 @@ function M:on_enter( watcher, marker )
     elseif oe:has(Components.Food) then
         self.context.send_component(watcher,oe,Components.Food)
     end
-    self.context.send_component(watcher,oe,Components.BaseData)
     self.context.send_component(watcher,oe,Components.Position)
     self.context.send_component(watcher,oe,Components.Radius)
+    self.context.send_component(watcher,oe,Components.BaseData)
     --print("EnterView", marker,"->",watcher)
 end
 
@@ -96,8 +96,6 @@ function M:update(...)
         end
     )
 
-    aoi.update_message()
-
     local max_radius = 0
     local max_near = 0
     --计算玩家碰撞
@@ -130,7 +128,6 @@ function M:update(...)
                 if ne and not ne:has(Components.Dead) then
                     local nradius = ne:get(Components.Radius).value
                     local npos = ne:get(Components.Position)
-
                     local mdist = math.abs(pos.x - npos.x) + math.abs(pos.y - npos.y)
 
                     if mdist < 2*(radius + nradius) then
@@ -146,7 +143,6 @@ function M:update(...)
                             elseif radius > nradius then
                                 eat = eat + 1
                                 ne:replace(Components.Dead)--玩家死亡，给玩家添加Dead Component
-                                -- print("add dead", ne)
                             end
                         end
                     end

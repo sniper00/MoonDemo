@@ -25,7 +25,7 @@ public class Login : MonoBehaviour
 
         if (Port.text.Length == 0)
         {
-            Port.text = 22345.ToString();
+            Port.text = 12345.ToString();
         }
 
         if (UserData.LoginSeverID.Length!=0)
@@ -51,7 +51,7 @@ public class Login : MonoBehaviour
     {
         if (UserData.LoginSeverID.Length == 0)
         {
-            var result = await Network.AsyncConnect("127.0.0.1", 42346, Moon.SocketProtocolType.Text);
+            var result = await Network.AsyncConnect("127.0.0.1", 12346, Moon.SocketProtocolType.Text);
             if (result.ConnectionId.Length == 0)
             {
                 MessageBox.Show(result.Data.GetString());

@@ -38,16 +38,12 @@ function M:execute(entites)
         local eid = entity:get(Components.BaseData).id
         local rdsid = self.context.make_prefab(entity,Components.Radius)
         self.context.send_prefab(eid,rdsid)
-        local near = aoi.get_aoi(eid)
-        if not near then
-            return
-        end
-        for id,_ in pairs(near) do
-            local ne = self.idx:get_entity(id)
+        aoi.fire_event(eid,aoi.EVENT_UPDATE_DIR,function (marker)
+            local ne = self.idx:get_entity(marker)
             if ne and ne:has(Components.Mover) then
-                self.context.send_prefab(id,rdsid)
+                self.context.send_prefab(marker,rdsid)
             end
-        end
+        end)
     end)
 end
 

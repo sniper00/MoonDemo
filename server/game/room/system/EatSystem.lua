@@ -34,7 +34,6 @@ function M:execute(entites)
     entites:foreach(function(e)
         local weight = e:get(Components.Eat).weight
         local radius = e:get(Components.Radius).value
-
         local newradius =radius + weight
         if newradius > 5 then
             newradius = 0.3

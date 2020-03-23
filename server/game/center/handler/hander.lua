@@ -25,6 +25,7 @@ local room_inrc_id = 1
 local function CheckMatchQueue(q)
     if #q >= conf.max_room_player_number then
         room_conf.name = room_name..room_inrc_id
+        room_conf.time = conf.time
         room_inrc_id = room_inrc_id + 1
         local room = moon.co_new_service("lua", room_conf)
         local n = 0

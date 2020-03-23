@@ -23,11 +23,11 @@ local function forward(msg)
     local msgid = string.unpack("<H", msg:substr(0, 2))
     if (msgid & 0xFF00) == 0x0200 then
         local header = seri.packs(context.uid)
-        msg:redirect(header, context.center, PCLIENT)
+        moon.redirect(msg, header, context.center, PCLIENT)
         return true
     elseif (msgid & 0xFF00) == 0x0300 and context.room then
         local header = seri.packs(context.uid)
-        msg:redirect(header, context.room, PCLIENT)
+        moon.redirect(msg, header, context.room, PCLIENT)
         return true
     end
     return false

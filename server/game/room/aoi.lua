@@ -6,40 +6,67 @@ local space
 
 local cache = {}
 
+local AOI_WATCHER = 1
+
+local AOI_MARHER = 2
+
+local EVENT_ENTER = 1
+
+local EVENT_LEAVE = 2
+
+M.EVENT_DEAD = 10
+
+M.EVENT_EAT = 11
+
+M.EVENT_UPDATE_DIR = 12
+
+M.EVENT_UPDATE_RAIDUS = 13
+
+M.EVENT_UPDATE_SPEED = 14
+
+local event_cache = {}
+local function update_aoi_event(fn)
+    local count = space:update_event(event_cache)
+	for i=1,count,3 do
+        local watcher = event_cache[i]
+        local marker = event_cache[i+1]
+		local eventid = event_cache[i+2]
+		if eventid == EVENT_ENTER then
+            cache[watcher][marker] = true
+            M.on_enter(watcher, marker)
+        elseif eventid == EVENT_LEAVE then
+            cache[watcher][marker] = nil
+            M.on_leave(watcher, marker)
+        else
+            fn(watcher)
+		end
+	end
+end
+
 function M.create(...)
     space = aoi.create(...)
+    space:enable_leave_event(true)
 end
 
 function M.insert(id, x, y, mover)
-    space:insert(id, x, y)
     if mover then
-        cache[id] = {ver = 1, view = {}}
+        space:insert(id, x, y, 18, 11, 1, AOI_WATCHER|AOI_MARHER)
+        cache[id] = {}
+    else
+        space:insert(id, x, y, 0, 0, 1, AOI_MARHER)
     end
+
+    update_aoi_event()
 end
 
-function M.update(...)
-    space:update(...)
+function M.update(id, x, y)
+    space:update(id, x, y, 18, 11, 1)
+    update_aoi_event()
 end
 
-local removed = {}
-
-function M.update_message()
-    for id, value in pairs(cache) do
-        value.ver = space:query(id, 20, 10, value.ver, value.view)
-        local index = 0
-        for oid, v in pairs(value.view) do
-            if v == value.ver then
-                M.on_enter(id, oid)
-            elseif v ~= (value.ver -1) then
-                index = index + 1
-                removed[index] = oid
-                M.on_leave(id, oid)
-            end
-        end
-        for i=1, index  do
-            value.view[removed[i]] = nil
-        end
-    end
+function M.fire_event(id, eventid, fn)
+    space:fire_event(id, eventid)
+    update_aoi_event(fn)
 end
 
 function M.get_aoi(id)
@@ -47,7 +74,7 @@ function M.get_aoi(id)
         print("aoi !!!", id)
         return
     end
-    return cache[id].view
+    return cache[id]
 end
 
 function M.erase(id, mover)
@@ -55,14 +82,16 @@ function M.erase(id, mover)
         print("aoi erase", id)
         cache[id] = nil
     end
-    return space:erase(id)
+    local res = space:erase(id)
+    update_aoi_event()
+    return res
 end
 
 function M.max_view_count()
     local maxcount = 0
     for _, value in pairs(cache) do
         local n = 0
-        for _, _ in pairs(value.view) do
+        for _, _ in pairs(value) do
             n = n + 1
         end
         if n > maxcount then

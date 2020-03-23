@@ -1,4 +1,5 @@
 local moon = require("moon")
+local buffer = require("buffer")
 ---@type fs
 local fs = require("fs")
 local seri = require("seri")
@@ -6,25 +7,17 @@ local constant = require("common.constant")
 local msgutil = require("common.msgutil")
 
 local unpack = seri.unpack
-
 local unpack_one = seri.unpack_one
+local pack = seri.pack
+local packs = seri.packs
+
+local buf_write_front = buffer.write_front
 
 local mdecode = msgutil.decode
 
-local command = {}
+local raw_send = moon.raw_send
 
-local function docmd(sender, sessionid, msg)
-    local buffer = msg:buffer()
-    local cmd = unpack_one(buffer)
-    local f = command[cmd]
-    if f then
-        moon.async(function()
-            moon.response("lua", sender, sessionid, f(unpack(buffer)))
-        end)
-    else
-        assert("recv unknown cmd "..cmd)
-    end
-end
+local command = {}
 
 local function direct_docmd(sender, sessionid, cmd, ...)
     local args = {...}
@@ -64,7 +57,25 @@ return function(context, sname)
     moon.dispatch("lua",function(msg)
         local sessionid = msg:sessionid()
         local sender = msg:sender()
-        docmd(sender, sessionid, msg)
+        local buf = msg:buffer()
+        local cmd, offset = unpack_one(buf)
+        local fn = command[cmd]
+        if fn then
+            moon.async(function()
+                if sessionid ~= 0 then
+                    local unsafe_buf = pack(pcall(fn, unpack(msg:cstr(offset))))
+                    local ok = unpack_one(unsafe_buf, true)
+                    if not ok then
+                        buf_write_front(unsafe_buf, packs(false))
+                    end
+                    raw_send("lua", sender, "", unsafe_buf, sessionid)
+                else
+                    fn(unpack(msg:cstr(offset)))
+                end
+            end)
+        else
+            moon.error(moon.name(), "recv unknown cmd "..tostring(cmd))
+        end
     end)
 
     moon.register_protocol({

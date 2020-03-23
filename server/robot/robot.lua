@@ -32,7 +32,7 @@ local function send(fd,data)
 end
 
 local function login(username)
-    local fd = assert(socket.connect(conf.login.host, conf.login.port, moon.PTYPE_TEXT))
+    local fd = assert(socket.connect(conf.host, conf.login_port, moon.PTYPE_TEXT))
 
     local function writeline(fd_, text)
         socket.write(fd_, text .. "\n")
@@ -197,10 +197,10 @@ moon.start(function()
         end
     end)
 
-    moon.repeated(10000,-1,function (  )
-        collectgarbage("collect")
-        print("memory",collectgarbage("count"),"kb")
-    end)
+    -- moon.repeated(10000,-1,function (  )
+    --     collectgarbage("collect")
+    --     print("memory",collectgarbage("count"),"kb")
+    -- end)
 end)
 
 

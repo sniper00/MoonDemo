@@ -2,48 +2,16 @@
     {
         "sid": 1,
         "name": "game_#sid",
-        "outer_host": "127.0.0.1",
-        "inner_host": "127.0.0.1",
-        "thread": 4,
-        "startup": "main.lua",
-        "log": "log/#sid_#date.log",
-        "cpath":["moon/clib"],
-        "path":["moon/lualib","game","lualib"],
-        "services": [
-            {
-                "unique": true,
-                "name": "login",
-                "file": "game/login.lua",
-                "host": "#outer_host",
-                "port": 42346,
-                "count":4,
-                "master":true
-            },
-            {
-                "unique": true,
-                "name": "gate",
-                "file": "game/gate.lua",
-                "host": "#inner_host",
-                "port": 22345
-            },
-            {
-                "unique": true,
-                "name": "center",
-                "file": "game/center.lua",
-                "max_room_player_number":50
-            },
-            {
-                "name": "robot",
-                "file": "robot/robot.lua",
-                "unique": true,
-                "host": "#inner_host",
-                "port": 22345,
-                "num": 100,
-                "login":{
-                    "host": "#inner_host",
-                    "port":42346
-                }
-            }
-        ]
+        "log": "log/game_#sid-#date.log",
+        "loglevel":"INFO",
+        "bootstrap":"main.lua",
+        "params":{
+            "host": "0.0.0.0",
+            "gate_port":12345,
+            "login_port":12346,
+            "robot_num":99,
+            "max_room_player_number":100,
+            "round_time":600
+        }
     }
 ]

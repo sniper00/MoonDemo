@@ -9,6 +9,9 @@ local conf = ...
 
 local PCLIENT = constant.PTYPE.CLIENT
 
+local redirect = moon.redirect
+
+
 ---@class gate_context
 local context = {
     openid_map = {},
@@ -33,7 +36,7 @@ socket.on("message", function(fd, msg)
         docmd(0,0,'auth', fd, msg:bytes())
     else
         local agent = c.agent
-        msg:redirect("", agent, PCLIENT)
+        redirect(msg, "", agent, PCLIENT)
     end
 end)
 

@@ -40,17 +40,13 @@ function M:execute(entites)
         local posid = self.context.make_prefab(entity,Components.Position)
         self.context.send_prefab(eid,dirid)
         self.context.send_prefab(eid,posid)
-        local near = aoi.get_aoi(eid)
-        if not near then
-            return
-        end
-        for id,_ in pairs(near) do
-            local ne = self.idx:get_entity(id)
+        aoi.fire_event(eid,aoi.EVENT_UPDATE_DIR,function (watcher)
+            local ne = self.idx:get_entity(watcher)
             if ne and ne:has(Components.Mover) then
-                self.context.send_prefab(id,dirid)
-                self.context.send_prefab(id,posid)
+                self.context.send_prefab(watcher,dirid)
+                self.context.send_prefab(watcher,posid)
             end
-        end
+        end)
     end)
 end
 

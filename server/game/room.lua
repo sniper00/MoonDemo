@@ -101,20 +101,8 @@ moon.start(function()
 
     context.docmd(0,0,"CreateFood",500)
 
-    -- local workernum = tonumber(moon.get_env("THREAD_NUM"))
-
-    -- moon.repeated(5000,-1,function()
-    --     moon.async(function()
-    --         local t = {}
-    --         for i=1,workernum do
-    --             table.insert(t, moon.co_runcmd("worker."..i..".stat"))
-    --         end
-    --         print_r(t)
-    --     end)
-    -- end)
-
-    -- 1分钟后Game Over,结算积分
-    moon.repeated(60000, 1 , function()
+    --Game Over,结算积分
+    moon.repeated(conf.time*6000, 1 , function()
         context.docmd(0,0,"GameOver")
     end)
 end)
