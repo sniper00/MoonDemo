@@ -26,7 +26,7 @@ local connection = context.connection
 
 socket.on("accept", function(fd, msg)
     print("GAME SERVER: accept ", fd, msg:bytes())
-    socket.set_enable_frame(fd, "w")
+    socket.set_enable_chunked(fd, "w")
     socket.settimeout(fd, 60)
 end)
 
