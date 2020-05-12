@@ -79,7 +79,7 @@ local function run_slave(auth_handler)
 
 		local etoken = assert_socket("auth5", readline(fd),fd)
 
-		local token = crypt.desdecode(secret, crypt.base64decode(etoken))
+		local token = crypt.desdecode(secret, crypt.base64decode(etoken), crypt.padding.pkcs7)
 
 		local ok, server, openid =  pcall(auth_handler,token)
 

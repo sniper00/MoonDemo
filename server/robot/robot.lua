@@ -65,7 +65,7 @@ local function login(username)
             crypt.base64encode(token.pass))
     end
 
-    local etoken = crypt.desencode(secret, encode_token(token))
+    local etoken = crypt.desencode(secret, encode_token(token), crypt.padding.pkcs7)
     writeline(fd, crypt.base64encode(etoken))
 
     local result = socket.readline(fd,"\n")
