@@ -77,9 +77,10 @@ moon.dispatch("toclient",function(msg)
 end)
 
 moon.start(function()
+    register_server(conf)
+
     local listenfd  = socket.listen(conf.host, conf.port, moon.PTYPE_SOCKET)
     socket.start(listenfd)
-    register_server(conf)
 end)
 
 

@@ -189,8 +189,9 @@ moon.start(function()
         end)
     end
 
-
     moon.async(function(  )
+        moon.sleep(3000)
+
         for _=1,conf.num do
             create_user()
             moon.sleep(10)

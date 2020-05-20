@@ -102,7 +102,7 @@ moon.start(function()
     context.docmd(0,0,"CreateFood",500)
 
     --Game Over,结算积分
-    moon.repeated(conf.time*6000, 1 , function()
+    moon.repeated(conf.time*1000, 1 , function()
         context.docmd(0,0,"GameOver")
     end)
 end)
