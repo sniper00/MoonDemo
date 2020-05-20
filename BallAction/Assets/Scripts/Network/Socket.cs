@@ -66,7 +66,7 @@ namespace Moon
                     }
                 case SocketProtocolType.Text:
                     {
-                        return new CustomConnection();
+                        return new StreamConnection();
                     }
                 default:
                     return null;

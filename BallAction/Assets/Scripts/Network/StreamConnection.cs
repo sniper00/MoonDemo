@@ -1,6 +1,6 @@
 ﻿namespace Moon
 {
-    public class CustomConnection : BaseConnection
+    public class StreamConnection : BaseConnection
     {
         class ReadRequest
         {
