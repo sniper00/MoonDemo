@@ -51,7 +51,7 @@ function CMD.login(openid, secret)
 	local id = internal_id	-- don't use internal_id directly
     local usertoken = make_usertoken(openid, id, moon.get_env("SERVER_NAME"))
 
-    local agent = moon.co_new_service("lua",{name="agent", file="game/agent.lua"})
+    local agent = moon.new_service("lua",{name="agent", file="game/agent.lua"})
 
 	local u = {
 		usertoken = usertoken,

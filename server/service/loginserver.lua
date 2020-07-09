@@ -122,10 +122,10 @@ local function run_slave(auth_handler)
         end
     end
 
-    moon.dispatch('lua',function(msg,p)
+    moon.dispatch('lua',function(msg, unpack)
         local sender = msg:sender()
         local sessionid = msg:sessionid()
-        docmd(sender,sessionid, p.unpack(msg))
+        docmd(sender,sessionid, unpack(msg:cstr()))
     end)
 end
 
@@ -163,8 +163,8 @@ end
 
 local function run_master(conf)
 
-    moon.dispatch("lua", function(msg, p)
-        moon.response("lua",msg:sender(),msg:sessionid(), conf.command_handler(p.unpack(msg)))
+    moon.dispatch("lua", function(msg, unpack)
+        moon.response("lua",msg:sender(),msg:sessionid(), conf.command_handler(unpack(msg:cstr())))
     end)
 
     local listenfd  = socket.listen(conf.host,conf.port,moon.PTYPE_TEXT)
@@ -173,7 +173,7 @@ local function run_master(conf)
 
     moon.async(function()
         for n=1,conf.count do
-            local sid = moon.co_new_service("lua",{name=conf.name.."-slave"..n,file = conf.file})
+            local sid = moon.new_service("lua",{name=conf.name.."-slave"..n,file = conf.file})
             table.insert(slave,sid)
         end
 

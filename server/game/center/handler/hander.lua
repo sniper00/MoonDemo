@@ -27,7 +27,7 @@ local function CheckMatchQueue(q)
         room_conf.name = room_name..room_inrc_id
         room_conf.time = conf.time
         room_inrc_id = room_inrc_id + 1
-        local room = moon.co_new_service("lua", room_conf)
+        local room = moon.new_service("lua", room_conf)
         local n = 0
         while n<conf.max_room_player_number do
             local uid = table.remove(q,1)
