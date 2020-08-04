@@ -37,8 +37,10 @@ return function(context, sname)
 
     -- Load Handlers
     local dir = string.format("game/%s/handler/", sname)
-    fs.traverse_folder(dir, 100, function(filepath,isdir)
-        if not isdir then
+
+    local list = fs.listdir(dir,10)
+    for _, filepath in ipairs(list) do
+        if not fs.isdir(filepath) then
             local name = fs.filename(filepath)
             local f = assert(loadfile(dir..name))
             local res = f(context)
@@ -52,7 +54,7 @@ return function(context, sname)
                 assert(false)
             end
         end
-    end)
+    end
 
     moon.dispatch("lua",function(msg)
         local sessionid = msg:sessionid()
