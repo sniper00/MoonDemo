@@ -96,13 +96,11 @@ moon.dispatch("client",function(msg)
     end
 end)
 
-moon.start(function()
-    context.gate = moon.queryservice("gate")
+context.gate = moon.queryservice("gate")
 
-    context.docmd(0,0,"CreateFood",500)
+context.docmd(0,0,"CreateFood",500)
 
-    --Game Over,结算积分
-    moon.repeated(conf.time*1000, 1 , function()
-        context.docmd(0,0,"GameOver")
-    end)
+--Game Over,结算积分
+moon.repeated(conf.time*1000, 1 , function()
+    context.docmd(0,0,"GameOver")
 end)

@@ -14,6 +14,7 @@ local redirect = moon.redirect
 
 ---@class gate_context
 local context = {
+    conf = conf,
     openid_map = {},
     usertoken_map = {},
     connection = {},
@@ -27,7 +28,7 @@ local connection = context.connection
 socket.on("accept", function(fd, msg)
     print("GAME SERVER: accept ", fd, msg:bytes())
     socket.set_enable_chunked(fd, "w")
-    socket.settimeout(fd, 60)
+    --socket.settimeout(fd, 60)
 end)
 
 socket.on("message", function(fd, msg)
@@ -58,15 +59,6 @@ socket.on("close", function(fd, msg)
     print("GATE: client close ", fd, c.openid,c.uid)
 end)
 
-local function register_server()
-    local login = moon.queryservice("login")
-    if 0 == login then
-        print(cluster.send("login", "login", "register_gate", moon.get_env("SERVER_NAME") , moon.name()))
-    else
-        moon.send("lua", login,nil, "register_gate", moon.get_env("SERVER_NAME"), moon.sid())
-    end
-end
-
 moon.dispatch("toclient",function(msg)
     local uid = seri.unpack(msg:header())
     local fd = context.uid_map[uid]
@@ -74,13 +66,6 @@ moon.dispatch("toclient",function(msg)
         return
     end
     socket.write_message(fd,msg)
-end)
-
-moon.start(function()
-    register_server(conf)
-
-    local listenfd  = socket.listen(conf.host, conf.port, moon.PTYPE_SOCKET)
-    socket.start(listenfd)
 end)
 
 

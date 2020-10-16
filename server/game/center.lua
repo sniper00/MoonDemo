@@ -18,8 +18,3 @@ context.send = function(uid, msgid, mdata)
 end
 
 context.docmd = setup(context)
-
-moon.start(function()
-    context.gate = moon.queryservice("gate")
-
-end)

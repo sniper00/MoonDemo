@@ -73,7 +73,7 @@ local function login(username)
     local code = tonumber(string.sub(result, 1, 3))
     --print("robot close socket", fd)
     socket.close(fd)
-    assert(code == 200)
+    assert(code == 200, code)
     local subid = crypt.base64decode(string.sub(result, 5))
 
     --print("login ok, subid=", subid)
@@ -158,8 +158,8 @@ local function client_handler( fd, subid, handshake ,uname)
     end
 end
 
-moon.start(function()
-
+moon.async(function()
+    moon.sleep(10)
     local username = 0
 
     local create_user
@@ -189,19 +189,12 @@ moon.start(function()
         end)
     end
 
-    moon.async(function(  )
-        moon.sleep(3000)
-
-        for _=1,conf.num do
-            create_user()
-            moon.sleep(10)
-        end
-    end)
-
-    -- moon.repeated(10000,-1,function (  )
-    --     collectgarbage("collect")
-    --     print("memory",collectgarbage("count"),"kb")
-    -- end)
+    moon.sleep(3000)
+    for _=1,conf.num do
+        create_user()
+        moon.sleep(10)
+    end
 end)
+
 
 

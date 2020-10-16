@@ -1,22 +1,14 @@
-local json = require("json")
-
-local get_env = _G.get_env
-local set_env = _G.set_env
-local new_service = _G.new_service
-
--- define lua module search dir
-local path = "moon/lualib/?.lua;lualib/?.lua;game/?.lua;"
-
--- define lua c module search dir
-local cpath = "moon/clib/?.dll;moon/clib/?.so;tools/?.lua;"
+-- Define lua module search dir, all services use same lua search path
+local path = [[moon/lualib/?.lua;moon/service/?.lua;lualib/?.lua;game/?.lua;]] -- Append your lua search path
 
 package.path = path .. package.path
-package.cpath = cpath .. package.cpath
 
-set_env("PATH", path)
-set_env("CPATH", cpath)
+local moon = require("moon")
+local json = require("json")
 
-local params = json.decode(get_env("PARAMS"))
+moon.set_env("PATH", string.format("package.path='%s'..package.path", path))
+
+local params = json.decode(moon.get_env("PARAMS"))
 
 local services ={
     {
@@ -53,12 +45,33 @@ local services ={
     }
 }
 
-for _, conf in ipairs(services) do
-    local service_type = conf.service_type or "lua"
-    local unique = conf.unique or false
-    local threadid = conf.threadid or 0
+local addrs = {}
+moon.async(function()
+    for _, conf in ipairs(services) do
+        local service_type = conf.service_type or "lua"
+        local unique = conf.unique or false
+        local threadid = conf.threadid or 0
+        local addr = moon.new_service(service_type, conf, unique, threadid)
+        ---如果创建服务失败，立刻退出进程
+        if 0 == addr then
+            moon.exit(-100)
+            return
+        end
+        table.insert(addrs, addr)
+    end
 
-    new_service(service_type, json.encode(conf), unique, threadid, 0 ,0 )
-end
+    ---控制服务初始化顺序
+    moon.co_call("lua", moon.queryservice("center"), "Init")
+    moon.co_call("lua", moon.queryservice("gate"), "Init")
 
-return #services
+end)
+
+---注册进程退出信号处理
+moon.shutdown(function()
+    moon.async(function()
+        for _, addr in ipairs(addrs) do
+            moon.remove_service(addr)
+        end
+        moon.quit()
+    end)
+end)

@@ -38,9 +38,24 @@ local function call_login(...)
     end
 end
 
+local function register_server()
+    local login = moon.queryservice("login")
+    if 0 == login then
+        print(cluster.send("login", "login", "register_gate", moon.get_env("SERVER_NAME") , moon.name()))
+    else
+        moon.send("lua", login,nil, "register_gate", moon.get_env("SERVER_NAME"), moon.sid())
+    end
+end
+
 local internal_id = 0
 
 local CMD = {}
+
+function CMD.Init()
+    register_server(context.conf)
+    local listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET)
+    socket.start(listenfd)
+end
 
 --- called by loginserver
 ---@param openid string

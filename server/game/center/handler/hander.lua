@@ -44,6 +44,10 @@ end
 
 local CMD = {}
 
+function CMD.Init()
+    context.gate = moon.queryservice("gate")
+end
+
 function CMD.Match(uid, address)
     --print("MATCH", uid, address)
     local v = context.match_map[uid]

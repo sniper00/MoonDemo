@@ -195,10 +195,6 @@ local function run_master(conf)
             balance = balance + 1
         end
     end)
-
-    moon.destroy(function()
-        socket.close(listenfd)
-    end)
 end
 
 local function run(conf)

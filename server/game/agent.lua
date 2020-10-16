@@ -54,7 +54,6 @@ moon.dispatch(
     end
 )
 
-moon.start(function()
-    context.gate = moon.queryservice("gate")
-    context.center = moon.queryservice("center")
-end)
+context.gate = moon.queryservice("gate")
+context.center = moon.queryservice("center")
+
