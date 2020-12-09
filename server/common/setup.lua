@@ -57,22 +57,20 @@ return function(context, sname)
     end
 
     moon.dispatch("lua",function(msg)
-        local sessionid = msg:sessionid()
-        local sender = msg:sender()
-        local buf = msg:buffer()
-        local cmd, offset = unpack_one(buf)
+        local sender, sessionid, buf = moon.decode(msg, "SEB")
+        local cmd, sz, len = unpack_one(buf)
         local fn = command[cmd]
         if fn then
             moon.async(function()
                 if sessionid ~= 0 then
-                    local unsafe_buf = pack(pcall(fn, unpack(msg:cstr(offset))))
+                    local unsafe_buf = pack(pcall(fn, unpack(sz, len)))
                     local ok = unpack_one(unsafe_buf, true)
                     if not ok then
                         buf_write_front(unsafe_buf, packs(false))
                     end
                     raw_send("lua", sender, "", unsafe_buf, sessionid)
                 else
-                    fn(unpack(msg:cstr(offset)))
+                    fn(unpack(sz, len))
                 end
             end)
         else
@@ -85,10 +83,11 @@ return function(context, sname)
         PTYPE = constant.PTYPE.CLIENT,
         -- 定义默认的，agent 转发的客户端消息处理
         dispatch = function(msg)
+            local header, buf = moon.decode(msg, "HB")
             -- agent 会把uid保存在header中
-            local uid = seri.unpack(msg:header())
+            local uid = seri.unpack(header)
             -- message id to string
-            local cmd,data = mdecode(msg)
+            local cmd, data = mdecode(buf)
             -- find handler
             local f = command[cmd]
             if f then

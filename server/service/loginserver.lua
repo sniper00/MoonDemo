@@ -123,9 +123,8 @@ local function run_slave(auth_handler)
     end
 
     moon.dispatch('lua',function(msg, unpack)
-        local sender = msg:sender()
-        local sessionid = msg:sessionid()
-        docmd(sender,sessionid, unpack(msg:cstr()))
+        local sender, sessionid, sz, len = moon.decode(msg, "SEC")
+        docmd(sender,sessionid, unpack(sz, len))
     end)
 end
 
@@ -164,7 +163,8 @@ end
 local function run_master(conf)
 
     moon.dispatch("lua", function(msg, unpack)
-        moon.response("lua",msg:sender(),msg:sessionid(), conf.command_handler(unpack(msg:cstr())))
+        local sender, sessionid, sz, len = moon.decode(msg, "SEC")
+        moon.response("lua",sender,sessionid, conf.command_handler(unpack(sz, len)))
     end)
 
     local listenfd  = socket.listen(conf.host,conf.port,moon.PTYPE_TEXT)

@@ -85,8 +85,9 @@ local docmd, command = setup(context,"room")
 context.docmd = docmd
 
 moon.dispatch("client",function(msg)
-    local uid = seri.unpack(msg:header())
-    local cmd, data = mdecode(msg)
+    local header, buf = moon.decode(msg, "HB")
+    local uid = seri.unpack(header)
+    local cmd, data = mdecode(buf)
     local f = command[cmd]
     if f then
         f(uid, data)

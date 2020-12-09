@@ -1,11 +1,16 @@
 local json = require("json")
 local seri = require("seri")
+local buffer = require("buffer")
 local code = require("common.msgcode")
 
 local packs = seri.packs
 local jdecode = json.decode
 local concats = seri.concats
 local type = type
+
+local bsize = buffer.size
+local bsubstr = buffer.substr
+local bcstr = buffer.cstr
 
 -- used for find message name by id
 local id_name = {}
@@ -36,9 +41,9 @@ function M.encode(id,t)
     end
 end
 
-function M.decode(msg)
-    local name =  id_name[msg:substr(0,2)]
-    return name, jdecode(msg:substr(2,-1))
+function M.decode(buf)
+    local name =  id_name[bsubstr(buf, 0,2)]
+    return name, jdecode(bsubstr(buf, 2,-1))
 end
 
 return M
