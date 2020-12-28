@@ -1,6 +1,5 @@
 local moon = require("moon")
 local seri = require("seri")
-local json = require("json")
 local message = require("message")
 local socket = require("moon.socket")
 local constant = require("common.constant")
