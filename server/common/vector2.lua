@@ -1,39 +1,9 @@
-local M = {}
-
-M.__index = M
-
 local FLOAT_MIN = 0.0000001
 
-function M.new( x,y )
-    local t = {x=x,y=y}
-    setmetatable(t,M)
-    return t
-end
+local M = {}
 
-function M:set_x( x )
-    self.x = x
-end
-
-function M:set_y( y )
-    self.y = y
-end
-
-function M:from_angle( angle )
-    self.x = math.cos( math.rad(angle))
-    self.y = math.sin( math.rad(angle))
-end
-
-function M:len()
-    return math.sqrt( self.x^2+self.y^2 )
-end
-
-function M:mul( delta )
-    self.x=self.x*delta
-    self.y=self.y*delta
-end
-
-function M.normalize(self)
-    local n = self.x^2+self.y^2
+function M.normalize(v)
+    local n = v.x^2+v.y^2
     if n==1.0 then
         return
     end
@@ -42,12 +12,21 @@ function M.normalize(self)
         return
     end
     n = 1.0/n
-    self.x=self.x*n
-    self.y=self.y*n
+    v.x=v.x*n
+    v.y=v.y*n
+    return v
 end
 
-function M:degree()
-    return math.atan( self.y,self.x )*57.29578
+function M.distance(v)
+    math.sqrt( v.x^2+v.y^2 )
+end
+
+function M.add(v1, v2 )
+    return {x = v1.x + v2.x, y =  v1.y + v2.y}
+end
+
+function M.mul(v, delta )
+    return {x = v.x*delta, y = v.y*delta}
 end
 
 return M

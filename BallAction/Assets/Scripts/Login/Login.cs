@@ -28,12 +28,6 @@ public class Login : MonoBehaviour
             Port.text = 12345.ToString();
         }
 
-        if (UserData.LoginSeverID.Length!=0)
-        {
-            Network.Close(UserData.LoginSeverID);
-            UserData.LoginSeverID = "";
-        }
-
         if (UserData.GameSeverID.Length != 0)
         {
             Network.Close(UserData.GameSeverID);
@@ -49,61 +43,6 @@ public class Login : MonoBehaviour
 
     public async void OnClickLogin()
     {
-        if (UserData.LoginSeverID.Length == 0)
-        {
-            var result = await Network.AsyncConnect("127.0.0.1", 12346, Moon.SocketProtocolType.Text);
-            if (result.ConnectionId.Length == 0)
-            {
-                MessageBox.Show(result.Data.GetString());
-                return;
-            }
-            UserData.LoginSeverID = result.ConnectionId;
-        }
-
-        string handshake = "";
-        {
-            var line = await Network.ReadLine(UserData.LoginSeverID);
-            Debug.LogFormat("1. challenge {0}", line.Data.GetString());
-            var challenge = BitConverter.ToUInt64(Crypt.Base64Decode(line.Data.GetString()), 0);
-            var clientkey = Crypt.Random();
-            Network.Send(UserData.LoginSeverID, Crypt.Base64Encode(Crypt.DHExchange(clientkey)) + "\n");
-
-            line = await Network.ReadLine(UserData.LoginSeverID);
-
-            var secret = Crypt.DHSecret(BitConverter.ToUInt64(Crypt.Base64Decode(line.Data.GetString()), 0), clientkey);
-            Debug.Log(string.Format("2. sceret is {0}", Crypt.ToHex(BitConverter.GetBytes(secret))));
-            Network.Send(UserData.LoginSeverID, Crypt.HMAC64_BASE64(challenge, secret) + "\n");
-
-            string server = "game_1";
-            string user = userName.text;
-            string pass = "password";
-
-            string token = string.Format("{0}@{1}:{2}", Crypt.Base64Encode(user), Crypt.Base64Encode(server), Crypt.Base64Encode(pass));
-            var etoken = Crypt.DesEncodeBase64(BitConverter.GetBytes(secret), Encoding.Default.GetBytes(token));
-            Network.Send(UserData.LoginSeverID, etoken + "\n");
-            line = await Network.ReadLine(UserData.LoginSeverID);
-
-            var result = line.Data.GetString();
-            var code = result.Substring(0, 3);
-            Debug.LogFormat("3. code {0}", code);
-            if (code != "200")
-            {
-                return;
-            }
-            Network.Close(UserData.LoginSeverID);
-            UserData.LoginSeverID = "";
-
-            var subid = Crypt.Base64Decode(result.Substring(4));
-            Debug.Log("login ok, subid= " + Encoding.Default.GetString(subid));
-
-            handshake = string.Format("{0}@{1}#{2}:{3}", Crypt.Base64Encode(user), Crypt.Base64Encode(server), Crypt.Base64Encode(subid), 1);
-            string hmac = Crypt.HMAC64_BASE64(BitConverter.ToUInt64(Crypt.HashKey(handshake), 0), secret);
-            handshake = handshake + ":" + hmac;
-
-            UserData.uid = int.Parse(Encoding.Default.GetString(subid));
-        }
-
-
         if (UserData.GameSeverID.Length == 0)
         {
             if(Ip.text.Length == 0)
@@ -125,17 +64,17 @@ public class Login : MonoBehaviour
             UserData.GameSeverID = result.ConnectionId;
         }
 
-        var v = await Network.Call<S2CLogin>(UserData.GameSeverID, new C2SLogin { token = handshake });
-        if (v.res == "200 OK")
+        var v = await Network.Call<S2CLogin>(UserData.GameSeverID, new C2SLogin { openid = userName.text });
+        if (v.ok)
         {
+            UserData.time = v.time;
             UserData.username = userName.text;
             await Network.Call<S2CMatch>(UserData.GameSeverID, new C2SMatch {});
             SceneManager.LoadScene("MatchWait");
         }
         else
         {
-            MessageBox.Show(v.res);
-            Debug.Log(v.res);
+            MessageBox.Show("auth failed");
         }
     }
 }

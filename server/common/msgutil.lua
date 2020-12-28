@@ -42,8 +42,19 @@ function M.encode(id,t)
 end
 
 function M.decode(buf)
-    local name =  id_name[bsubstr(buf, 0,2)]
-    return name, jdecode(bsubstr(buf, 2,-1))
+    local size = bsize(buf)
+    if size < 2 then
+        return nil
+    end
+    local name = id_name[bsubstr(buf, 0, 2)]
+    if size > 2 then
+        return name, jdecode(bsubstr(buf, 2, -1))
+    end
+    return name
+end
+
+function M.bytes_to_name(bytes)
+    return id_name[bytes]
 end
 
 return M

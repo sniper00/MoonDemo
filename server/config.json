@@ -3,15 +3,16 @@
         "sid": 1,
         "name": "game_#sid",
         "log": "log/game_#sid-#date.log",
-        "loglevel":"INFO",
-        "bootstrap":"main.lua",
-        "params":{
+        "loglevel": "INFO",
+        "bootstrap": "main.lua",
+        "params": {
             "host": "0.0.0.0",
-            "gate_port":12345,
-            "login_port":12346,
-            "robot_num":99,
-            "max_room_player_number":100,
-            "round_time":60
+            "port": 12345,
+            "redis_host": "127.0.0.1",
+            "redis_port": 6379,
+            "robot_num": 99,
+            "max_room_player_number": 100,
+            "round_time": 60
         }
     }
 ]

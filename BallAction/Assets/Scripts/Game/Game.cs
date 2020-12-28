@@ -7,21 +7,22 @@ using UnityEngine.UI;
 
 public class Entity
 {
-    public bool Mover { get; set; }
-    public bool Food { get; set; }
+    public long id;
+    public float radius;
+    public long spriteid;
+    public float speed;
+    public string name;
+    public long movetime;
+    public Vector2 pos;
+    public Vector2 dir;
     public GameObject Go { get; set; }
-    public Component.BaseData BaseData { get; set; }
-    public Component.Position Position { get; set; }
-    public Vector2 Direction { get; set; }
-    public Component.Speed Speed { get; set; }
     public Component.Color Color { get; set; }
-    public Component.Radius Radius { get; set; }
     public GameObject NameText { get; set; }
 }
 
 public class Game : MonoBehaviour {
     public int nline = 40;
-    Dictionary<int, Entity> entitas = new Dictionary<int, Entity>();
+    Dictionary<long, Entity> entitas = new Dictionary<long, Entity>();
     Dictionary<int, string> foodsprite = new Dictionary<int, string>();
     Dictionary<int, string> playersprite = new Dictionary<int, string>();
 
@@ -38,6 +39,16 @@ public class Game : MonoBehaviour {
     GameObject namePrefab;
 
     Entity local;
+
+    long uid = 0;
+
+    static bool IsPlayer(long id)
+    {
+        return ((id >> 24) == 1);
+    }
+
+    long now = Millseconds();
+
     // Use this for initialization
     void Start () {
         foodsprite.Add(1, "Texture/bean_polygon3_1");
@@ -69,18 +80,66 @@ public class Game : MonoBehaviour {
         playerPrefab = Resources.Load<GameObject>("Prefab/Player");
         namePrefab = Resources.Load<GameObject>("Prefab/TextName");
 
+
+
         Network.Register<S2CEnterRoom>(v => {
-            var e = new Entity();
-            entitas.Add(v.id, e);
-            local = e;
+            uid = v.id;
+            UserData.time = v.time;
+            now = Millseconds();
         });
 
         Network.Register<S2CEnterView>(v => {
             var e = new Entity();
             if(!entitas.ContainsKey(v.id))
             {
+                e.id = v.id;
+                e.radius = v.radius;
+                e.speed = v.speed;
+                e.spriteid = v.spriteid;
+                e.pos =  new Vector2 { x = v.x, y = v.y };
+                e.dir = v.dir;
+                e.name = v.name;
+                e.movetime = v.movetime;
+                bool isplayer = IsPlayer(e.id);
+                GameObject go = Instantiate(playerPrefab, new Vector3(e.pos.x, e.pos.y, 0), Quaternion.identity);
+                var spr = go.GetComponent<SpriteRenderer>();
+                string source;
+                if (isplayer)
+                {
+                    if (!playersprite.TryGetValue((int)e.spriteid, out source))
+                    {
+                        source = "Texture/bean_polygon5_1";
+                    }
+                }
+                else
+                {
+                    if (!foodsprite.TryGetValue((int)e.spriteid, out source))
+                    {
+                        source = "Texture/bean_polygon3_1";
+                    }
+                }
+
+                spr.sprite = UnityUtils.LoadSprite(source);
+                spr.sortingLayerName = "Player";
+                go.transform.position = new Vector3(e.pos.x, e.pos.y, 0);
+                go.transform.SetParent(scene);
+                //go.AddComponent<LineRenderer>();
+                e.Go = go;
+                e.NameText = Instantiate(namePrefab);
+                e.NameText.transform.SetParent(transform);
+                var text = e.NameText.GetComponent<Text>();
+                text.text = isplayer ? e.name : e.id.ToString();
+                text.color = UnityEngine.Color.green;
+                text.alignment = TextAnchor.UpperCenter;
+                text.fontStyle = FontStyle.Bold;
+                text.fontSize = 21;
                 entitas.Add(v.id, e);
                 Debug.LogFormat("Entity  id {0} enter view", v.id);
+
+                if(v.id == uid)
+                {
+                    local = e;
+                }
             }
         });
 
@@ -99,8 +158,33 @@ public class Game : MonoBehaviour {
                 e.Go = null;
                 if(entitas.Remove(v.id))
                 {
-                    Debug.LogFormat("Entity Destroy {0} {1} {2}", v.id, e.Position.x, e.Position.y);
+                    Debug.LogFormat("Entity Destroy {0} {1} {2}", v.id, e.pos.x, e.pos.y);
                 }
+            }
+        });
+
+        Network.Register<S2CMove>(v =>{
+            Entity e;
+            if (entitas.TryGetValue(v.id, out e))
+            {
+                //var delta = (UserData.time - e.movetime) / 1000.0f;
+                //var deltalen = e.dir.normalized * e.speed * delta;
+                //Vector2 nowPos = e.pos + deltalen;
+                //Debug.LogFormat("S2CMove {0} {1} {2} {3}", UserData.time, e.movetime, nowPos.x, nowPos.y);
+                e.pos.x = v.x;
+                e.pos.y = v.y;
+                e.dir.x = v.dirx;
+                e.dir.y = v.diry;
+                e.movetime = v.movetime;
+            }
+        });
+
+        Network.Register<S2CUpdateRadius>(v =>
+        {
+            Entity e;
+            if (entitas.TryGetValue(v.id, out e))
+            {
+                e.radius = v.radius;
             }
         });
 
@@ -118,110 +202,6 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<Mover>(v => {
-            Entity e;
-            if (entitas.TryGetValue(v.id, out e))
-            {
-                e.Mover =true;
-            }
-        });
-
-        Network.Register<Food>(v => {
-            Entity e;
-            if (entitas.TryGetValue(v.id, out e))
-            {
-                e.Food = true;
-            }
-        });
-
-        Network.Register<BaseData>(v => {
-            Entity e;
-            if(entitas.TryGetValue(v.id,out e))
-            {
-                e.BaseData = v.data;
-
-                GameObject go = Instantiate(
-                    playerPrefab,
-                    new Vector3(e.Position.x, e.Position.y, 0),
-                    Quaternion.identity);
-                var spr = go.GetComponent<SpriteRenderer>();
-                string source;
-                if(e.Mover)
-                {
-                    if (!playersprite.TryGetValue(e.BaseData.spriteid, out source))
-                    {
-                        source = "Texture/bean_polygon5_1";
-                    }
-                }
-                else if(e.Food)
-                {
-                    if (!foodsprite.TryGetValue(e.BaseData.spriteid, out source))
-                    {
-                        source = "Texture/bean_polygon3_1";
-                    }
-                }
-                else
-                {
-                    return;
-                }
-
-                spr.sprite = UnityUtils.LoadSprite(source);
-                spr.sortingLayerName = "Player";
-                go.transform.position = new Vector3(e.Position.x, e.Position.y, 0);
-                go.transform.SetParent(scene);
-                //go.AddComponent<LineRenderer>();
-                e.Go = go;
-                e.NameText = Instantiate(namePrefab);
-                e.NameText.transform.SetParent(transform);
-                var text = e.NameText.GetComponent<Text>();
-                text.text = e.Mover ? e.BaseData.name : e.BaseData.id.ToString();
-                text.color = UnityEngine.Color.green;
-                text.alignment = TextAnchor.UpperCenter;
-                text.fontStyle = FontStyle.Bold;
-                text.fontSize = 21;
-            }
-        });
-
-        Network.Register<Position>(v => {
-            Entity e;
-            if (entitas.TryGetValue(v.id, out e))
-            {
-                e.Position = v.data;
-            }
-        });
-
-        Network.Register<Direction>(v => {
-            Entity e;
-            if (entitas.TryGetValue(v.id, out e))
-            {
-                e.Direction = v.data;
-            }
-        });
-
-        Network.Register<Speed>(v => {
-            Entity e;
-            if (entitas.TryGetValue(v.id, out e))
-            {
-                e.Speed = v.data;
-            }
-        });
-
-        Network.Register<Color>(v => {
-            Entity e;
-            if (entitas.TryGetValue(v.id, out e))
-            {
-                e.Color = v.data;
-            }
-        });
-
-        Network.Register<Radius>(v => {
-            Entity e;
-            if (entitas.TryGetValue(v.id, out e))
-            {
-                e.Radius = v.data;
-            }
-        });
-
         Network.Register<S2CGameOver>(v => {
             gameOver = true;
             MessageBox.Show(string.Format("Game Over, Score : {0}", v.score),(res)=> {
@@ -229,9 +209,16 @@ public class Game : MonoBehaviour {
             });
         });
 
-        Network.Send(UserData.GameSeverID, new C2SEnterRoom { username = UserData.username });
+        Network.Send(UserData.GameSeverID, new C2SEnterRoom { name = UserData.username });
 
         InvokeRepeating("CountDown", 1f, 1.0f);
+    }
+
+    public static long Millseconds()
+    {
+        //100ns
+        var ts = DateTime.UtcNow.Ticks - new DateTime(1970, 1, 1, 0, 0, 0, 0).Ticks;
+        return ts / 10000;
     }
 
     void CountDown()
@@ -253,7 +240,10 @@ public class Game : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        if(gameOver)
+        var t = Millseconds();
+        UserData.time += (t - now);
+        now = t;
+        if (gameOver)
         {
             return;
         }
@@ -264,8 +254,7 @@ public class Game : MonoBehaviour {
             Vector3 target = new Vector3(mousePosition.x, mousePosition.y, 0);
             var dir = target - local.Go.transform.position;
             dir.Normalize();
-            local.Direction = dir;
-            Network.Send(UserData.GameSeverID, new CommandMove { x = dir.x,y= dir.y });
+            Network.Send(UserData.GameSeverID, new C2SMove { x = dir.x,y= dir.y });
         }
 
         foreach(var e in entitas.Values)
@@ -275,30 +264,24 @@ public class Game : MonoBehaviour {
                 continue;
             }
 
-            if(e.Position.x>=0.0f)
+            if(IsPlayer(e.id))
             {
-                e.Go.transform.position = new Vector3(e.Position.x, e.Position.y, e.Go.transform.position.z);
-                e.Position.x = -1.0f;
-            }
-
-            if(e.Mover)
-            {
-                Vector2 pos = e.Go.transform.position;
-                var deltalen = e.Direction.normalized * e.Speed.value * Time.deltaTime; ;
-                Vector2 newPosition = pos + deltalen;
+                var delta = (UserData.time - e.movetime) / 1000.0f;
+                var deltalen = e.dir.normalized * e.speed * delta;
+                Vector2 nowPos = e.pos + deltalen;
                 if (e == local)
                 {
-                    Setposition(newPosition);
-                    Camera.main.transform.position = new Vector3(newPosition.x, newPosition.y, Camera.main.transform.position.z);
+                    Setposition(nowPos);
+                    Camera.main.transform.position = new Vector3(nowPos.x, nowPos.y, Camera.main.transform.position.z);
                 }
                 else
                 {
-                    e.Go.transform.position = newPosition;
+                    e.Go.transform.position = nowPos;
                 }
             }
 
             var rect = e.Go.GetComponent<RectTransform>();
-            rect.localScale = new Vector3(2 * e.Radius.value / 0.3f, 2 * e.Radius.value / 0.3f, 1);
+            rect.localScale = new Vector3(1 + e.radius, 1+ e.radius , 1);
 
             if (e.NameText!=null)
             {

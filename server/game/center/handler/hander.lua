@@ -10,16 +10,19 @@ local room_conf = {
     map ={
         x = -64,
         y = -64,
-        len = 128
+        size = 128
     },
     speed = 2,
-    raduis = 0.3,
-    food_raduis = 0.25,
+    radius = 0.3,
+    food_radius = 0.25,
+    round_time = conf.round_time
 }
 
 local room_name = room_conf.name
 
 local room_inrc_id = 1
+
+local rooms = {}
 
 --简单的匹配策略
 local function CheckMatchQueue(q)
@@ -27,14 +30,18 @@ local function CheckMatchQueue(q)
         room_conf.name = room_name..room_inrc_id
         room_conf.time = conf.time
         room_inrc_id = room_inrc_id + 1
-        local room = moon.new_service("lua", room_conf)
+        local addr_room = moon.new_service("lua", room_conf)
+        if addr_room == 0 then
+            moon.error("create room failed!!!!!!!!")
+            return
+        end
+        rooms[addr_room] = true
         local n = 0
         while n<conf.max_room_player_number do
             local uid = table.remove(q,1)
             local p = context.match_map[uid]
             if p then
-                -- use send,because client may disconnected
-                moon.send("lua", p.address, nil, "MatchSuccess", room)
+                context.send_online_user(uid, "MatchSuccess", addr_room)
                 context.match_map[uid] = nil
             end
             n = n + 1
@@ -45,7 +52,17 @@ end
 local CMD = {}
 
 function CMD.Init()
-    context.gate = moon.queryservice("gate")
+    context.addr_gate = moon.queryservice("gate")
+    context.addr_auth = moon.queryservice("auth")
+    return true
+end
+
+function CMD.Shutdown()
+    for addr_room in pairs(rooms) do
+        moon.remove_service(addr_room)
+    end
+    moon.quit()
+    return true
 end
 
 function CMD.Match(uid, address)
@@ -62,6 +79,10 @@ end
 function CMD.UnMatch(uid)
     context.match_map[uid] = nil
     return true
+end
+
+function CMD.RemoveRoom(addr_room)
+    rooms[addr_room] = nil
 end
 
 return CMD

@@ -1,25 +1,38 @@
 local M = {
-    MsgUnknown = 0x0000,
-    C2SLogin = 0x0101,
-    S2CLogin = 0x0102,
-    C2SMatch = 0x0201,
-    S2CMatch = 0x0202,
-    S2CMatchSuccess = 0x0203,
-    C2SEnterRoom = 0x0301,
-    S2CEnterRoom = 0x0302,
-    CommandMove = 0x0303,
-    S2CEnterView = 0x0304,
-    S2CLeaveView = 0x0305,
-    Mover = 0x0306,
-    Food = 0x0307,
-    BaseData = 0x0308,
-    Position = 0x0309,
-    Direction = 0x0310,
-    Speed = 0x0311,
-    Color = 0x0312,
-    Radius = 0x0313,
-    S2CDead = 0x0314,
-    S2CGameOver = 0x0315,
+    C2SLogin = 1,
+    S2CLogin = 2,
+    C2SMatch = 3,
+    S2CMatch = 4,
+    S2CMatchSuccess = 5,
+    C2SEnterRoom = 6,
+    S2CEnterRoom = 7,
+    C2SMove = 8,
+    S2CMove = 9,
+    S2CUpdateRadius = 10,
+    S2CEnterView = 11,
+    S2CLeaveView = 12,
+    S2CDead = 13,
+    S2CGameOver = 14,
 }
 
-return M
+local forward = {
+    C2SEnterRoom = "addr_room",
+    C2SMove = "addr_room",
+}
+
+local mt = { forward = forward }
+
+mt.__newindex = function(_, name, _)
+    local msg = "attemp index unknown message: " .. tostring(name)
+    error(debug.traceback(msg, 2))
+end
+
+mt.__index = function(_, name)
+    if name == "forward" then
+        return forward
+    end
+    local msg = "attemp index unknown message: " .. tostring(name)
+    error(debug.traceback(msg, 2))
+end
+
+return setmetatable(M,mt)

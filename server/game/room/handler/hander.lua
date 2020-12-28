@@ -1,114 +1,192 @@
 local moon = require("moon")
-local aoi = require("room.aoi")
+local seri = require("seri")
+local constant = require("common.constant")
+local msgutil = require("common.msgutil")
+local msgcode = require("common.msgcode")
 local vector2 = require("common.vector2")
-local Components = require("room.Components")
 
 ---@type room_context
 local context = ...
 
 local conf = context.conf
 
-local ecs_context = context.ecs_context
+---@type RoomModel
+local RoomModel = context.models.RoomModel
 
-local uid_index = context.uid_index
+---@type AoiModel
+local AoiModel = context.models.AoiModel
 
-local vec = vector2.new(0,0)
+local AOI_EVENT = {
+    UpdateDir = 10,
+    UpdateRadius = 11,
+}
 
 local CMD = {}
 
-function CMD.SetAddress(uid, address)
-    context.uid_address[uid] = address
-    return true
+function CMD.Init()
+    -- body
+    AoiModel.Init(conf.map.x, conf.map.y, conf.map.size)
+
+    for i=1,500 do
+        local food = RoomModel.CreateFood()
+        AoiModel.Insert(food.id, food.x, food.y, 0, false)
+    end
 end
 
 function CMD.C2SEnterRoom(uid, req)
-	local mover = ecs_context:create_entity()
-    local x = math.random(conf.map.x, conf.map.x + conf.map.len)
-    local y = math.random(conf.map.y, conf.map.y + conf.map.len)
-    local speed = conf.speed
-    local raduis = conf.raduis
-
-    local spriteid = math.random(1,6)
-
-	vec:set_x(x)
-	vec:set_y(y)
-    vec:normalize()
-
-    print("ROOM: enter", uid)
-
-
-    mover:add(Components.Position, x, y)
-    mover:add(Components.Direction,vec.x, vec.y)
-    mover:add(Components.BaseData, uid, req.username, spriteid)
-    mover:add(Components.Speed, speed)
-    mover:add(Components.Radius, raduis)
-    mover:add(Components.Mover)
-    mover:add(Components.Score,0)
-
-    context.send(uid, "S2CEnterRoom",{id=uid})
-    context.send_component(uid,mover,Components.Mover)
-    context.send_component(uid,mover,Components.Position)
-    context.send_component(uid,mover,Components.Direction)
-    context.send_component(uid,mover,Components.Speed)
-    context.send_component(uid,mover,Components.Radius)
-    context.send_component(uid,mover,Components.BaseData)
-
-    aoi.insert(uid, x, y, true)
-end
-
--- call by agent 玩家离开房间，
-function CMD.LeaveRoom(uid)
-    local e = uid_index:get_entity(uid)
-    if e then
-        aoi.erase(uid,true)
-        ecs_context:destroy_entity(e)
-        context.uid_address[uid] = nil
-        print("ROOM: leave", uid)
+    context.send(uid, msgcode.S2CEnterRoom, {id = uid, time = moon.now()})
+    local player = RoomModel.FindPlayer(uid)
+    if not player then
+        player = RoomModel.CreatePlayer(uid, req)
     end
+    CMD.AoiEnter(uid, uid)
+    AoiModel.Insert(player.id, player.x, player.y, 20, true)
 end
 
-function CMD.CreateFood(count)
-	for _ = 1, count do
-        local food = ecs_context:create_entity()
-        local x = math.random(conf.map.x, conf.map.x + conf.map.len)
-        local y = math.random(conf.map.y, conf.map.y + conf.map.len)
-        local spriteid = math.random(1,12)
-        food:add(Components.Position, x, y)
-        food:add(Components.BaseData, context.fooduid, "",spriteid)
-        food:add(Components.Food)
-        food:add(Components.Radius, conf.food_raduis)
-        aoi.insert(context.fooduid, x, y)
-        context.fooduid = context.fooduid + 1
+local function UpdatePos(player)
+    local now = moon.now()
+    local delta = (now - player.movetime)/1000
+    player.movetime = now
+
+    local dir = player.dir
+    local addpos = vector2.mul(dir, player.speed * delta)
+    local x, x_isover = math.clamp(player.x + addpos.x, conf.map.x, conf.map.x + conf.map.size)
+    local y, y_isover = math.clamp(player.y + addpos.y, conf.map.y, conf.map.y + conf.map.size)
+
+    if x_isover then player.dir.x = 0.0 end
+    if y_isover then player.dir.y = 0.0 end
+
+    if x_isover or y_isover then
+        vector2.normalize(player.dir)
     end
+
+    player.x = x
+    player.y = y
+
+    --print(player.x, player.y, x, y, player.dir.x, player.dir.y)
+
+    return x_isover or y_isover
 end
 
-function CMD.CommandMove(uid, req)
-    local e = uid_index:get_entity(uid)
-    if not e then
-        print("command move: Mover not found ", uid)
-        return
-    end
-    vec:set_x(req.x)
-    vec:set_y(req.y)
-    vec:normalize()
-    e:replace(Components.Direction,vec.x,vec.y)
-    --print("CommandMove",vec.x,vec.y)
-end
-
-local entitas = require("entitas")
-local Matcher = entitas.Matcher
-
-function CMD.GameOver()
-    local movers = context.ecs_context:get_group(Matcher({Components.Mover})).entities
-    movers:foreach(function(e)
-        local BaseData = e:get(Components.BaseData)
-        local score = e:get(Components.Score).score
-        local address = context.uid_address[BaseData.id]
-        if address then
-            moon.send("lua",address,nil, "GameOver", score)
-        end
+function CMD.C2SMove(uid, req)
+    -- local p = RoomModel.FindPlayer(uid)
+    -- local mt = p.movetime
+    UpdatePos(RoomModel.FindPlayer(uid))
+    --print(moon.now(), mt, p.x, p.y)
+    local player = RoomModel.UpdateDir(uid, req)
+    local prefabid = moon.make_prefab(msgutil.encode(msgcode.S2CMove,{
+        id = uid,
+        x = player.x,
+        y = player.y,
+        dirx = player.dir.x,
+        diry = player.dir.y,
+        movetime = player.movetime
+        }
+    ))
+    AoiModel.FireEvent(uid, AOI_EVENT.UpdateDir, function(watcher)
+        moon.send_prefab(context.addr_gate, prefabid, seri.packs(watcher), 0, constant.PTYPE.TO_CLIENT)
     end)
+end
+
+function CMD.LeaveRoom(uid)
+    RoomModel.RemovePlayer(uid)
+    AoiModel.Erase(uid)
+    print("LeaveRoom", uid)
+end
+
+function CMD.Update()
+    local players = RoomModel.GetAllPlayer()
+    for _, player in pairs(players) do
+        local over = UpdatePos(player)
+        if over then
+            CMD.C2SMove(player.id, player.dir)
+        end
+        AoiModel.Update(player.id, player.x, player.y, 20)
+    end
+
+    local dead = {}
+    for _, player in pairs(players) do
+        if not player.dead then
+            local radius = player.radius
+            local res = AoiModel.Query(player.x, player.y, player.radius, player.radius)
+            for _, id in ipairs(res) do
+                local entity
+                if constant.IsPlayer(id) then
+                    entity = RoomModel.FindPlayer(id)
+                else
+                    entity = RoomModel.FindFood(id)
+                end
+
+                if not entity.dead then
+                    local distance = math.sqrt((player.x - entity.x)^2 + (player.y - entity.y)^2 )
+                    if distance < (player.radius + entity.radius) then
+                        if player.radius > entity.radius then
+                            entity.dead = true
+                            table.insert(dead, id)
+                            player.score = player.score + 1
+                            player.radius = player.radius + 0.1
+                            if player.radius > 5 then
+                                player.radius = 0.3
+                                --print("radius too big")
+                            end
+                        end
+                    end
+                end
+            end
+
+            if player.radius ~= radius then
+                local prefabid = moon.make_prefab(msgutil.encode(msgcode.S2CUpdateRadius,{
+                    id = player.id,
+                    radius = player.radius
+                    }
+                ))
+                AoiModel.FireEvent(player.id, AOI_EVENT.UpdateRadius, function(watcher)
+                    moon.send_prefab(context.addr_gate, prefabid, seri.packs(watcher), 0, constant.PTYPE.TO_CLIENT)
+                end)
+            end
+        end
+    end
+
+    local deadcount = #dead
+
+    for _,id in ipairs(dead) do
+        AoiModel.Erase(id)
+        if constant.IsPlayer(id) then
+            context.send(id,"S2CDead",{id=id})
+            RoomModel.RemovePlayer(id)
+        else
+            RoomModel.RemoveFood(id)
+        end
+    end
+
+    if deadcount > 0 then
+        for i=1,deadcount do
+            local food = RoomModel.CreateFood()
+            AoiModel.Insert(food.id, food.x, food.y, 0, false)
+        end
+    end
+end
+
+---called by timer
+function CMD.GameOver()
+    local players = RoomModel.GetAllPlayer()
+    for _, player in pairs(players) do
+        context.send_user(player.id, "GameOver", player.score)
+    end
+    moon.send("lua", context.addr_center, "", "RemoveRoom", moon.sid())
     moon.quit()
+end
+
+function CMD.AoiEnter(watcher, marker)
+    if constant.IsPlayer(marker) then
+        context.send(watcher, msgcode.S2CEnterView, RoomModel.FindPlayer(marker))
+    else
+        context.send(watcher, msgcode.S2CEnterView, RoomModel.FindFood(marker))
+    end
+end
+
+function CMD.AoiLeave(watcher, marker)
+    context.send(watcher, msgcode.S2CLeaveView, {id = marker})
 end
 
 return CMD

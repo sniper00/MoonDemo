@@ -1,27 +1,29 @@
 local moon = require("moon")
 local seri = require("seri")
+local json = require("json")
 local message = require("message")
-local cluster = require("moon.cluster")
 local socket = require("moon.socket")
 local constant = require("common.constant")
 local setup = require("common.setup")
+local msgutil = require("common.msgutil")
 
 local conf = ...
+
+local redirect = message.redirect
 
 local PCLIENT = constant.PTYPE.CLIENT
 
 ---@class gate_context
 local context = {
     conf = conf,
-    openid_map = {},
-    usertoken_map = {},
-    connection = {},
-    uid_map = {}
+    uid_map = {},
+    fd_map = {},
+    auth_watch = {},
+    ---other service address
+    addr_auth = false,
 }
 
-local docmd = setup(context)
-
-local connection = context.connection
+setup(context)
 
 socket.on("accept", function(fd, msg)
     print("GAME SERVER: accept ", fd, moon.decode(msg, "Z"))
@@ -30,12 +32,15 @@ socket.on("accept", function(fd, msg)
 end)
 
 socket.on("message", function(fd, msg)
-    local c = connection[fd]
-    if not c or not c.agent then
-        docmd(0,0,'auth', fd, moon.decode(msg, "Z"))
+    local c = context.fd_map[fd]
+    if not c then
+        ---first message must be auth message
+        context.auth_watch[fd] = tostring(msg)
+        local _, req = msgutil.decode(moon.decode(msg,"B"))
+        req.sign = context.auth_watch[fd]
+        moon.send("lua", context.addr_auth, nil, "Auth", fd, req, socket.getaddress(fd))
     else
-        local agent = c.agent
-        message.redirect(msg, "", agent, PCLIENT)
+        redirect(msg, "", c.addr_user, PCLIENT, 0, 0)
     end
 end)
 
@@ -44,26 +49,26 @@ socket.on("error", function(fd, msg)
 end)
 
 socket.on("close", function(fd, msg)
-
-    local c = connection[fd]
+    local data = moon.decode(msg, "Z")
+    context.auth_watch[fd] = nil
+    local c = context.fd_map[fd]
     if not c then
-        print("gate client close ", fd, moon.decode(msg, "Z"))
+        print("GAME SERVER: close", fd, data)
         return
     end
-    connection[fd] = nil
+    context.fd_map[fd] = nil
     context.uid_map[c.uid] = nil
-    local agent = c.agent
-    moon.send('lua', agent, nil,'disconnect')
-    print("GATE: client close ", fd, c.openid,c.uid)
+    moon.send('lua', context.addr_auth, nil, "OffLine", c.uid)
+    print("GAME SERVER: close", fd, c.uid, data)
 end)
 
 moon.dispatch("toclient",function(msg)
     local uid = seri.unpack(moon.decode(msg, "H"))
-    local fd = context.uid_map[uid]
-    if not fd then
+    local c = context.uid_map[uid]
+    if not c then
         return
     end
-    socket.write_message(fd,msg)
+    socket.write_message(c.fd,msg)
 end)
 
 
