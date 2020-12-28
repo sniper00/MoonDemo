@@ -6,7 +6,7 @@ local constant = require("common.constant")
 
 local traceback = debug.traceback
 
-local mem_player_limit = 1 --内存中最小玩家数量
+local mem_player_limit = 10 --内存中最小玩家数量
 local min_online_time = 300 --seconds，logout间隔大于这个时间的,并且不在线的,user服务会被退出
 
 ---@type auth_context
@@ -232,42 +232,68 @@ CMD.Auth = function (fd, req, addr, isload)
     return
 end
 
----向玩家所在服务发送消息,玩家不在线则会加载玩家，可以获得返回值
-function CMD.CallUser(uid, cmd, ...)
-    while token_watch[uid] do
-        moon.sleep(10)
+local wait_queue = {}
+
+---加载离线玩家
+local function OfflineAuth(uid)
+   ---有可能玩家正在登录，等待玩家登录流程结束
+   if token_watch[uid] then
+        local q = wait_queue[uid]
+        if not q then
+            q = {}
+            wait_queue[uid] = q
+        end
+        local co = coroutine.running()
+        table.insert(q, co)
+        coroutine.yield()
     end
 
     local u = context.uid_map[uid]
     if not u then
-        local err = CMD.Auth(0,string.format("ul,%u,12345566",uid), "", true)
-        if err then
-            return false, err
+        local ok,err = CMD.Auth(0, {uid = uid} , "", true)
+        if not ok then
+            return ok,err
         end
     end
 
-    u = context.uid_map[uid]
+    local q = wait_queue[uid]
+    if q then
+        wait_queue[uid] = nil
+        moon.async(function()
+            moon.sleep(10)
+            while #q > 0 do
+                local co = table.remove(q, 1)
+                local ok, err = coroutine.resume(co)
+                if not ok then
+                    moon.error(err)
+                end
+            end
+        end)
+    end
+    return true
+end
 
+function CMD.CallUser(uid, cmd, ...)
+    local u = context.uid_map[uid]
+    if not u then
+        local ok, err = OfflineAuth(uid)
+        if not ok then
+            return ok, err
+        end
+    end
+    u = context.uid_map[uid]
     return moon.co_call("lua", u.addr_user, cmd, ...)
 end
 
----向玩家所在服务发送消息,玩家不在线则会加载玩家，
 function CMD.SendUser(uid, cmd, ...)
-    while token_watch[uid] do
-        moon.sleep(10)
-    end
-
     local u = context.uid_map[uid]
     if not u then
-        local err = CMD.Auth(0,string.format("ul,%u,12345566",uid), "", true)
-        if err then
-            moon.error(err)
-            return
+        local ok, err = OfflineAuth(uid)
+        if not ok then
+            return ok, err
         end
     end
-
     u = context.uid_map[uid]
-
     moon.send("lua",u.addr_user,"",cmd,...)
 end
 
