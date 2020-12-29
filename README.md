@@ -4,6 +4,7 @@
 - 如何管理玩家网络连接
 - 如何动态创建服务
 - 如何使用redis数据库存储玩家数据
+- 使用vscode LuaPanda 插件调试服务器代码
 
 ![image](https://github.com/sniper00/BallGame/raw/master/image/start.png)
 
@@ -25,6 +26,24 @@ git clone --recursive https://github.com/sniper00/BallGame.git --depth=1
 - client 请使用unity2018 启动执行第一个场景Prepare。
 
 - 使用 `start_server` 脚本运行。默认会自动运行机器人服务。`server/config.json` 可以修改机器人数量
+
+# 调试
+
+- 安装vscode
+- 安装 LuaPanda 插件
+- 在需要调试的服务第一行添加代码(作为示例，room服务第一行添加了这行代码)
+```lua
+require("common.LuaPanda").start("127.0.0.1", 8818)
+```
+- [配置调试器](https://github.com/Tencent/LuaPanda/blob/master/Docs/Manual/access-guidelines.md#%E5%BC%80%E5%A7%8B%E8%B0%83%E8%AF%95)
+
+![image](https://github.com/sniper00/BallGame/raw/master/image/setting.png)
+
+- F5启动vscode-LuaPanda调试器
+- 使用vscode,在该服务的逻辑代码出下断点
+- 运行服务器，触发断点处的逻辑
+
+![image](https://github.com/sniper00/BallGame/raw/master/image/debug.png)
 
 ## Server
 
