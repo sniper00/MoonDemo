@@ -124,9 +124,9 @@ moon.shutdown(function()
             print(moon.co_call("lua", moon.queryservice("center"), "Shutdown"))
             print(moon.co_call("lua", moon.queryservice("auth"), "Shutdown"))
 
-            moon.send("system", moon.queryservice("db_server"), "wait_save")
-            moon.send("system", moon.queryservice("db_user"), "wait_save")
-            moon.send("system", moon.queryservice("db_openid"), "wait_save")
+            moon.raw_send("system", moon.queryservice("db_server"), "wait_save")
+            moon.raw_send("system", moon.queryservice("db_user"), "wait_save")
+            moon.raw_send("system", moon.queryservice("db_openid"), "wait_save")
 
             moon.remove_service(moon.queryservice("robot"))
         else

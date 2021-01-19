@@ -173,7 +173,7 @@ function CMD.GameOver()
     for _, player in pairs(players) do
         context.send_user(player.id, "GameOver", player.score)
     end
-    moon.send("lua", context.addr_center, "", "RemoveRoom", moon.sid())
+    moon.send("lua", context.addr_center, "RemoveRoom", moon.addr())
     moon.quit()
 end
 

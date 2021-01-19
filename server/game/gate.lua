@@ -37,7 +37,7 @@ socket.on("message", function(fd, msg)
         context.auth_watch[fd] = tostring(msg)
         local _, req = msgutil.decode(moon.decode(msg,"B"))
         req.sign = context.auth_watch[fd]
-        moon.send("lua", context.addr_auth, nil, "Auth", fd, req, socket.getaddress(fd))
+        moon.send("lua", context.addr_auth, "Auth", fd, req, socket.getaddress(fd))
     else
         redirect(msg, "", c.addr_user, PCLIENT, 0, 0)
     end
@@ -57,7 +57,7 @@ socket.on("close", function(fd, msg)
     end
     context.fd_map[fd] = nil
     context.uid_map[c.uid] = nil
-    moon.send('lua', context.addr_auth, nil, "OffLine", c.uid)
+    moon.send('lua', context.addr_auth, "OffLine", c.uid)
     print("GAME SERVER: close", fd, c.uid, data)
 end)
 

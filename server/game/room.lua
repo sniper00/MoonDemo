@@ -28,11 +28,11 @@ context.send = function(uid, msgid, mdata)
 end
 
 context.send_user = function(uid, ...)
-    moon.send("lua", context.addr_auth, "", "SendUser", uid, ...)
+    moon.send("lua", context.addr_auth, "SendUser", uid, ...)
 end
 
 context.send_online_user = function(uid, ...)
-    moon.send("lua", context.addr_auth, "", "SendOnlineUser", uid, ...)
+    moon.send("lua", context.addr_auth, "SendOnlineUser", uid, ...)
 end
 
 docmd("Init")

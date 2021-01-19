@@ -1,8 +1,8 @@
 [
     {
-        "sid": 1,
-        "name": "game_#sid",
-        "log": "log/game_#sid-#date.log",
+        "node": 1,
+        "name": "game_#node",
+        "log": "log/game_#node-#date.log",
         "loglevel": "INFO",
         "bootstrap": "main.lua",
         "params": {

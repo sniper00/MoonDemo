@@ -28,7 +28,7 @@ moon.repeated(10000,-1,function(timerid)
 
     for _,u in pairs(context.uid_map) do
         if not u.online and (now - u.logouttime) > min_online_time then
-            moon.send("lua", u.addr_user, "", "Exit")
+            moon.send("lua", u.addr_user, "Exit")
             context.uid_map[u.uid] = nil
             context.uid_map_count = context.uid_map_count - 1
         end
@@ -51,7 +51,7 @@ local function _DoAuth(req)
 
     local ok, err = moon.co_call("lua", addr_user, "Init", req)
     if not ok then
-        moon.send("lua", context.addr_gate, "", "KickByFd", req.fd)
+        moon.send("lua", context.addr_gate, "KickByFd", req.fd)
         moon.remove_service(addr_user)
         context.uid_map[req.uid] = nil
         return err
@@ -112,7 +112,7 @@ local CMD = {}
 
 CMD._hotfix = function(names)
     for _,u in pairs(context.uid_map) do
-        moon.send("lua", u.addr_user, "", "_hotfix", names)
+        moon.send("lua", u.addr_user, "_hotfix", names)
     end
 end
 
@@ -157,7 +157,7 @@ CMD.OnHour = function(v)
     print("OnHour", v)
     for _,u in pairs(context.uid_map) do
         if u.online then
-            moon.send("lua", u.addr_user, "", "OnHour", v)
+            moon.send("lua", u.addr_user, "OnHour", v)
         end
     end
 end
@@ -166,7 +166,7 @@ CMD.OnDay = function(v)
     print("OnDay", v)
     for _,u in pairs(context.uid_map) do
         if u.online then
-            moon.send("lua", u.addr_user, "", "OnDay", v)
+            moon.send("lua", u.addr_user, "OnDay", v)
         end
     end
 end
@@ -186,7 +186,7 @@ CMD.Auth = function (fd, req, addr, isload)
             uid = dbutil.queryuserid(context.addr_db_openid, req.openid)
             if false == uid then
                 moon.error("user auth load query userid db error", req.openid)
-                moon.send("lua", context.addr_gate, "", "KickByFd", fd)
+                moon.send("lua", context.addr_gate, "KickByFd", fd)
                 return
             elseif uid == nil then
                 ---may has created, because of yield, check again
@@ -205,14 +205,14 @@ CMD.Auth = function (fd, req, addr, isload)
 
     if type(req.uid) ~= "number" then
         moon.error("user auth illegal", fd, req.uid, type(req.uid))
-        moon.send("lua", context.addr_gate, "", "KickByFd", fd)
+        moon.send("lua", context.addr_gate, "KickByFd", fd)
         return false
     end
 
     --- user may send many auth request, check it
     if token_watch[req.uid] then
         moon.error("user auth too quickly", fd, req.uid, addr, isload)
-        moon.send("lua", context.addr_gate, "", "KickByFd", fd)
+        moon.send("lua", context.addr_gate, "KickByFd", fd)
         return false
     end
 
@@ -294,7 +294,7 @@ function CMD.SendUser(uid, cmd, ...)
         end
     end
     u = context.uid_map[uid]
-    moon.send("lua",u.addr_user,"",cmd,...)
+    moon.send("lua", u.addr_user, cmd,...)
 end
 
 ---向玩家所在服务发送消息,不在线不发送
@@ -303,7 +303,7 @@ function CMD.SendOnlineUser(uid, cmd, ...)
     if not u then
         return
     end
-    moon.send("lua",u.addr_user,"",cmd,...)
+    moon.send("lua", u.addr_user, cmd,...)
 end
 
 function CMD.OffLine(uid)

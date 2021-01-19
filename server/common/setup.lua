@@ -119,7 +119,7 @@ local function _internal(context)
                 end
             else
                 load_handler_one(context, mod, true)
-                print(moon.name(), moon.sid(), "hotfixhandler" , mod)
+                print(moon.name(), moon.addr(), "hotfixhandler" , mod)
             end
         end
         collectgarbage("collect")
@@ -175,7 +175,7 @@ return function(context, sname)
             local ok, cmd, data = pcall(mdecode, buf)
             if not ok then
                 moon.error("protobuffer decode client message failed", cmd)
-                moon.send("lua", context.gate, "", "Kick", uid)
+                moon.send("lua", context.gate, "Kick", uid)
                 return
             end
             -- find handler

@@ -54,7 +54,7 @@ end
 --请求匹配
 function CMD.C2SMatch()
     --向匹配服务器请求
-    assert(moon.co_call("lua", context.addr_center, "Match", context.uid, moon.sid()))
+    assert(moon.co_call("lua", context.addr_center, "Match", context.uid, moon.addr()))
     UserModel.SetMatching(true)
     context.send(msgcode.S2CMatch,{res=true})
 end
