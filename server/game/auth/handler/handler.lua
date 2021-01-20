@@ -14,6 +14,8 @@ local context = ...
 
 local token_watch = {}
 
+local wait_queue = {}
+
 moon.repeated(10000,-1,function(timerid)
     if context.server_exit then
         moon.remove_timer(timerid)
@@ -34,6 +36,23 @@ moon.repeated(10000,-1,function(timerid)
         end
     end
 end)
+
+local function WakeUpAuthQueue(uid)
+    local q = wait_queue[uid]
+    if q then
+        wait_queue[uid] = nil
+        moon.async(function()
+            moon.sleep(10)
+            while #q > 0 do
+                local co = table.remove(q, 1)
+                local ok, err = coroutine.resume(co)
+                if not ok then
+                    moon.error(err)
+                end
+            end
+        end)
+    end
+end
 
 local function _DoAuth(req)
     local u = context.uid_map[req.uid]
@@ -232,8 +251,6 @@ CMD.Auth = function (fd, req, addr, isload)
     return
 end
 
-local wait_queue = {}
-
 ---加载离线玩家
 local function OfflineAuth(uid)
    ---有可能玩家正在登录，等待玩家登录流程结束
@@ -256,20 +273,7 @@ local function OfflineAuth(uid)
         end
     end
 
-    local q = wait_queue[uid]
-    if q then
-        wait_queue[uid] = nil
-        moon.async(function()
-            moon.sleep(10)
-            while #q > 0 do
-                local co = table.remove(q, 1)
-                local ok, err = coroutine.resume(co)
-                if not ok then
-                    moon.error(err)
-                end
-            end
-        end)
-    end
+    WakeUpAuthQueue(uid)
     return true
 end
 
