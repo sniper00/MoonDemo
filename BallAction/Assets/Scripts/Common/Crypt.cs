@@ -133,34 +133,19 @@ class Crypt
         return Convert.FromBase64String(data);
     }
 
-    const string hex = "0123456789abcdef";
-
-    public static string ToHex(byte[] text)
+    public static string ToHex(byte[] bin)
     {
-        return BitConverter.ToString(text, 0).Replace("-", string.Empty).ToLower();
-    }
-
-    static void HEX(out byte v, char c)
-    {
-        char tmp = c; if (tmp >= '0' && tmp <= '9') { v = (byte)(tmp - '0'); } else { v = (byte)(tmp - 'a' + 10); }
+        return BitConverter.ToString(bin, 0).Replace("-", string.Empty).ToLower();
     }
 
     public static byte[] FromHex(string text)
     {
-        var len = text.Length * 2;
-        var buffer = new byte[text.Length/2];
-        for (int i = 0; i < len; ++i)
+        byte[] returnBytes = new byte[text.Length / 2];
+        for (int i = 0; i < text.Length; i += 2)
         {
-            byte hi;
-            byte low;
-            HEX(out  hi, text[i]);
-            HEX(out  low, text[i+1]);
-            if (hi > 16 || low > 16)
-            {
-                throw new ArgumentException(string.Format("Invalid hex text {0}",text));
-            }
+            returnBytes[i / 2] = Convert.ToByte(text.Substring(i, i + 1), 16);
         }
-        return buffer;
+        return returnBytes;
     }
 
     static readonly uint[] k = new uint[64]{
