@@ -2,7 +2,6 @@
 local moon = require("moon")
 local seri = require("seri")
 local buffer = require("buffer")
-local message = require("message")
 local setup = require("common.setup")
 local msgutil = require("common.msgutil")
 local msgcode = require("common.msgcode")
@@ -17,7 +16,7 @@ local fwd_addr = msgcode.forward
 
 local bytes_to_name = msgutil.bytes_to_name
 
-local redirect = message.redirect
+local redirect = moon.redirect
 
 local PCLIENT = constant.PTYPE.CLIENT
 

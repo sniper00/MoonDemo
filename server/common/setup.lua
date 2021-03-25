@@ -113,13 +113,13 @@ local function _internal(context)
             if context.logics[fs.stem(mod)] then
                 local ok, res = reload.reload(mod)
                 if ok then
-                    print(moon.name(), "hotfix" , mod)
+                    print(moon.name, "hotfix" , mod)
                 else
-                    moon.error(moon.name(), "hotfix failed" , res, mod)
+                    moon.error(moon.name, "hotfix failed" , res, mod)
                 end
             else
                 load_handler_one(context, mod, true)
-                print(moon.name(), moon.addr(), "hotfixhandler" , mod)
+                print(moon.name, moon.addr(), "hotfixhandler" , mod)
             end
         end
         collectgarbage("collect")
@@ -128,7 +128,7 @@ end
 
 return function(context, sname)
 
-    sname = sname or moon.name()
+    sname = sname or moon.name
 
     if not context.logics then
         context.logics = {}
@@ -159,7 +159,7 @@ return function(context, sname)
                 --collectgarbage("step")
             end)
         else
-            moon.error(moon.name(), "recv unknown cmd "..tostring(cmd))
+            moon.error(moon.name, "recv unknown cmd "..tostring(cmd))
         end
     end)
 
@@ -185,7 +185,7 @@ return function(context, sname)
                     fn(uid, data)
                 end)
             else
-                moon.error(moon.name(), "receive unknown PTYPE_CLIENT cmd "..tostring(cmd) .. " " .. tostring(uid))
+                moon.error(moon.name, "receive unknown PTYPE_CLIENT cmd "..tostring(cmd) .. " " .. tostring(uid))
             end
         end
     })

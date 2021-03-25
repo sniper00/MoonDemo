@@ -1,6 +1,5 @@
 local moon = require("moon")
 local seri = require("seri")
-local message = require("message")
 local socket = require("moon.socket")
 local constant = require("common.constant")
 local setup = require("common.setup")
@@ -8,7 +7,7 @@ local msgutil = require("common.msgutil")
 
 local conf = ...
 
-local redirect = message.redirect
+local redirect = moon.redirect
 
 local PCLIENT = constant.PTYPE.CLIENT
 
