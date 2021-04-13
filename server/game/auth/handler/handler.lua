@@ -16,27 +16,6 @@ local token_watch = {}
 
 local wait_queue = {}
 
-moon.repeated(10000,-1,function(timerid)
-    if context.server_exit then
-        moon.remove_timer(timerid)
-        return
-    end
-
-    local now = moon.time()
-
-    if context.uid_map_count < mem_player_limit then
-        return
-    end
-
-    for _,u in pairs(context.uid_map) do
-        if not u.online and (now - u.logouttime) > min_online_time then
-            moon.send("lua", u.addr_user, "Exit")
-            context.uid_map[u.uid] = nil
-            context.uid_map_count = context.uid_map_count - 1
-        end
-    end
-end)
-
 local function WakeUpAuthQueue(uid)
     local q = wait_queue[uid]
     if q then
@@ -149,6 +128,29 @@ CMD.Init = function()
     data.start_times = data.start_times + 1
     moon.set_env("SERVER_START_TIMES", tostring(data.start_times))
     assert(dbutil.saveserverdata(context.addr_db_server, json.encode(data)))
+
+    moon.async(function()
+        while true do
+            moon.sleep(10000)
+            if context.server_exit then
+                return
+            end
+        
+            local now = moon.time()
+        
+            if context.uid_map_count < mem_player_limit then
+                return
+            end
+        
+            for _,u in pairs(context.uid_map) do
+                if not u.online and (now - u.logouttime) > min_online_time then
+                    moon.send("lua", u.addr_user, "Exit")
+                    context.uid_map[u.uid] = nil
+                    context.uid_map_count = context.uid_map_count - 1
+                end
+            end
+        end
+    end)
     return true
 end
 

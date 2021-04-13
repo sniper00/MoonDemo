@@ -1,1 +1,1 @@
-moon\moon.exe -c config.json
+moon\moon.exe main.lua 1

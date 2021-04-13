@@ -68,33 +68,39 @@ local function client_handler( fd, uname)
     print("robot", uname ," enter room success")
 
     --进入房间成功后，模拟随机移动
-    local timerid = moon.repeated(3000,-1,function ( trid )
-        local dir = {x = math.random(-10, 10), y = math.random(-10, 10)}
-        vector2.normalize(dir)
-        local c2s_move = msgutil.encode(MSGID.C2SMove, dir)
-        if not c2s_move then
-            print("MSGID.C2SCommandMove encode error")
-            moon.remove_timer(trid)
-            return
+    local exit = false
+    moon.async(function()
+        while true do
+            moon.sleep(3000)
+            if exit then
+                break
+            end
+            local dir = {x = math.random(-10, 10), y = math.random(-10, 10)}
+            vector2.normalize(dir)
+            local c2s_move = msgutil.encode(MSGID.C2SMove, dir)
+            if not c2s_move then
+                print("MSGID.C2SCommandMove encode error")
+                return
+            end
+            assert(send(fd, c2s_move))
+            --print("C2SCommandMove", uname, dir.x, dir.y)
         end
-        assert(send(fd, c2s_move))
-        --print("C2SCommandMove", uname, dir.x, dir.y)
     end)
 
     while true do
         local _,err = client_read(fd)
         if not _ then
-            moon.remove_timer(timerid)
+            exit = true
             return
         end
 
         if _ == MSGID.S2CDead then
             print("ROBOT DEAD: ", uname)
-            moon.remove_timer(timerid)
+            exit = true
             return
         elseif _ == MSGID.S2CGameOver then
             print("GAME OVER: ", uname)
-            moon.remove_timer(timerid)
+            exit = true
             return
         end
     end

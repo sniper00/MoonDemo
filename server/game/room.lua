@@ -37,11 +37,14 @@ end
 
 docmd("Init")
 
-moon.repeated(100,-1,function()
-    docmd("Update")
+moon.async(function()
+    while true do
+        moon.sleep(100)
+        docmd("Update")
+    end
 end)
 
-moon.repeated(conf.round_time*1000, 1, function()
+moon.timeout(conf.round_time*1000, function()
     docmd("GameOver")
 end)
 

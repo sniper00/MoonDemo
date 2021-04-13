@@ -1,2 +1,2 @@
 #!/usr/bin/sh
-./moon/moon -c config.json
+./moon/moon main.lua 1

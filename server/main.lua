@@ -1,19 +1,29 @@
+---__init__
+if _G["__init__"] then
+    local arg = ...
+    return {
+        thread = 8,
+        enable_console = true,
+        logfile = string.format("log/game-%s-%s.log", arg[1], os.date("%Y-%m-%d-%H-%M-%S")),
+        loglevel = "DEBUG",
+    }
+end
+
 -- Define lua module search dir, all services use same lua search path
 local path = table.concat({
+    "./?.lua",
     "moon/lualib/?.lua",
     "moon/service/?.lua",
     "game/?.lua"
     -- Append your lua module search path
 },";")
 
-package.path = path .. package.path
+package.path = path .. ";"
 
 local moon = require("moon")
-local json = require("json")
+moon.set_env("PATH", string.format("package.path='%s'", package.path))
 
-moon.set_env("PATH", string.format("package.path='%s'..package.path", path))
-
-local params = json.decode(moon.get_env("PARAMS"))
+local arg = load(moon.get_env("ARG"))()
 
 local services ={
     {
@@ -55,16 +65,16 @@ local services ={
         unique = true,
         name = "gate",
         file = "game/gate.lua",
-        host =  params.host,
-        port = params.port,
+        host =  "0.0.0.0",
+        port = 12345,
         threadid = 3,
     },
     {
         unique = true,
         name = "center",
         file = "game/center.lua",
-        max_room_player_number = params.max_room_player_number,
-        round_time = params.round_time,
+        max_room_player_number = 100,
+        round_time = 60,
         threadid = 4,
     },
     {
@@ -72,8 +82,8 @@ local services ={
         file = "robot/robot.lua",
         unique = true,
         host = "127.0.0.1",
-        port = params.port,
-        num = params.robot_num
+        port = 12345,
+        num = 99
     }
 }
 
@@ -92,10 +102,7 @@ local addrs = {}
 
 moon.async(function()
     for _, conf in ipairs(services) do
-        local service_type = conf.service_type or "lua"
-        local unique = conf.unique or false
-        local threadid = conf.threadid or 0
-        local addr = moon.new_service(service_type, conf, unique, threadid)
+        local addr = moon.new_service("lua", conf)
         ---如果关键服务创建失败，立刻退出进程
         if 0 == addr then
             server_ok = false
