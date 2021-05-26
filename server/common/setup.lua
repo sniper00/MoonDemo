@@ -56,7 +56,7 @@ local function load_models(context, sname)
     for name, mod in pairs(models) do
         local fn
         local content = get_env(mod)
-        if #content > 0 then
+        if content then
             fn = load(content, "@"..mod)
         else
             fn = assert(loadfile(mod))
@@ -71,7 +71,7 @@ end
 local function load_handler_one(context, handler, isfix)
     local fn
     local content = get_env(handler)
-    if #content > 0 then
+    if content then
         fn = load(content, "@"..handler)
     else
         fn = assert(loadfile(handler))
