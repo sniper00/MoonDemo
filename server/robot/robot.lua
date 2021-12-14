@@ -1,8 +1,8 @@
 local moon = require("moon")
 local json = require("json")
 local socket = require("moon.socket")
-local MSGID = require("common.msgcode")
-local msgutil = require("common.msgutil")
+local MSGID = require("common.cmdcode")
+local msgutil = require("common.protocol")
 local vector2 = require("common.vector2")
 
 local conf = ...

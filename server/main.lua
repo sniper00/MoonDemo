@@ -58,13 +58,13 @@ local services ={
     {
         unique = true,
         name = "auth",
-        file = "game/auth.lua",
+        file = "game/service_auth.lua",
         threadid = 2,
     },
     {
         unique = true,
         name = "gate",
-        file = "game/gate.lua",
+        file = "game/service_gate.lua",
         host =  "0.0.0.0",
         port = 12345,
         threadid = 3,
@@ -72,9 +72,9 @@ local services ={
     {
         unique = true,
         name = "center",
-        file = "game/center.lua",
-        max_room_player_number = 100,
-        round_time = 60,
+        file = "game/service_center.lua",
+        max_room_player_number = 100,--匹配人数达到100就创建房间
+        round_time = 60,--每局持续60s
         threadid = 4,
     },
     {
@@ -83,7 +83,7 @@ local services ={
         unique = true,
         host = "127.0.0.1",
         port = 12345,
-        num = 99
+        num = 99--登录99个机器人，留下一个用unity登录
     }
 }
 
@@ -127,25 +127,29 @@ moon.shutdown(function()
     print("receive shutdown")
     moon.async(function()
         if server_ok then
-            print(moon.co_call("lua", moon.queryservice("gate"), "Shutdown"))
-            print(moon.co_call("lua", moon.queryservice("center"), "Shutdown"))
-            print(moon.co_call("lua", moon.queryservice("auth"), "Shutdown"))
-
+            assert(moon.co_call("lua", moon.queryservice("gate"), "Shutdown"))
+            assert(moon.co_call("lua", moon.queryservice("center"), "Shutdown"))
+            assert(moon.co_call("lua", moon.queryservice("auth"), "Shutdown"))
+            moon.sleep(5000)
             moon.raw_send("system", moon.queryservice("db_server"), "wait_save")
             moon.raw_send("system", moon.queryservice("db_user"), "wait_save")
             moon.raw_send("system", moon.queryservice("db_openid"), "wait_save")
 
             moon.remove_service(moon.queryservice("robot"))
         else
-            local auth = moon.queryservice("auth")
-            ---some user may loaded
-            if auth >0 then
-                moon.co_call("lua", auth, "RemoveAllUser")
-            end
-            for _, addr in ipairs(addrs) do
-                moon.remove_service(addr)
-            end
+            moon.exit(-1)
         end
+
+        ---wait all service quit
+        while true do
+            local size = moon.size()
+            if size == 1 then
+                break
+            end
+            moon.sleep(200)
+            print("bootstrap wait all service quit, now count:", size)
+        end
+
         moon.quit()
     end)
 end)

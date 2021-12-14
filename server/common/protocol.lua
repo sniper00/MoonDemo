@@ -1,16 +1,14 @@
 local json = require("json")
 local seri = require("seri")
 local buffer = require("buffer")
-local code = require("common.msgcode")
+local code = require("common.cmdcode")
 
-local packs = seri.packs
 local jdecode = json.decode
 local concats = seri.concats
 local type = type
 
 local bsize = buffer.size
 local bsubstr = buffer.substr
-local bcstr = buffer.cstr
 
 -- used for find message name by id
 local id_name = {}

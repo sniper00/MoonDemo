@@ -1,4 +1,6 @@
 local aoi = require("aoi")
+local constant = require("common.constant")
+local cmdcode = require("common.cmdcode")
 
 local AOI_WATCHER = 1
 local AOI_MARHER = 2
@@ -8,8 +10,10 @@ local EVENT_LEAVE = 2
 ---@type room_context
 local context = ...
 
----@class AoiModel
-local AoiModel = {}
+local scripts = context.scripts
+
+---@class Aoi
+local Aoi = {}
 
 local space
 
@@ -21,21 +25,21 @@ local function update_aoi_event(fn)
         local marker = event_cache[i+1]
 		local eventid = event_cache[i+2]
         if eventid == EVENT_ENTER then
-            context.docmd("AoiEnter", watcher, marker)
+            Aoi.enter(watcher, marker)
         elseif eventid == EVENT_LEAVE then
-            context.docmd("AoiLeave", watcher, marker)
+            Aoi.leave(watcher, marker)
         else
             fn(watcher)
 		end
 	end
 end
 
-function AoiModel.Init(orginx, orginy, size)
+function Aoi.init_map(orginx, orginy, size)
     space = aoi.create(orginx, orginy, size, 16)
     space:enable_leave_event(true)
 end
 
-function AoiModel.Insert(id, x, y, view_size, mover)
+function Aoi.insert(id, x, y, view_size, mover)
     if mover then
         space:insert(id, x, y, view_size, view_size, 1, AOI_WATCHER|AOI_MARHER)
     else
@@ -44,23 +48,23 @@ function AoiModel.Insert(id, x, y, view_size, mover)
     update_aoi_event()
 end
 
-function AoiModel.Update(id, x, y, view_size)
+function Aoi.update(id, x, y, view_size)
     space:update(id, x, y, view_size, view_size, 1)
     update_aoi_event()
 end
 
-function AoiModel.FireEvent(id, eventid, fn)
+function Aoi.fireEvent(id, eventid, fn)
     space:fire_event(id, eventid)
     update_aoi_event(fn)
 end
 
-function AoiModel.Erase(id)
+function Aoi.erase(id)
     local res = space:erase(id)
     update_aoi_event()
     return res
 end
 
-function AoiModel.Query(x, y, view_w, view_h)
+function Aoi.query(x, y, view_w, view_h)
     x = math.floor(x)
     y = math.floor(y)
     view_w = 2*math.ceil(view_w)
@@ -70,4 +74,16 @@ function AoiModel.Query(x, y, view_w, view_h)
     return out
 end
 
-return AoiModel
+function Aoi.enter(watcher, marker)
+    if constant.IsPlayer(marker) then
+        context.send(watcher, cmdcode.S2CEnterView, scripts.Room.findPlayer(marker))
+    else
+        context.send(watcher, cmdcode.S2CEnterView, scripts.Room.findFood(marker))
+    end
+end
+
+function Aoi.leave(watcher, marker)
+    context.send(watcher, cmdcode.S2CLeaveView, {id = marker})
+end
+
+return Aoi

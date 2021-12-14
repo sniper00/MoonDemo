@@ -1,4 +1,6 @@
 local moon = require("moon")
+local json = require "json"
+local db = require("common.database")
 ---@type center_context
 local context = ...
 
@@ -6,7 +8,7 @@ local conf = context.conf
 
 local room_conf = {
     name="room",
-    file="game/room.lua",
+    file="game/service_room.lua",
     map ={
         x = -64,
         y = -64,
@@ -51,9 +53,23 @@ end
 
 local CMD = {}
 
-function CMD.Init()
+function CMD.init()
     context.addr_gate = moon.queryservice("gate")
     context.addr_auth = moon.queryservice("auth")
+    context.addr_db_server = moon.queryservice("db_server")
+
+    local data = db.loadserverdata(context.addr_db_server)
+    if not data then
+        data = {boot_times = 0}
+    else
+        data = json.decode(data)
+    end
+    data.boot_times = data.boot_times + 1
+
+    assert(db.saveserverdata(context.addr_db_server, json.encode(data)))
+
+    moon.set_env("SERVER_START_TIMES", tostring(data.boot_times))
+
     return true
 end
 

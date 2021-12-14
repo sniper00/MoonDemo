@@ -1,12 +1,15 @@
 require("common.LuaPanda").start("127.0.0.1", 8818)
 local moon = require("moon")
-local seri = require("seri")
 local setup = require("common.setup")
-local msgutil = require("common.msgutil")
 
 local conf = ...
 
----@class room_context
+---@class user_scripts
+---@field public Aoi Aoi
+---@field public Room Room
+
+---@class room_context:base_context
+---@field public scripts user_scripts
 local context ={
     conf = conf,
     models = {},
@@ -23,17 +26,17 @@ context.addr_gate = moon.queryservice("gate")
 context.addr_auth = moon.queryservice("auth")
 context.addr_center = moon.queryservice("center")
 
-context.send = function(uid, msgid, mdata)
-    moon.raw_send('toclient', context.addr_gate, seri.packs(uid), msgutil.encode(msgid,mdata))
-end
+-- context.send = function(uid, msgid, mdata)
+--     moon.raw_send('toclient', context.addr_gate, seri.packs(uid), msgutil.encode(msgid,mdata))
+-- end
 
-context.send_user = function(uid, ...)
-    moon.send("lua", context.addr_auth, "SendUser", uid, ...)
-end
+-- context.send_user = function(uid, ...)
+--     moon.send("lua", context.addr_auth, "SendUser", uid, ...)
+-- end
 
-context.send_online_user = function(uid, ...)
-    moon.send("lua", context.addr_auth, "SendOnlineUser", uid, ...)
-end
+-- context.send_online_user = function(uid, ...)
+--     moon.send("lua", context.addr_auth, "SendOnlineUser", uid, ...)
+-- end
 
 docmd("Init")
 

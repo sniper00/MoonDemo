@@ -15,6 +15,14 @@ local redis_hsend = redisd.hash_send
 
 local _M = {}
 
+function _M.loadallopenid(addr_db)
+    local res, err = redis_call(addr_db, "hgetall", "openidmap")
+    if res == false then
+        error("loadallopenid failed:"..tostring(err))
+    end
+    return res
+end
+
 function _M.loadserverdata(addr_db)
     local res, err = redis_call(addr_db, "get", "serverdata")
     if res == false then

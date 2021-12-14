@@ -3,13 +3,13 @@ local seri = require("seri")
 local socket = require("moon.socket")
 local constant = require("common.constant")
 local setup = require("common.setup")
-local msgutil = require("common.msgutil")
+local protocol = require("common.protocol")
 
 local conf = ...
 
 local redirect = moon.redirect
 
-local PCLIENT = constant.PTYPE.CLIENT
+local PCLIENT = constant.PTYPE_CLIENT
 
 ---@class gate_context
 local context = {
@@ -34,9 +34,11 @@ socket.on("message", function(fd, msg)
     if not c then
         ---first message must be auth message
         context.auth_watch[fd] = tostring(msg)
-        local _, req = msgutil.decode(moon.decode(msg,"B"))
+        local name, req = protocol.decode(moon.decode(msg,"B"))
         req.sign = context.auth_watch[fd]
-        moon.send("lua", context.addr_auth, "Auth", fd, req, socket.getaddress(fd))
+        req.fd = fd
+        req.addr = socket.getaddress(fd)
+        moon.send("lua", context.addr_auth, name, req)
     else
         redirect(msg, "", c.addr_user, PCLIENT, 0, 0)
     end
@@ -56,7 +58,7 @@ socket.on("close", function(fd, msg)
     end
     context.fd_map[fd] = nil
     context.uid_map[c.uid] = nil
-    moon.send('lua', context.addr_auth, "OffLine", c.uid)
+    moon.send('lua', context.addr_auth, "Disconnect", c.uid)
     print("GAME SERVER: close", fd, c.uid, data)
 end)
 

@@ -1,4 +1,5 @@
-local M = {
+
+local M={
     C2SLogin = 1,
     S2CLogin = 2,
     C2SMatch = 3,
@@ -13,6 +14,7 @@ local M = {
     S2CLeaveView = 12,
     S2CDead = 13,
     S2CGameOver = 14,
+    S2CErrorCode = 15
 }
 
 local forward = {

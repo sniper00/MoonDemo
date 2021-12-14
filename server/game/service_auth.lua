@@ -1,9 +1,5 @@
 local moon = require("moon")
-local seri = require("seri")
-local msgutil = require("common.msgutil")
 local setup = require("common.setup")
-
-local conf = ...
 
 ---@class AuthUser
 ---@field public addr_user integer @玩家服务address
@@ -12,22 +8,25 @@ local conf = ...
 ---@field public logouttime integer @玩家登出时间
 ---@field public online boolean @是否在线
 
----@class auth_context
----@field uid_map AuthUser[] @内存中玩家数据
+---@class auth_context:base_context
+---@field public uid_map table<integer,AuthUser> @内存加载的玩家服务信息
+---@field public scripts auth_scripts
 local context = {
-    uid_map = {}, --- map<uid, user>
+    uid_map = {},
     openid_map = {},--- map<openid, uid>
-	uid_map_count = 0,
+    service_counter = 0,
+    scripts = {},
     ---other service address
 	addr_gate = false,
 	addr_db_server = false,
 	addr_db_openid = false,
+    user_db = false
 }
 
-context.send = function(uid, msgid, mdata)
-    moon.raw_send('toclient', context.addr_gate, seri.packs(uid), msgutil.encode(msgid, mdata))
+local _, command = setup(context)
+
+command.userhotfix = function(names)
+    for _,u in pairs(context.uid_map) do
+        moon.send("lua", u.addr_user, "hotfix", names)
+    end
 end
-
-setup(context)
-
-

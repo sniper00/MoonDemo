@@ -1,12 +1,15 @@
 local moon = require("moon")
 local M = {
-    PTYPE = {
-        CLIENT = 100,
-        TO_CLIENT = 101,
-    },
+    PTYPE_CLIENT = 100,
+    PTYPE_TOCLIENT = 101,
+
     Type = {
         Player = 1,
         Food = 2
+    },
+    AoiEvent = {
+        UpdateDir = 10,
+        UpdateRadius = 11,
     }
 }
 
