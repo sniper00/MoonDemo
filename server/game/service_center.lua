@@ -14,7 +14,7 @@ local context ={
 }
 
 context.send_online_user = function(uid, ...)
-    moon.send("lua", context.addr_auth, "SendOnlineUser", uid, ...)
+    moon.send("lua", context.addr_auth, "Auth.SendOnlineUser", uid, ...)
 end
 
 context.docmd = setup(context)

@@ -26,29 +26,17 @@ context.addr_gate = moon.queryservice("gate")
 context.addr_auth = moon.queryservice("auth")
 context.addr_center = moon.queryservice("center")
 
--- context.send = function(uid, msgid, mdata)
---     moon.raw_send('toclient', context.addr_gate, seri.packs(uid), msgutil.encode(msgid,mdata))
--- end
-
--- context.send_user = function(uid, ...)
---     moon.send("lua", context.addr_auth, "SendUser", uid, ...)
--- end
-
--- context.send_online_user = function(uid, ...)
---     moon.send("lua", context.addr_auth, "SendOnlineUser", uid, ...)
--- end
-
 docmd("Init")
 
 moon.async(function()
     while true do
         moon.sleep(100)
-        docmd("Update")
+        docmd("Room.Update")
     end
 end)
 
 moon.timeout(conf.round_time*1000, function()
-    docmd("GameOver")
+    docmd("Room.GameOver")
 end)
 
 moon.shutdown(function()

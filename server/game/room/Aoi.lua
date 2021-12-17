@@ -76,9 +76,9 @@ end
 
 function Aoi.enter(watcher, marker)
     if constant.IsPlayer(marker) then
-        context.send(watcher, cmdcode.S2CEnterView, scripts.Room.findPlayer(marker))
+        context.send(watcher, cmdcode.S2CEnterView, scripts.Room.FindPlayer(marker))
     else
-        context.send(watcher, cmdcode.S2CEnterView, scripts.Room.findFood(marker))
+        context.send(watcher, cmdcode.S2CEnterView, scripts.Room.FindFood(marker))
     end
 end
 

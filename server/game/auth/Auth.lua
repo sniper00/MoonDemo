@@ -31,9 +31,9 @@ local function doAuth(req)
         addr_user = u.addr_user
     end
 
-    local ok, err = moon.co_call("lua", addr_user, "Load", req)
+    local ok, err = moon.co_call("lua", addr_user, "User.Load", req)
     if not ok then
-        moon.send("lua", context.addr_gate, "Kick", 0, req.fd)
+        moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
         moon.remove_service(addr_user)
         context.uid_map[req.uid] = nil
         return err
@@ -68,7 +68,7 @@ local function doAuth(req)
         print(req.uid, "login failed")
     end
 
-    moon.send("lua", context.addr_gate, "SetFdUid", req)
+    moon.send("lua", context.addr_gate, "Gate.SetFdUid", req)
 
     local res = {
         ok = pass,---maybe banned
@@ -80,14 +80,14 @@ local function doAuth(req)
 end
 
 local function QuitOneUser(u)
-    moon.send("lua", u.addr_user, "Exit")
+    moon.send("lua", u.addr_user, "User.Exit")
     context.uid_map[u.uid] = nil
 end
 
 ---@class Auth
 local CMD = {}
 
-CMD.init = function()
+CMD.Init = function()
     context.addr_gate = moon.queryservice("gate")
     context.addr_db_openid = moon.queryservice("db_openid")
     context.addr_db_server = moon.queryservice("db_server")
@@ -123,7 +123,7 @@ CMD.init = function()
     return true
 end
 
-CMD.start = function()
+CMD.Start = function()
     context.start_hour_timer()
     return true
 end
@@ -165,7 +165,7 @@ CMD.OnHour = function(v)
     print("OnHour", v)
     for _,u in pairs(context.uid_map) do
         if u.logouttime == 0 then
-            moon.send("lua", u.addr_user, "OnHour", v)
+            moon.send("lua", u.addr_user, "User.OnHour", v)
         end
     end
 end
@@ -174,7 +174,7 @@ CMD.OnDay = function(v)
     print("OnDay", v)
     for _,u in pairs(context.uid_map) do
         if u.logouttime == 0 then
-            moon.send("lua", u.addr_user, "OnDay", v)
+            moon.send("lua", u.addr_user, "User.OnDay", v)
         end
     end
 end
@@ -190,7 +190,7 @@ CMD.C2SLogin = function (req, pull)
     if req.openid then
         if #req.openid == 0 then
             moon.error("user auth illegal", req.fd, req.openid)
-            moon.send("lua", context.addr_gate, "Kick", 0, req.fd)
+            moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
             return false
         end
         local uid = context.openid_map[req.openid]
@@ -208,7 +208,7 @@ CMD.C2SLogin = function (req, pull)
         req.openid = ""
         if req.uid == 0 then
             moon.error("user auth illegal", req.fd, req.uid)
-            moon.send("lua", context.addr_gate, "Kick", 0, req.fd)
+            moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
             return false
         end
     end
@@ -226,7 +226,7 @@ CMD.C2SLogin = function (req, pull)
 
     if not pull and lock("count") > 0 then
         moon.error("user auth too quickly", req.fd, req.uid, req.addr, "is pull:", pull)
-        moon.send("lua", context.addr_gate, "Kick", 0, req.fd)
+        moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
         return
     end
 
@@ -304,7 +304,7 @@ end
 function CMD.Disconnect(uid)
     local u = context.uid_map[uid]
     if u then
-        moon.co_call("lua", u.addr_user, "Disconnect")
+        moon.co_call("lua", u.addr_user, "User.Disconnect")
         u.logouttime = moon.time()
     end
 end

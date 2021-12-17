@@ -58,7 +58,7 @@ socket.on("close", function(fd, msg)
     end
     context.fd_map[fd] = nil
     context.uid_map[c.uid] = nil
-    moon.send('lua', context.addr_auth, "Disconnect", c.uid)
+    moon.send('lua', context.addr_auth, "Auth.Disconnect", c.uid)
     print("GAME SERVER: close", fd, c.uid, data)
 end)
 

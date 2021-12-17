@@ -11,7 +11,31 @@ local state = context.state
 ---@class User
 local User = {}
 
-function User.loadUser(req)
+function User.Init()
+    -- body
+end
+
+function User.Start()
+
+end
+
+function User.Online()
+    state.online = true
+    context.model.logintime = moon.time()
+
+end
+
+function User.Offline()
+    print(context.uid,"offline")
+    state.online = false
+
+	if state.ismatching then
+        state.ismatching = false
+        moon.send("lua", context.addr_center, "Center.UnMatch", context.uid)
+    end
+end
+
+function User.LoadUser(req)
     if context.model then
         return context.model
     end
@@ -38,9 +62,9 @@ function User.loadUser(req)
     print_r(context.model)
 
     ---初始化自己数据
-    context.batch_invoke("init")
+    context.batch_invoke("Init")
     ---初始化互相引用的数据
-    context.batch_invoke("start")
+    context.batch_invoke("Start")
 
     if isnew then
 
@@ -48,37 +72,13 @@ function User.loadUser(req)
     return context.model
 end
 
-function User.save()
+function User.Save()
     db.saveuser(context.addr_db_user, context.model.uid, context.model)
-end
-
-function User.init()
-    -- body
-end
-
-function User.start()
-
-end
-
-function User.online()
-    state.online = true
-    context.model.logintime = moon.time()
-
-end
-
-function User.offline()
-    print(context.uid,"offline")
-    state.online = false
-
-	if state.ismatching then
-        state.ismatching = false
-        moon.send("lua", context.addr_center, "UnMatch", context.uid)
-    end
 end
 
 function User.Load(req)
     if not state.online then
-        local ok, res = xpcall(User.loadUser, debug.traceback, req)
+        local ok, res = xpcall(User.LoadUser, debug.traceback, req)
         if not ok then
             return ok, res
         end
@@ -112,7 +112,7 @@ function User.Disconnect()
 end
 
 function User.Exit()
-    local ok, err = xpcall(User.save, debug.traceback)
+    local ok, err = xpcall(User.Save, debug.traceback)
     if not ok then
         moon.error("user exit save db error", err)
     end
@@ -132,7 +132,7 @@ end
 --请求匹配
 function User.C2SMatch()
     --向匹配服务器请求
-    assert(moon.co_call("lua", context.addr_center, "Match", context.uid, moon.addr()))
+    assert(moon.co_call("lua", context.addr_center, "Center.Match", context.uid, moon.addr()))
     context.state.ismatching = true
     context.send(cmdcode.S2CMatch,{res=true})
 end
@@ -149,7 +149,7 @@ function User.GameOver(score)
     context.model.score = context.model.score + score
     context.addr_room = false
     context.send(cmdcode.S2CGameOver,{score=score})
-    User.save()
+    User.Save()
 end
 
 return User

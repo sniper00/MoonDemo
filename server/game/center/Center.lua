@@ -43,7 +43,7 @@ local function CheckMatchQueue(q)
             local uid = table.remove(q,1)
             local p = context.match_map[uid]
             if p then
-                context.send_online_user(uid, "MatchSuccess", addr_room)
+                context.send_online_user(uid, "User.MatchSuccess", addr_room)
                 context.match_map[uid] = nil
             end
             n = n + 1
@@ -53,7 +53,7 @@ end
 
 local CMD = {}
 
-function CMD.init()
+function CMD.Init()
     context.addr_gate = moon.queryservice("gate")
     context.addr_auth = moon.queryservice("auth")
     context.addr_db_server = moon.queryservice("db_server")

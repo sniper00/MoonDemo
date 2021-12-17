@@ -8,12 +8,12 @@ local listenfd
 
 local CMD = {}
 
-function CMD.init()
+function CMD.Init()
     context.addr_auth = moon.queryservice("auth")
     return true
 end
 
-function CMD.start()
+function CMD.Start()
     ---开始接收客户端网络链接
     listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET)
     assert(listenfd>0,"server listen failed")

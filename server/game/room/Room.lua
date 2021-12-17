@@ -20,21 +20,21 @@ local MemModel = {
 ---@class Room
 local Room = {}
 
-function Room.init()
+function Room.Init()
     -- body
     scripts.Aoi.init_map(conf.map.x, conf.map.y, conf.map.size)
 
     for i=1,500 do
-        local food = Room.createFood()
+        local food = Room.CreateFood()
         scripts.Aoi.insert(food.id, food.x, food.y, 0, false)
     end
 end
 
-function Room.findPlayer(uid)
+function Room.FindPlayer(uid)
     return MemModel.players[uid]
 end
 
-function Room.createPlayer(uid, req)
+function Room.CreatePlayer(uid, req)
     local p = {id = uid, name = req.name, score = 0}
     p.x = math.random(conf.map.x, conf.map.x + conf.map.size)
     p.y = math.random(conf.map.y, conf.map.y + conf.map.size)
@@ -52,11 +52,11 @@ function Room.createPlayer(uid, req)
     return p
 end
 
-function Room.findFood(uid)
+function Room.FindFood(uid)
     return MemModel.foods[uid]
 end
 
-function Room.createFood()
+function Room.CreateFood()
     local food = {}
     food.id = constant.MakeUUID(constant.Type.Food)
     food.x = math.random(conf.map.x, conf.map.x + conf.map.size)
@@ -67,15 +67,15 @@ function Room.createFood()
     return food
 end
 
-function Room.removeFood(id)
+function Room.RemoveFood(id)
     MemModel.foods[id] = nil
 end
 
-function Room.removePlayer(uid)
+function Room.RemovePlayer(uid)
     return MemModel.players[uid]
 end
 
-function Room.updateDir(uid, req)
+function Room.UpdateDir(uid, req)
     local player = MemModel.players[uid]
     player.dir.x = req.x
     player.dir.y = req.y
@@ -85,21 +85,21 @@ function Room.updateDir(uid, req)
     return player
 end
 
-function Room.getAllPlayer()
+function Room.GetAllPlayer()
     return MemModel.players
 end
 
 function Room.C2SEnterRoom(uid, req)
     context.send(uid, cmdcode.S2CEnterRoom, {id = uid, time = moon.now()})
-    local player = Room.findPlayer(uid)
+    local player = Room.FindPlayer(uid)
     if not player then
-        player = Room.createPlayer(uid, req)
+        player = Room.CreatePlayer(uid, req)
     end
     scripts.Aoi.enter(uid, uid)
     scripts.Aoi.insert(player.id, player.x, player.y, 20, true)
 end
 
-function Room.updatePos(player)
+function Room.UpdatePos(player)
     local now = moon.now()
     local delta = (now - player.movetime)/1000
     player.movetime = now
@@ -127,9 +127,9 @@ end
 function Room.C2SMove(uid, req)
     -- local p = RoomModel.FindPlayer(uid)
     -- local mt = p.movetime
-    Room.updatePos(Room.findPlayer(uid))
+    Room.UpdatePos(Room.FindPlayer(uid))
     --print(moon.now(), mt, p.x, p.y)
-    local player = Room.updateDir(uid, req)
+    local player = Room.UpdateDir(uid, req)
     local prefabid = moon.make_prefab(protocol.encode(cmdcode.S2CMove,{
         id = uid,
         x = player.x,
@@ -145,15 +145,15 @@ function Room.C2SMove(uid, req)
 end
 
 function Room.LeaveRoom(uid)
-    Room.removePlayer(uid)
+    Room.RemovePlayer(uid)
     scripts.Aoi.erase(uid)
     print("LeaveRoom", uid)
 end
 
 function Room.Update()
-    local players = Room.getAllPlayer()
+    local players = Room.GetAllPlayer()
     for _, player in pairs(players) do
-        local over = Room.updatePos(player)
+        local over = Room.UpdatePos(player)
         if over then
             Room.C2SMove(player.id, player.dir)
         end
@@ -168,9 +168,9 @@ function Room.Update()
             for _, id in ipairs(res) do
                 local entity
                 if constant.IsPlayer(id) then
-                    entity = Room.findPlayer(id)
+                    entity = Room.FindPlayer(id)
                 else
-                    entity = Room.findFood(id)
+                    entity = Room.FindFood(id)
                 end
 
                 if not entity.dead then
@@ -209,15 +209,15 @@ function Room.Update()
         scripts.Aoi.erase(id)
         if constant.IsPlayer(id) then
             context.send(id,"S2CDead",{id=id})
-            Room.removePlayer(id)
+            Room.RemovePlayer(id)
         else
-            Room.removeFood(id)
+            Room.RemoveFood(id)
         end
     end
 
     if deadcount > 0 then
         for i=1,deadcount do
-            local food = Room.createFood()
+            local food = Room.CreateFood()
             scripts.Aoi.insert(food.id, food.x, food.y, 0, false)
         end
     end
@@ -225,11 +225,11 @@ end
 
 ---called by timer
 function Room.GameOver()
-    local players = Room.getAllPlayer()
+    local players = Room.GetAllPlayer()
     for _, player in pairs(players) do
-        context.send_user(player.id, "GameOver", player.score)
+        context.send_user(player.id, "User.GameOver", player.score)
     end
-    moon.send("lua", context.addr_center, "RemoveRoom", moon.addr())
+    moon.send("lua", context.addr_center, "Center.RemoveRoom", moon.addr())
     moon.quit()
 end
 

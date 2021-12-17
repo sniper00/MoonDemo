@@ -8,8 +8,9 @@ local constant = require("common.constant")
 local protocol = require("common.protocol")
 local cmdcode = require("common.cmdcode")
 
+local string = string
+local type = type
 local strfmt = string.format
-local strbyte = string.byte
 local traceback = debug.traceback
 
 local unpack = moon.unpack
@@ -60,38 +61,41 @@ local function load_scripts(context, sname)
     for name, file in pairs(scripts) do
         local fn
         local content = moon.get_env(file)
-        if content and #content > 0 then
+        if content then
             fn = load(content, "@"..file)
         else
             fn = assert(loadfile(file))
         end
         local t = fn(context)
         assert(type(t) == "table")
+
         context.scripts[name] = t
         reload.register(file, fn, t)
 
         for k,v in pairs(t) do
-            local b = strbyte(k,1,1)
-            if b>=65 and b <=90 and type(v) == "function" then -- if key is startswith upper case string
-                assert(not command[k], string.format("error: command '%s' already exist when load '%s'.", k, file))
-                command[k] = v
+            if type(v) == "function" then
+                if string.sub(k,1,3) == "C2S" then
+                    command[k] = v
+                else
+                    command[name.."."..k] = v
+                end
             end
         end
     end
 end
 
 local function _internal(context)
-    command.hotfix = function (fixlist)
+    command.Hotfix = function (fixlist)
         for name, file in pairs(fixlist) do
             local ok, t = reload.reload(file)
             if ok then
                 print(moon.name, "hotfix" , name, file)
                 if not context.scripts[name] then
                     for k,v in pairs(t) do
-                        local b = strbyte(k,1,1)
-                        if b>=65 and b <=90 and type(v) == "function" then -- if key is startswith upper case string
-                            assert(not command[k], string.format("error: command '%s' already exist when load '%s'.", k, file))
+                        if string.sub(k,1,3) == "C2S" then
                             command[k] = v
+                        else
+                            command[name.."."..k] = v
                         end
                     end
                 end
@@ -112,12 +116,12 @@ local function _internal(context)
     end
 
     command.Init = function(...)
-        context.batch_invoke("init", ...)
+        context.batch_invoke("Init", ...)
         return true
     end
 
     command.Start = function(...)
-        context.batch_invoke("start", ...)
+        context.batch_invoke("Start", ...)
         return true
     end
 end
@@ -217,7 +221,7 @@ return function(context, sname)
             local ok, cmd, data = pcall(protocol.decode, buf)
             if not ok then
                 moon.error("protobuffer decode client message failed", cmd)
-                moon.send("lua", context.gate, "Kick", uid)
+                moon.send("lua", context.gate, "Gate.Kick", uid)
                 return
             end
             moon.async(do_client_command, context, cmd, uid, data)
@@ -235,11 +239,11 @@ return function(context, sname)
     end
 
     context.send_user = function(uid, ...)
-        moon.send("lua", context.addr_auth, "SendUser", uid, ...)
+        moon.send("lua", context.addr_auth, "Auth.SendUser", uid, ...)
     end
 
     context.call_user = function(uid, ...)
-        return moon.co_call("lua", context.addr_auth, "CallUser", uid, ...)
+        return moon.co_call("lua", context.addr_auth, "Auth.CallUser", uid, ...)
     end
 
     return direct_docmd, command
