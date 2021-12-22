@@ -42,7 +42,7 @@ namespace Moon
 
         public void Write(short value)
         {
-            CheckSize(sizeof(short));
+            Prepare(sizeof(short));
             Data[WritePos++] = (byte)(value & 0xFF);
             Data[WritePos++] = (byte)((value >> 8) & 0xFF);
         }
@@ -54,7 +54,7 @@ namespace Moon
 
         public void Write(int value)
         {
-            CheckSize(sizeof(int));
+            Prepare(sizeof(int));
             Data[WritePos++] = (byte)(value & 0xFF);
             Data[WritePos++] = (byte)((value >> 8) & 0xFF);
             Data[WritePos++] = (byte)((value >> 16) & 0xFF);
@@ -68,7 +68,7 @@ namespace Moon
 
         public void Write(long value)
         {
-            CheckSize(sizeof(long));
+            Prepare(sizeof(long));
             Data[WritePos++] = (byte)(value & 0xFF);
             Data[WritePos++] = (byte)((value >> 8) & 0xFF);
             Data[WritePos++] = (byte)((value >> 16) & 0xFF);
@@ -86,7 +86,7 @@ namespace Moon
 
         public void Write(byte[] value, int index, int len)
         {
-            CheckSize(len);
+            Prepare(len);
             System.Buffer.BlockCopy(value, index, Data, WritePos, len);
             WritePos += len;
         }
@@ -181,7 +181,7 @@ namespace Moon
             return capacity - WritePos;
         }
 
-        public void CheckSize(int need)
+        public void Prepare(int need)
         {
             if (WriteAbleSize() < need)
             {
@@ -189,7 +189,7 @@ namespace Moon
             }
         }
 
-        public void OffsetWritePos(int offset)
+        public void Commit(int offset)
         {
             WritePos += offset;
             if (WritePos > capacity)

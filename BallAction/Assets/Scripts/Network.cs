@@ -9,12 +9,12 @@ public static class Serializer
 {
     public static Message Decode<Message>(byte[] data,int index, int count)
     {
-        return JsonUtility.FromJson<Message>(System.Text.Encoding.Default.GetString(data, index, count));
+        return JsonUtility.FromJson<Message>(Encoding.Default.GetString(data, index, count));
     }
 
     public static byte[] Encode<Message>(Message msg)
     {
-        return System.Text.Encoding.Default.GetBytes(JsonUtility.ToJson(msg));
+        return Encoding.Default.GetBytes(JsonUtility.ToJson(msg));
     }
 }
 

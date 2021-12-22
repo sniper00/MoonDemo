@@ -8,7 +8,7 @@ namespace Moon
     public enum ReadMode
     {
         Unknown,
-        Some,
+        Stream,
         FixCount
     }
 
@@ -32,13 +32,13 @@ namespace Moon
         }
     }
 
-    public class BaseConnection
+    public abstract class BaseConnection
     {
         public Action<SocketMessage> HandleMessage { get; set; }
 
         public System.Net.Sockets.Socket Socket { get; private set; }
 
-        Queue<Buffer> sendQueue = new Queue<Buffer>();
+        readonly Queue<Buffer> sendQueue = new Queue<Buffer>();
 
         SocketUserToken readToken = new SocketUserToken();
 
@@ -51,14 +51,11 @@ namespace Moon
             Socket = new System.Net.Sockets.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
 
-        public virtual void Start()
-        {
-
-        }
+        public abstract void Start();
 
         public virtual void Read(bool line, int count, int sessionid)
         {
-
+            throw new NotImplementedException();
         }
 
         public bool Connected()
@@ -126,7 +123,10 @@ namespace Moon
         void BeginReceive(SocketUserToken so)
         {
             if (!Connected())
+            {
+                so.Handler(so.BytesTransferred, new SocketException((int)SocketError.NotConnected));
                 return;
+            }
 
             try
             {

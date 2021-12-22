@@ -15,8 +15,6 @@
 
         public override void Start()
         {
-            base.Start();
-
             ReadSome();
         }
 
@@ -39,7 +37,7 @@
 
         void ReadSome()
         {
-            buffer.CheckSize(1024);
+            buffer.Prepare(1024);
             AsyncRead(buffer.Data, buffer.WritePos, buffer.WriteAbleSize(), (bytesTransferred, e) =>
             {
                 if (null != e)
@@ -54,7 +52,7 @@
                     return;
                 }
 
-                buffer.OffsetWritePos(bytesTransferred);
+                buffer.Commit(bytesTransferred);
 
                 lock (request)
                 {
@@ -62,7 +60,7 @@
                 }
 
                 ReadSome();
-            },ReadMode.Some);
+            },ReadMode.Stream);
         }
 
         void HandleReadRequest()

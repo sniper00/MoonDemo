@@ -10,7 +10,6 @@ namespace Moon
 
         override public void Start() 
         {
-            base.Start();
             ReadHead();
         }
 
@@ -22,7 +21,7 @@ namespace Moon
             return base.Send(data);
         }
 
-        public void ReadHead()
+        void ReadHead()
         {
             AsyncRead(head_, 0, headLen, (bytesTransferred, e) =>
             {
@@ -61,7 +60,7 @@ namespace Moon
                     return;
                 }
 
-                buf.OffsetWritePos(bytesTransferred);
+                buf.Commit(bytesTransferred);
 
                 var m = new SocketMessage(ConnectionID, SocketMessageType.Recv, buf, 0);
                 HandleMessage(m);
