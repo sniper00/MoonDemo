@@ -27,19 +27,25 @@ local function doAuth(req)
         if addr_user == 0 then
             return "create user service failed!"
         end
+
+        local ok, err = moon.co_call("lua", addr_user, "User.Load", req)
+        if not ok then
+            moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+            moon.remove_service(addr_user)
+            context.uid_map[req.uid] = nil
+            return err
+        end
     else
         addr_user = u.addr_user
     end
 
-    local ok, err = moon.co_call("lua", addr_user, "User.Load", req)
-    if not ok then
+    local openid, err = moon.co_call("lua", addr_user, "User.Login", req)
+    if not openid then
         moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
         moon.remove_service(addr_user)
         context.uid_map[req.uid] = nil
         return err
     end
-
-    local openid = ok
 
     if not u then
         u = {
@@ -304,7 +310,7 @@ end
 function CMD.Disconnect(uid)
     local u = context.uid_map[uid]
     if u then
-        moon.co_call("lua", u.addr_user, "User.Disconnect")
+        moon.co_call("lua", u.addr_user, "User.Logout")
         u.logouttime = moon.time()
     end
 end
