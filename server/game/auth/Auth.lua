@@ -107,10 +107,12 @@ CMD.Init = function()
 
             local now = moon.time()
 
+            local count = table.count(context.uid_map)
             for _, u in pairs(context.uid_map) do
-                if table.count(context.uid_map) > mem_player_limit then
+                if count > mem_player_limit then
                     if u.logouttime > 0 and (now - u.logouttime) > min_online_time then
                         QuitOneUser(u)
+                        count = count - 1
                     end
                 else
                     break
