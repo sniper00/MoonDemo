@@ -179,7 +179,7 @@ local function do_client_command(context, cmd, uid, req)
             context.send(uid,cmdcode.S2CErrorCode,{code = res})
         end
     else
-        moon.error(moon.name, "receive unknown PTYPE_CLIENT cmd "..tostring(cmd) .. " " .. tostring(uid))
+        moon.error(moon.name, "receive unknown PTYPE_C2S cmd "..tostring(cmd) .. " " .. tostring(uid))
     end
 end
 
@@ -211,8 +211,8 @@ return function(context, sname)
     end)
 
     moon.register_protocol({
-        name = "client",
-        PTYPE = constant.PTYPE_CLIENT,
+        name = "C2S",
+        PTYPE = constant.PTYPE_C2S,
         --default client message dispatch
         dispatch = function(msg)
             local header, buf = moon.decode(msg, "HB")
@@ -229,13 +229,19 @@ return function(context, sname)
     })
 
     moon.register_protocol({
-        name = "toclient",
-        PTYPE = constant.PTYPE_TOCLIENT,
+        name = "S2C",
+        PTYPE = constant.PTYPE_S2C,
+        dispatch = nil
+    })
+
+    moon.register_protocol({
+        name = "SBC",
+        PTYPE = constant.PTYPE_SBC,
         dispatch = nil
     })
 
     context.send = function(uid, msgid, mdata)
-        moon.raw_send('toclient', context.addr_gate, seri.packs(uid), protocol.encode(msgid, mdata))
+        moon.raw_send('S2C', context.addr_gate, seri.packs(uid), protocol.encode(msgid, mdata))
     end
 
     context.send_user = function(uid, ...)

@@ -1,7 +1,8 @@
 local moon = require("moon")
 local M = {
-    PTYPE_CLIENT = 100,
-    PTYPE_TOCLIENT = 101,
+    PTYPE_C2S = 100,--- client to server
+    PTYPE_S2C = 101,--- server to client
+    PTYPE_SBC = 102,---server broadcast to client
 
     Type = {
         Player = 1,

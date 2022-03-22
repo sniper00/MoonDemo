@@ -17,7 +17,7 @@ local bytes_to_name = protocol.bytes_to_name
 
 local redirect = moon.redirect
 
-local PCLIENT = constant.PTYPE_CLIENT
+local PTYPE_C2S = constant.PTYPE_C2S
 
 ---@class user_context:base_context
 ---@field public scripts user_scripts
@@ -56,10 +56,10 @@ local function forward(msg, msgname)
     end
 
     local header = seri.packs(context.uid)
-    redirect(msg, header, address, PCLIENT)
+    redirect(msg, header, address, PTYPE_C2S)
 end
 
-moon.dispatch("client",function(msg)
+moon.dispatch("C2S",function(msg)
     local buf = moon.decode(msg, "B")
     local msgname = bytes_to_name(bsubstr(buf, 0, 2))
     if not command[msgname] then
@@ -83,7 +83,7 @@ context.addr_center = moon.queryservice("center")
 context.addr_auth = moon.queryservice("auth")
 
 context.send = function(msgid, mdata)
-    moon.raw_send('toclient', context.addr_gate, seri.packs(context.uid), protocol.encode(msgid, mdata))
+    moon.raw_send('S2C', context.addr_gate, seri.packs(context.uid), protocol.encode(msgid, mdata))
 end
 
 print(context.addr_gate,context.addr_db_user )

@@ -9,7 +9,7 @@ local conf = ...
 
 local redirect = moon.redirect
 
-local PCLIENT = constant.PTYPE_CLIENT
+local PTYPE_C2S = constant.PTYPE_C2S
 
 ---@class gate_context
 local context = {
@@ -40,7 +40,7 @@ socket.on("message", function(fd, msg)
         req.addr = socket.getaddress(fd)
         moon.send("lua", context.addr_auth, name, req)
     else
-        redirect(msg, "", c.addr_user, PCLIENT, 0, 0)
+        redirect(msg, "", c.addr_user, PTYPE_C2S, 0, 0)
     end
 end)
 
@@ -62,13 +62,19 @@ socket.on("close", function(fd, msg)
     print("GAME SERVER: close", fd, c.uid, data)
 end)
 
-moon.dispatch("toclient",function(msg)
+moon.dispatch("S2C",function(msg)
     local uid = seri.unpack(moon.decode(msg, "H"))
     local c = context.uid_map[uid]
     if not c then
         return
     end
     socket.write_message(c.fd,msg)
+end)
+
+moon.dispatch("SBC",function(msg)
+    for _, c in pairs(context.uid_map) do
+        socket.write_message(c.fd, msg)
+    end
 end)
 
 

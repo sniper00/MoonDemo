@@ -232,10 +232,20 @@ CMD.C2SLogin = function (req, pull)
         auth_queue[req.uid] = lock
     end
 
-    if not pull and lock("count") > 0 then
-        moon.error("user auth too quickly", req.fd, req.uid, req.addr, "is pull:", pull)
-        moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
-        return
+    if not pull then
+        if lock("count") > 0 then
+            moon.error("user auth too quickly", req.fd, req.uid, req.addr, "is pull:", pull)
+            moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+            return
+        end
+        ---user may login again, but old socket not close,force close it
+        ---make the user offline event in right order.
+        local c = context.uid_map[req.uid]
+        if c and c.logouttime==0 then
+            moon.send("lua", context.addr_gate, "Kick", req.uid, 0, true)
+            CMD.Disconnect(req.uid)
+            return
+        end
     end
 
     local scope_lock<close> = lock()

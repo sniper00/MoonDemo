@@ -33,18 +33,22 @@ function CMD.Shutdown()
     return true
 end
 
-function CMD.Kick(uid)
-    local c = context.uid_map[uid]
-    print("gate kick", uid)
-	if c then
-        socket.close(c.fd)
+function CMD.Kick(uid, fd, ignore_socket_event)
+    print("gate kick", uid, fd, ignore_socket_event)
+    if uid and uid >0 then
+        local c = context.uid_map[uid]
+        if c then
+            socket.close(c.fd)
+        end
+        if ignore_socket_event then
+            context.fd_map[c.fd] = nil
+            context.uid_map[uid] = nil
+        end
     end
-    return true
-end
 
-function CMD.KickByFd(fd)
-    print("gate KickByFd", fd)
-    socket.close(fd)
+    if fd and fd>0 then
+        socket.close(fd)
+    end
     return true
 end
 
