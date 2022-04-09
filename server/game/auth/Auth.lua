@@ -74,7 +74,7 @@ local function doAuth(req)
         print(req.uid, "login failed")
     end
 
-    moon.send("lua", context.addr_gate, "Gate.SetFdUid", req)
+    moon.send("lua", context.addr_gate, "Gate.BindUser", req)
 
     local res = {
         ok = pass,---maybe banned

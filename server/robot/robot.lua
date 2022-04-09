@@ -19,6 +19,9 @@ local function client_read( fd )
         return false, err
     end
     local id = string.unpack("<H",string.sub(data,1,2))
+    if id == MSGID.S2CErrorCode then
+        moon.error(string.sub(data,3))
+    end
     return id,json.decode(string.sub(data,3))
 end
 

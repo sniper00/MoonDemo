@@ -7,13 +7,13 @@ local protocol = require("common.protocol")
 local cmdcode = require("common.cmdcode")
 local constant = require("common.constant")
 
-local bsubstr = buffer.substr
+local bunpack = buffer.unpack
 
 local mdecode = protocol.decode
 
 local fwd_addr = cmdcode.forward
 
-local bytes_to_name = protocol.bytes_to_name
+local id_to_name = protocol.name
 
 local redirect = moon.redirect
 
@@ -61,7 +61,7 @@ end
 
 moon.dispatch("C2S",function(msg)
     local buf = moon.decode(msg, "B")
-    local msgname = bytes_to_name(bsubstr(buf, 0, 2))
+    local msgname = id_to_name(bunpack(buf, "<H"))
     if not command[msgname] then
         forward(msg, msgname)
     else
@@ -69,8 +69,10 @@ moon.dispatch("C2S",function(msg)
         local fn = command[cmd]
         moon.async(function()
             local ok, res = xpcall(fn, debug.traceback, data)
-            if not ok or res then
-                res = res or 1 --server internal error
+            if not ok then
+                moon.error(res)
+                context.send(cmdcode.S2CErrorCode,{code = 1}) --server internal error
+            elseif res then
                 context.send(cmdcode.S2CErrorCode,{code = res})
             end
         end)

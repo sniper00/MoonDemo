@@ -52,7 +52,7 @@ function CMD.Kick(uid, fd, ignore_socket_event)
     return true
 end
 
-function CMD.SetFdUid(req)
+function CMD.BindUser(req)
     if context.auth_watch[req.fd] ~= req.sign then
         return false, "client closed before auth done!"
     end
@@ -72,7 +72,7 @@ function CMD.SetFdUid(req)
     context.fd_map[req.fd] = c
     context.uid_map[req.uid] = c
     context.auth_watch[req.fd] = nil
-    print(string.format("SetFdUid %d %d %08X", req.fd, req.uid,  req.addr_user))
+    print(string.format("BindUser %d %d %08X", req.fd, req.uid,  req.addr_user))
     return true
 end
 

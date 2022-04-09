@@ -8,7 +8,7 @@ local concats = seri.concats
 local type = type
 
 local bsize = buffer.size
-local bsubstr = buffer.substr
+local bunpack = buffer.unpack
 
 -- used for find message name by id
 local id_name = {}
@@ -16,13 +16,11 @@ local id_name = {}
 local id_bytes = {}
 
 for k,v in pairs(code) do
-    local c = string.pack("<H",v)
-
-    assert(not id_name[c],"")
-    id_name[c] = k
+    assert(not id_name[v],"")
+    id_name[v] = k
 
     assert(not id_bytes[v],"")
-    id_bytes[v] = c
+    id_bytes[v] = string.pack("<H",v)
 end
 
 local M = {}
@@ -44,15 +42,20 @@ function M.decode(buf)
     if size < 2 then
         return nil
     end
-    local name = id_name[bsubstr(buf, 0, 2)]
-    if size > 2 then
-        return name, jdecode(bsubstr(buf, 2, -1))
+
+    local id, p, n = bunpack(buf, "<HC")
+    local name = id_name[id]
+    if not name then
+        error(string.format("recv unknown message code: %d.", id))
+    end
+    if n > 0 then
+        return name, jdecode(p, n)
     end
     return name
 end
 
-function M.bytes_to_name(bytes)
-    return id_name[bytes]
+function M.name(id)
+    return id_name[id]
 end
 
 return M
