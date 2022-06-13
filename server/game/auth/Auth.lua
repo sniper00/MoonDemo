@@ -82,7 +82,7 @@ local function doAuth(req)
         timezone = moon.timezone,
         uid = req.uid,
     }
-    context.send(req.uid, cmdcode.S2CLogin, res)
+    context.s2c(req.uid, cmdcode.S2CLogin, res)
 end
 
 local function QuitOneUser(u)

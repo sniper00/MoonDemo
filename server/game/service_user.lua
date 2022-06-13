@@ -71,9 +71,9 @@ moon.dispatch("C2S",function(msg)
             local ok, res = xpcall(fn, debug.traceback, data)
             if not ok then
                 moon.error(res)
-                context.send(cmdcode.S2CErrorCode,{code = 1}) --server internal error
+                context.s2c(cmdcode.S2CErrorCode,{code = 1}) --server internal error
             elseif res then
-                context.send(cmdcode.S2CErrorCode,{code = res})
+                context.s2c(cmdcode.S2CErrorCode,{code = res})
             end
         end)
     end
@@ -84,7 +84,7 @@ context.addr_db_user = moon.queryservice("db_user")
 context.addr_center = moon.queryservice("center")
 context.addr_auth = moon.queryservice("auth")
 
-context.send = function(msgid, mdata)
+context.s2c = function(msgid, mdata)
     moon.raw_send('S2C', context.addr_gate, seri.packs(context.uid), protocol.encode(msgid, mdata))
 end
 

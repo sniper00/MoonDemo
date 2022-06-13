@@ -18,7 +18,7 @@ local pack = moon.pack
 local raw_send = moon.raw_send
 
 ---@class base_context
----@field public send fun(uid:integer, msgid:integer, mdata:table) @ 给玩家发送消息
+---@field public s2c fun(uid:integer, msgid:integer, mdata:table) @ 给玩家发送消息
 ---@field public start_hour_timer fun() @ 开启整点定时器
 ---@field public batch_invoke fun(fnname:string) @批量调用所有脚本的函数
 ---@field public send_user fun(uid:integer, cmd:string, ...) @给玩家服务发送消息
@@ -176,7 +176,7 @@ local function do_client_command(context, cmd, uid, req)
         local callok, res = xpcall(fn, traceback, uid, req)
         if not callok or res then
             res = res or 1 --server internal error
-            context.send(uid,cmdcode.S2CErrorCode,{code = res})
+            context.s2c(uid,cmdcode.S2CErrorCode,{code = res})
         end
     else
         moon.error(moon.name, "receive unknown PTYPE_C2S cmd "..tostring(cmd) .. " " .. tostring(uid))
@@ -240,14 +240,17 @@ return function(context, sname)
         dispatch = nil
     })
 
-    context.send = function(uid, msgid, mdata)
+    --- send message to client.
+    context.s2c = function(uid, msgid, mdata)
         moon.raw_send('S2C', context.addr_gate, seri.packs(uid), protocol.encode(msgid, mdata))
     end
 
+    --- send message to user-service.
     context.send_user = function(uid, ...)
         moon.send("lua", context.addr_auth, "Auth.SendUser", uid, ...)
     end
 
+    --- send message to user-service and get results.
     context.call_user = function(uid, ...)
         return moon.co_call("lua", context.addr_auth, "Auth.CallUser", uid, ...)
     end

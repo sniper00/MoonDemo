@@ -15,7 +15,7 @@ end
 
 function CMD.Start()
     ---开始接收客户端网络链接
-    listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET)
+    listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET_MOON)
     assert(listenfd>0,"server listen failed")
     socket.start(listenfd)
     print("GAME Server Start Listen",context.conf.host, context.conf.port)

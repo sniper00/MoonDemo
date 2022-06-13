@@ -128,26 +128,26 @@ function User.Exit()
 end
 
 function User.C2SUserData()
-    context.send(cmdcode.S2CUserData, context.model)
+    context.s2c(cmdcode.S2CUserData, context.model)
 end
 
 function User.C2SPing(req)
     req.stime = moon.time()
-    context.send(cmdcode.S2CPong, req)
+    context.s2c(cmdcode.S2CPong, req)
 end
 
 --请求匹配
 function User.C2SMatch()
     --向匹配服务器请求
-    assert(moon.co_call("lua", context.addr_center, "Center.Match", context.uid, moon.addr()))
+    assert(moon.co_call("lua", context.addr_center, "Center.Match", context.uid, moon.id))
     context.state.ismatching = true
-    context.send(cmdcode.S2CMatch,{res=true})
+    context.s2c(cmdcode.S2CMatch,{res=true})
 end
 
 function User.MatchSuccess(addr_room)
     context.state.ismatching = false
     context.addr_room = addr_room
-    context.send(cmdcode.S2CMatchSuccess,{res=true})
+    context.s2c(cmdcode.S2CMatchSuccess,{res=true})
 end
 
 --房间一局结束
@@ -155,7 +155,7 @@ function User.GameOver(score)
     print("GameOver", score)
     context.model.score = context.model.score + score
     context.addr_room = false
-    context.send(cmdcode.S2CGameOver,{score=score})
+    context.s2c(cmdcode.S2CGameOver,{score=score})
     User.Save()
 end
 

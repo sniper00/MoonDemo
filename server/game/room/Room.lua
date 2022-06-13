@@ -90,7 +90,7 @@ function Room.GetAllPlayer()
 end
 
 function Room.C2SEnterRoom(uid, req)
-    context.send(uid, cmdcode.S2CEnterRoom, {id = uid, time = moon.now()})
+    context.s2c(uid, cmdcode.S2CEnterRoom, {id = uid, time = moon.now()})
     local player = Room.FindPlayer(uid)
     if not player then
         player = Room.CreatePlayer(uid, req)
@@ -208,7 +208,7 @@ function Room.Update()
     for _,id in ipairs(dead) do
         scripts.Aoi.erase(id)
         if constant.IsPlayer(id) then
-            context.send(id,"S2CDead",{id=id})
+            context.s2c(id,"S2CDead",{id=id})
             Room.RemovePlayer(id)
         else
             Room.RemoveFood(id)
@@ -229,7 +229,7 @@ function Room.GameOver()
     for _, player in pairs(players) do
         context.send_user(player.id, "User.GameOver", player.score)
     end
-    moon.send("lua", context.addr_center, "Center.RemoveRoom", moon.addr())
+    moon.send("lua", context.addr_center, "Center.RemoveRoom", moon.id)
     moon.quit()
 end
 

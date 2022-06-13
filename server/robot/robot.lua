@@ -120,7 +120,7 @@ moon.async(function()
             un = username
         end
 
-        local fd, err = socket.connect(conf.host, conf.port, moon.PTYPE_TEXT)
+        local fd, err = socket.connect(conf.host, conf.port, moon.PTYPE_SOCKET_TCP)
         if not fd then
             print("connect game server failed", err)
             return
