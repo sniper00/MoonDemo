@@ -68,11 +68,18 @@ moon.dispatch("S2C",function(msg)
     if not c then
         return
     end
+
+    if moon.DEBUG() then
+        protocol.print_message(uid, msg)
+    end
     socket.write_message(c.fd,msg)
 end)
 
 moon.dispatch("SBC",function(msg)
     for _, c in pairs(context.uid_map) do
+        if moon.DEBUG() then
+            protocol.print_message(_, msg)
+        end
         socket.write_message(c.fd, msg)
     end
 end)

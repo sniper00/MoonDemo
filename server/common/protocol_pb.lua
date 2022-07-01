@@ -1,15 +1,20 @@
 local moon = require "moon"
-local json = require("json")
+local pb = require "pb"
+local json = require "json"
 local seri = require("seri")
 local buffer = require("buffer")
 local code = require("common.cmdcode")
 
-local jdecode = json.decode
 local concats = seri.concats
-local type = type
 
-local bsize = buffer.size
+local concat = seri.concat
+
+local pencode = pb.encode
+local pdecode = pb.decode
+
 local bunpack = buffer.unpack
+
+local type = type
 
 -- used for find message name by id
 local id_name = {}
@@ -17,11 +22,9 @@ local id_name = {}
 local id_bytes = {}
 
 for k,v in pairs(code) do
-    assert(not id_name[v],"")
+    assert(not id_name[v], "msgcode repeated")
     id_name[v] = k
-
-    assert(not id_bytes[v],"")
-    id_bytes[v] = string.pack("<H",v)
+    id_bytes[v] = string.pack(">H",v)
 end
 
 local M = {}
@@ -32,27 +35,35 @@ function M.encode(id,t)
     end
     local data = id_bytes[id]
     if t then
-        return concats(data,json.encode(t))
+        local name = id_name[id]
+        assert(name, id)
+        return concat(data, pencode(name, t))
+    else
+        return data
+    end
+end
+
+function M.encodestring(id,t)
+    if type(id)=='string' then
+        id = code[id]
+    end
+    local data = id_bytes[id]
+    if t then
+        local name = id_name[id]
+        assert(name, id)
+        return concats(data, pencode(name, t))
     else
         return data
     end
 end
 
 function M.decode(buf)
-    local size = bsize(buf)
-    if size < 2 then
-        return nil
-    end
-
-    local id, p, n = bunpack(buf, "<HC")
+    local id, p, n = bunpack(buf, ">HC")
     local name = id_name[id]
     if not name then
-        error(string.format("recv unknown message code: %d.", id))
+        error(string.format("recv unknown message code: %d. client server version mismatch", id))
     end
-    if n > 0 then
-        return name, jdecode(p, n)
-    end
-    return name
+    return name, pdecode(name, p, n)
 end
 
 function M.name(id)
@@ -76,15 +87,15 @@ function M.print_message(uid, m)
     while true do
         local len = size
         if has_pack_size then
-            len = bunpack(buf, "<H", offset)
+            len = bunpack(buf, ">H", offset)
             offset = offset + 2
         end
-        local id, p, n = bunpack(buf, "<HC", offset)
+        local id, p, n = bunpack(buf, ">HC", offset)
         local name = id_name[id]
         offset = offset + 2
         if size > offset then
             if not ignore_print[name] then
-                local t = json.decode(p, len - 2)
+                local t = pdecode(name, p, len - 2)
                 moon.debug(string.format("SendTo %d Message:%s size %d \n %s", uid, name, len, json.pretty_encode(t)))
             end
             offset = offset + len - 2

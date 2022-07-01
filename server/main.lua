@@ -25,6 +25,25 @@ moon.set_env("PATH", string.format("package.path='%s'", package.path))
 
 local arg = load(moon.get_env("ARG"))()
 
+local function load_protocol(file)
+    local pb = require "pb"
+    local function do_load(file)
+        local fobj, err = io.open(file, "rb")
+        assert(fobj, err)
+        local content = fobj:read("*a")
+        fobj:close()
+        assert(pb.load(content))
+    end
+
+    --- load once
+    do_load(file)
+    --- then shared by other services
+    pb.share_state()
+end
+
+-- If use protobuf, load *.pb file here, only need load once.
+-- load_protocol("game.pb")
+
 local services ={
     {
         unique = true,
