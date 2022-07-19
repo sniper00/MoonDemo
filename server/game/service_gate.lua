@@ -44,10 +44,6 @@ socket.on("message", function(fd, msg)
     end
 end)
 
-socket.on("error", function(fd, msg)
-    print("error ", fd, moon.decode(msg, "Z"))
-end)
-
 socket.on("close", function(fd, msg)
     local data = moon.decode(msg, "Z")
     context.auth_watch[fd] = nil

@@ -76,7 +76,7 @@ function M.print_message(uid, m)
     while true do
         local len = size
         if has_pack_size then
-            len = bunpack(buf, "<H", offset)
+            len = bunpack(buf, ">H", offset)
             offset = offset + 2
         end
         local id, p, n = bunpack(buf, "<HC", offset)
