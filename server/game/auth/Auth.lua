@@ -201,15 +201,12 @@ CMD.C2SLogin = function (req, pull)
             moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
             return false
         end
+        ---如果是opendid, 先得到openid对应的 uid
         local uid = context.openid_map[req.openid]
         if not uid then
-            ---如果是opendid, 先得到openid对应的 uid
-            uid = context.openid_map[req.openid]
-            if not uid then
-                uid = constant.MakeUUID(constant.Type.Player)
-                db.insertuserid(context.addr_db_openid, req.openid, uid)
-                context.openid_map[req.openid] = uid
-            end
+            uid = constant.MakeUUID(constant.Type.Player)
+            db.insertuserid(context.addr_db_openid, req.openid, uid)
+            context.openid_map[req.openid] = uid
         end
         req.uid = uid
     else
@@ -279,6 +276,7 @@ local function PullUser(uid)
     return u
 end
 
+---向玩家发起调用，会主动加载玩家
 function CMD.CallUser(uid, cmd, ...)
     if context.server_exit then
         error(string.format("call user %d cmd %s when server exit", uid, cmd))
@@ -296,6 +294,7 @@ function CMD.CallUser(uid, cmd, ...)
     return moon.co_call("lua", u.addr_user, cmd, ...)
 end
 
+---向玩家发送消息，会主动加载玩家
 function CMD.SendUser(uid, cmd, ...)
     local u, err = PullUser(uid)
     if not u then
@@ -310,8 +309,8 @@ function CMD.SendUser(uid, cmd, ...)
     moon.send("lua", u.addr_user, cmd,...)
 end
 
----向玩家所在服务发送消息,不在线不发送
-function CMD.SendOnlineUser(uid, cmd, ...)
+---向已经在内存的玩家发送消息,不会主动加载玩家
+function CMD.SendMemUser(uid, cmd, ...)
     local u = context.uid_map[uid]
     if not u then
         return

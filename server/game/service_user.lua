@@ -25,7 +25,7 @@ local PTYPE_C2S = constant.PTYPE_C2S
 local context = {
     uid = 0,
     --- 玩家DB数据结构
-    model = false,
+    model = nil,
     --- 内存数据结构
     state = {
         online = false,

@@ -34,7 +34,7 @@ local function CheckMatchQueue(q)
         room_inrc_id = room_inrc_id + 1
         local addr_room = moon.new_service("lua", room_conf)
         if addr_room == 0 then
-            moon.error("create room failed!!!!!!!!")
+            moon.error("create room failed!")
             return
         end
         rooms[addr_room] = true
@@ -43,7 +43,7 @@ local function CheckMatchQueue(q)
             local uid = table.remove(q,1)
             local p = context.match_map[uid]
             if p then
-                context.send_online_user(uid, "User.MatchSuccess", addr_room)
+                context.send_mem_user(uid, "User.MatchSuccess", addr_room)
                 context.match_map[uid] = nil
             end
             n = n + 1

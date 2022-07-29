@@ -8,13 +8,13 @@ local context ={
     conf = conf,
     match_map={},
     match_queue={},
-    docmd = false,
-    addr_gate = false,
-    addr_auth = false,
+    docmd = nil,
+    addr_gate = 0,
+    addr_auth = 0,
 }
 
-context.send_online_user = function(uid, ...)
-    moon.send("lua", context.addr_auth, "Auth.SendOnlineUser", uid, ...)
+context.send_mem_user = function(uid, ...)
+    moon.send("lua", context.addr_auth, "Auth.SendMemUser", uid, ...)
 end
 
 context.docmd = setup(context)

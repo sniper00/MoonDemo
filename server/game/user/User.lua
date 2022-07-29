@@ -36,7 +36,7 @@ function User.Load(req)
                 score = 0
             }
         end
-        print_r(context.model)
+        -- print_r(context.model)
 
         ---初始化自己数据
         context.batch_invoke("Init")
@@ -70,7 +70,7 @@ end
 
 function User.Login(req)
     if req.pull then--服务器主动拉起玩家
-        return
+        return context.model.openid
     end
     if state.online then
         context.batch_invoke("Offline")
@@ -138,9 +138,18 @@ end
 
 --请求匹配
 function User.C2SMatch()
-    --向匹配服务器请求
-    assert(moon.co_call("lua", context.addr_center, "Center.Match", context.uid, moon.id))
+    if context.state.ismatching then
+        return
+    end
+
     context.state.ismatching = true
+    --向匹配服务器请求
+    local ok, err = moon.co_call("lua", context.addr_center, "Center.Match", context.uid, moon.id)
+    if not ok then
+        context.state.ismatching = false
+        moon.error(err)
+        return
+    end
     context.s2c(cmdcode.S2CMatch,{res=true})
 end
 
@@ -154,7 +163,7 @@ end
 function User.GameOver(score)
     print("GameOver", score)
     context.model.score = context.model.score + score
-    context.addr_room = false
+    context.addr_room = 0
     context.s2c(cmdcode.S2CGameOver,{score=score})
     User.Save()
 end
