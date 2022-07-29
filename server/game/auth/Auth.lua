@@ -13,6 +13,7 @@ local min_online_time = 60 --seconds，logout间隔大于这个时间的,并且�
 local context = ...
 
 local auth_queue = {}
+local temp_openid_uid = {}
 
 local function doAuth(req)
     local u = context.uid_map[req.uid]
@@ -201,11 +202,26 @@ CMD.C2SLogin = function (req, pull)
             moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
             return false
         end
+
         ---如果是opendid, 先得到openid对应的 uid
         local uid = context.openid_map[req.openid]
         if not uid then
-            uid = constant.MakeUUID(constant.Type.Player)
-            db.insertuserid(context.addr_db_openid, req.openid, uid)
+
+            ---避免同一个玩家瞬间发送大量登录请求
+            uid = temp_openid_uid[req.openid]
+            if not uid then
+                uid = constant.MakeUUID(constant.Type.Player)
+                temp_openid_uid[req.openid] = uid
+            end
+
+            local res, err = db.insertuserid(context.addr_db_openid, req.openid, uid)
+            if not res then
+                moon.error("insertuserid", req.fd, req.openid, err)
+                moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+                return false
+            end
+
+            temp_openid_uid[req.openid] = nil
             context.openid_map[req.openid] = uid
         end
         req.uid = uid

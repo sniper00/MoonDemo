@@ -53,7 +53,7 @@ function _M.queryuserid(addr_db, openid)
 end
 
 function _M.insertuserid(addr_db , openid, userid)
-    redis_send(addr_db, "hset", "openidmap", openid, userid)
+    return redis_call(addr_db, "hset", "openidmap", openid, userid)
 end
 
 function _M.loaduser(addr_db, userid)
