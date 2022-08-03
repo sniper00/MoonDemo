@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net.Sockets;
+using System.Threading;
 
 namespace Moon
 {
@@ -13,25 +14,31 @@ namespace Moon
     public enum SocketMessageType
     {
         Connect,
-        Recv,
+        Message,
         Close,
-        Error
     }
 
     public enum SocketProtocolType
     {
-        Socket,
-        Text,
+        Tcp,
+        TcpMoon,
+    }
+
+    class LogicException : ApplicationException
+    {
+        public LogicException(string message) : base(message)
+        {
+        }
     }
 
     public class SocketMessage
     {
         public SocketMessageType MessageType { get; }
-        public string ConnectionId { get; }
+        public long ConnectionId { get; }
         public int SessionId { get; }
         public Buffer Data { get; }
 
-        public SocketMessage(string connectionId, SocketMessageType messageType, Buffer data, int sessionId)
+        public SocketMessage(long connectionId, SocketMessageType messageType, Buffer data, int sessionId)
         {
             ConnectionId = connectionId;
             MessageType = messageType;
@@ -39,7 +46,7 @@ namespace Moon
             SessionId = sessionId;
         }
 
-        public SocketMessage(string connectionId, SocketMessageType messageType, byte[] data, int sessionId)
+        public SocketMessage(long connectionId, SocketMessageType messageType, byte[] data, int sessionId)
         {
             ConnectionId = connectionId;
             MessageType = messageType;
@@ -50,21 +57,23 @@ namespace Moon
 
     public class Socket
     {
-        Dictionary<string, BaseConnection> connections = new Dictionary<string, BaseConnection>();
+        Dictionary<long, BaseConnection> connections = new Dictionary<long, BaseConnection>();
 
-        Queue<SocketMessage> messageQueue = new Queue<SocketMessage>();
+        ConcurrentQueue<SocketMessage> messageQueue = new ConcurrentQueue<SocketMessage>();
 
         public Action<SocketMessage> HandleMessage { get; set; }
 
+        long connectionIdSeq = 0;
+
         BaseConnection MakeConnection(SocketProtocolType protocolType)
         {
-            switch(protocolType)
+            switch (protocolType)
             {
-                case SocketProtocolType.Socket:
+                case SocketProtocolType.TcpMoon:
                     {
                         return new MoonConnection();
                     }
-                case SocketProtocolType.Text:
+                case SocketProtocolType.Tcp:
                     {
                         return new StreamConnection();
                     }
@@ -77,81 +86,96 @@ namespace Moon
         {
             try
             {
-                var connectionID = Guid.NewGuid().ToString();
                 var connection = MakeConnection(protocolType);
                 connection.HandleMessage = PushMessage;
                 connection.Socket.Connect(host, port);
-                connection.ConnectionID = connectionID;
-                connections.Add(connectionID, connection);
-
+                connection.ConnectionID = ++connectionIdSeq;
+                connections.Add(connection.ConnectionID, connection);
                 connection.Start();
-
-                return new SocketMessage(connectionID, SocketMessageType.Connect, (Buffer)null, 0);
-            }
-            catch (SocketException se)
-            {
-                return new SocketMessage("", SocketMessageType.Error,BaseConnection.GetErrorMessage(se),0);
+                return new SocketMessage(connection.ConnectionID, SocketMessageType.Connect, (Buffer)null, 0);
             }
             catch (Exception e)
             {
-                return new SocketMessage("", SocketMessageType.Error, BaseConnection.GetErrorMessage(e),0);
+                return new SocketMessage(0, SocketMessageType.Connect, BaseConnection.GetErrorMessage(e), 0);
             }
         }
 
-        public void AsyncConnect(string host, int port, SocketProtocolType protocolType, int sessionid)
+        public void AsyncConnect(string host, int port, SocketProtocolType protocolType, int sessionid, int timeout = 0)
         {
-            var connectionID = Guid.NewGuid().ToString();
             try
             {
                 var connection = MakeConnection(protocolType);
                 connection.HandleMessage = PushMessage;
-                connection.ConnectionID = connectionID;
+                connection.ConnectionID = ++connectionIdSeq;
                 var socket = connection.Socket;
-                socket.BeginConnect(host, port, (ar) =>
+
+                Timer tmr = null;
+
+                if (timeout > 0)
+                {
+                    tmr = new Timer((obj) =>
+                    {
+                        var c = (BaseConnection)obj;
+                        if (!c.Connected())
+                        {
+                            c.Close();
+                            PushMessage(new SocketMessage(
+                                0,
+                                SocketMessageType.Connect,
+                                BaseConnection.GetErrorMessage(new LogicException("timeout")),
+                                sessionid)
+                                );
+                        }
+                    }, connection, timeout, 0);
+                }
+
+                var asyncResult = socket.BeginConnect(host, port, (ar) =>
                 {
                     try
                     {
-                        connections.Add(connectionID, connection);
-                        var s = (System.Net.Sockets.Socket)ar.AsyncState;
-                        s.EndConnect(ar);
-                        PushMessage(new SocketMessage(connectionID, SocketMessageType.Connect, (Buffer)null, sessionid));
-                        connection.Start();
-                    }
-                    catch (SocketException se)
-                    {
-                        PushMessage(new SocketMessage("", SocketMessageType.Connect, BaseConnection.GetErrorMessage(se),sessionid));
+                        var c = (BaseConnection)ar.AsyncState;
+                        var s = c.Socket;
+                        if (s != null)
+                        {
+                            s.EndConnect(ar);
+
+                            if (tmr != null)
+                                tmr.Dispose();
+                            connections.Add(c.ConnectionID, c);
+                            c.Start();
+
+                            Buffer buf = new Buffer();
+                            buf.Write(host + ":" + port.ToString());
+                            PushMessage(new SocketMessage(c.ConnectionID, SocketMessageType.Connect, buf, sessionid));
+                        }
                     }
                     catch (Exception e)
                     {
-                        PushMessage(new SocketMessage("", SocketMessageType.Connect, BaseConnection.GetErrorMessage(e), sessionid));
+                        PushMessage(new SocketMessage(0, SocketMessageType.Connect, BaseConnection.GetErrorMessage(e), sessionid));
                     }
-                }, socket);
-            }
-            catch (SocketException se)
-            {
-                connections.Remove(connectionID);
-                PushMessage(new SocketMessage("", SocketMessageType.Connect, BaseConnection.GetErrorMessage(se), sessionid));
+                }, connection);
             }
             catch (Exception e)
             {
-                connections.Remove(connectionID);
-                PushMessage(new SocketMessage("", SocketMessageType.Connect, BaseConnection.GetErrorMessage(e), sessionid));
+                PushMessage(new SocketMessage(0, SocketMessageType.Connect, BaseConnection.GetErrorMessage(e), sessionid));
             }
         }
 
         void PushMessage(SocketMessage m)
         {
-            lock (messageQueue)
+            if (m.MessageType == SocketMessageType.Close && m.ConnectionId > 0)
             {
-                messageQueue.Enqueue(m);
+                Close(m.ConnectionId);
             }
+            messageQueue.Enqueue(m);
         }
 
-        public void Close(string connectionID)
+        public void Close(long connectionID)
         {
-            if (connections.ContainsKey(connectionID))
+            if (connections.TryGetValue(connectionID, out BaseConnection value))
             {
-                connections[connectionID].Close();
+                value.Close();
+                connections.Remove(connectionID);
             }
         }
 
@@ -163,28 +187,28 @@ namespace Moon
             }
         }
 
-        public void Send(string connectionID, byte[] data)
+        public void Send(long connectionID, byte[] data)
         {
             Buffer buf = new Buffer();
             buf.Write(data, 0, data.Length);
             Send(connectionID, buf);
         }
 
-        public bool Send(string connectionID, Buffer data)
+        public bool Send(long connectionID, Buffer data)
         {
-            if (connections.ContainsKey(connectionID))
+            if (connections.TryGetValue(connectionID, out BaseConnection c))
             {
-                connections[connectionID].Send(data);
+                c.Send(data);
                 return true;
             }
             return false;
         }
 
-        public bool Read(string connectionId, bool line, int count, int sessionid)
+        public bool Read(long connectionId, bool line, int count, int sessionid)
         {
-            if (connections.ContainsKey(connectionId))
+            if (connections.TryGetValue(connectionId, out BaseConnection c))
             {
-                connections[connectionId].Read(line,count,sessionid);
+                c.Read(line, count, sessionid);
                 return true;
             }
             return false;
@@ -192,13 +216,9 @@ namespace Moon
 
         public void Update()
         {
-            lock (messageQueue)
+            while (messageQueue.TryDequeue(out SocketMessage m))
             {
-                while (messageQueue.Count != 0)
-                {
-                    var m = messageQueue.Dequeue();
-                    HandleMessage(m);
-                }
+                HandleMessage(m);
             }
         }
     }

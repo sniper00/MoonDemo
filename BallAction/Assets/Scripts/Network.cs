@@ -59,12 +59,12 @@ public class Network:MonoBehaviour
         return task.Task;
     }
 
-    static public Action<string, string> OnError
+    static public Action<long, string> OnError
     {
         set; private get;
     }
 
-    static public async Task<Response> Call<Response>(string connectionId, object msg)
+    static public async Task<Response> Call<Response>(long connectionId, object msg)
     {
         var requestId = ToMessageID(msg.GetType());
         var responseId = (int)Convert.ChangeType(ToMessageID(typeof(Response)),typeof(int));
@@ -88,27 +88,27 @@ public class Network:MonoBehaviour
         return Serializer.Decode<Response>(res.Data.Data, res.Data.Index, res.Data.Count);
     }
 
-    static public void Send(string connectionId, string data)
+    static public void Send(long connectionId, string data)
     {
         socket.Send(connectionId, Encoding.Default.GetBytes(data));
     }
 
-    static public void Send(string connectionId, byte[] data)
+    static public void Send(long connectionId, byte[] data)
     {
         socket.Send(connectionId, data);
     }
 
-    static public void Send(string connectionId, Moon.Buffer data)
+    static public void Send(long connectionId, Moon.Buffer data)
     {
         socket.Send(connectionId, data);
     }
 
-    static public bool Send<Message>(string connectionId, Message msg)
+    static public bool Send<Message>(long connectionId, Message msg)
     {
         var bytes = Serializer.Encode(msg);
         if (null == bytes)
         {
-            OnError("",  string.Format("Send Message {0}, Serialize error", msg.ToString()));
+            OnError(0,  string.Format("Send Message {0}, Serialize error", msg.ToString()));
             return false;
         }
 
@@ -120,7 +120,7 @@ public class Network:MonoBehaviour
         return true;
     }
 
-    static public Task<SocketMessage> Read(string connectionId, int count)
+    static public Task<SocketMessage> Read(long connectionId, int count)
     {
         var sessionid = MakeSessionID();
         var task = new TaskCompletionSource<SocketMessage>();
@@ -129,7 +129,7 @@ public class Network:MonoBehaviour
         return task.Task;
     }
 
-    static public Task<SocketMessage> ReadLine(string connectionId, int limit = 1024)
+    static public Task<SocketMessage> ReadLine(long connectionId, int limit = 1024)
     {
         var sessionid = MakeSessionID();
         var task = new TaskCompletionSource<SocketMessage>();
@@ -150,7 +150,7 @@ public class Network:MonoBehaviour
         return id;
     }
 
-    static public void Close(string connectionId)
+    static public void Close(long connectionId)
     {
         socket.Close(connectionId);
     }
@@ -179,7 +179,7 @@ public class Network:MonoBehaviour
                     }
                     break;
                 }
-            case SocketMessageType.Recv:
+            case SocketMessageType.Message:
                 {
                     if(m.SessionId!=0)
                     {
@@ -191,7 +191,7 @@ public class Network:MonoBehaviour
                         }
                         else
                         {
-                            OnError("", string.Format("session{0} not register!!", m.SessionId));
+                            OnError(0, string.Format("session{0} not register!", m.SessionId));
                         }
                         break;
                     }
@@ -214,13 +214,12 @@ public class Network:MonoBehaviour
                         else
                         {
                             string sss = m.Data.GetString();
-                            OnError("", string.Format("message{0} not register!!{1}", msgId, sss));
+                            OnError(0, string.Format("message{0} not register!!{1}", msgId, sss));
                         }
                     }
                     break;
                 }
             case SocketMessageType.Close:
-            case SocketMessageType.Error:
                 {
                     if(m.SessionId!=0)
                     {

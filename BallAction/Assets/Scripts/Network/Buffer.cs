@@ -91,6 +91,14 @@ namespace Moon
             WritePos += len;
         }
 
+        public void Write(string value)
+        {
+            var b = Encoding.Default.GetBytes(value);
+            Prepare(b.Length);
+            System.Buffer.BlockCopy(b, 0, Data, WritePos, b.Length);
+            WritePos += b.Length;
+        }
+
         public void WriteFront(short value)
         {
             CheckFrontSize(sizeof(short));

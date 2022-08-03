@@ -46,12 +46,6 @@
                     return;
                 }
 
-                if (0 == bytesTransferred)
-                {
-                    ReadSome();
-                    return;
-                }
-
                 buffer.Commit(bytesTransferred);
 
                 lock (request)
@@ -81,7 +75,7 @@
                         var buf = new byte[n-1];//ignore \n
                         System.Buffer.BlockCopy(buffer.Data, buffer.Index, buf, 0, buf.Length);
                         buffer.Index += n;
-                        var m = new SocketMessage(ConnectionID, SocketMessageType.Recv, buf, request.SessionId);
+                        var m = new SocketMessage(ConnectionID, SocketMessageType.Message, buf, request.SessionId);
                         Response(m);
                         return;
                     }
@@ -99,7 +93,7 @@
                     var buf = new byte[request.Count];
                     System.Buffer.BlockCopy(buffer.Data, buffer.Index, buf, 0, buf.Length);
                     buffer.Index += request.Count;
-                    var m = new SocketMessage(ConnectionID, SocketMessageType.Recv, buf, request.SessionId);
+                    var m = new SocketMessage(ConnectionID, SocketMessageType.Message, buf, request.SessionId);
                     Response(m);
                 }
             }

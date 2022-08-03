@@ -1,14 +1,19 @@
-﻿using System.Net;
+using System.Net;
 
 namespace Moon
 {
-    public class MoonConnection: BaseConnection
+    public class MoonConnection : BaseConnection
     {
         //two bytes len head
         const int headLen = sizeof(ushort);
         readonly byte[] head_ = new byte[headLen];
 
-        override public void Start() 
+        const int MASK_CONTINUED = 1 << (sizeof(ushort) * 8 - 1);
+        const int MAX_CHUNK_SIZE = MASK_CONTINUED ^ ushort.MaxValue;
+
+        Buffer buf = null;
+
+        override public void Start()
         {
             ReadHead();
         }
@@ -31,21 +36,30 @@ namespace Moon
                     return;
                 }
 
-                if (0 == bytesTransferred)
-                {
-                    ReadHead();
-                    return;
-                }
-
                 var size = ToInt16(head_);
                 size = IPAddress.NetworkToHostOrder(size);
-                ReadBody(size);
+
+                bool fin = ((size & MASK_CONTINUED) == 0);
+                if (!fin)
+                {
+                    size &= MAX_CHUNK_SIZE;
+                }
+
+                ReadBody(size, fin);
             });
         }
 
-        void ReadBody(short size)
+        void ReadBody(short size, bool fin)
         {
-            Buffer buf = new Buffer(size, 0);
+            if (buf == null)
+            {
+                buf = new Buffer(fin ? size : 5 * size);
+            }
+            else
+            {
+                buf.Prepare(size);
+            }
+
             AsyncRead(buf.Data, buf.WritePos, size, (bytesTransferred, e) =>
             {
                 if (null != e)
@@ -54,16 +68,15 @@ namespace Moon
                     return;
                 }
 
-                if (0 == bytesTransferred)
-                {
-                    ReadHead();
-                    return;
-                }
-
                 buf.Commit(bytesTransferred);
 
-                var m = new SocketMessage(ConnectionID, SocketMessageType.Recv, buf, 0);
-                HandleMessage(m);
+                if (fin)
+                {
+                    var m = new SocketMessage(ConnectionID, SocketMessageType.Message, buf, 0);
+                    buf = null;
+                    HandleMessage(m);
+                }
+
                 ReadHead();
             });
         }

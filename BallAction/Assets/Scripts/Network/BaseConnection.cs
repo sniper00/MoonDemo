@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace Moon
 {
@@ -38,13 +40,13 @@ namespace Moon
 
         public System.Net.Sockets.Socket Socket { get; private set; }
 
-        readonly Queue<Buffer> sendQueue = new Queue<Buffer>();
+        readonly ConcurrentQueue<Buffer> sendQueue = new ConcurrentQueue<Buffer>();
 
         SocketUserToken readToken = new SocketUserToken();
 
-        public string ConnectionID { get; set; }="";
+        public long ConnectionID { get; set; }= 0;
 
-        bool sending = false;
+        int sending = 0;
 
         public BaseConnection()
         {
@@ -73,21 +75,16 @@ namespace Moon
             {
                 if (Socket != null)
                 {
-                    if (Socket.Connected)
-                    {
-                        Socket.Shutdown(SocketShutdown.Both);
-                        Socket.Close();
-                        Socket = null;
-                    }
+                    var s = Socket;
+                    Socket = null;
+                    if (s.Connected)
+                        s.Shutdown(SocketShutdown.Both);
+                    s.Close();
                 }
-            }
-            catch (SocketException)
-            {
-
             }
             catch (Exception)
             {
-
+                //ignore
             }
         }
 
@@ -134,8 +131,9 @@ namespace Moon
                     SocketUserToken userToken = (SocketUserToken)ar.AsyncState;
                     try
                     {
-                        if(null == Socket)
+                        if (null == Socket)
                         {
+                            userToken.Handler(userToken.BytesTransferred, new LogicException("operation aborted"));
                             return;
                         }
                         SocketError err;
@@ -148,7 +146,7 @@ namespace Moon
                         
                         if (0 == bytesTransferred)
                         {
-                            userToken.Handler(userToken.BytesTransferred, null);
+                            userToken.Handler(userToken.BytesTransferred, new LogicException("eof"));
                             return;
                         }
 
@@ -190,46 +188,38 @@ namespace Moon
                 return false;
             }
 
-            lock (sendQueue)
-            {
-                sendQueue.Enqueue(data);
-                if (!sending)
-                {
-                    DoSend();
-                }
-            }
+            sendQueue.Enqueue(data);
 
+            if(Interlocked.CompareExchange(ref sending, 1, 0) == 0)
+            {
+                DoSend();
+            }
             return true;
         }
 
         void DoSend()
         {
-            lock(sendQueue)
+            List<ArraySegment<byte>> buffers = null;
+
+            if (sendQueue.Count == 0)
             {
-                List<ArraySegment<byte>> buffers = null;
+                Interlocked.Exchange(ref sending, 0);
+                return;
+            }
 
-                if (sendQueue.Count == 0)
-                {
-                    sending = false;
-                    return;
-                }
+            buffers = new List<ArraySegment<byte>>();
+            while(sendQueue.TryDequeue(out Buffer buff))
+            {
+                buffers.Add(new ArraySegment<byte>(buff.Data, buff.Index, buff.Count));
+            }
 
-                buffers = new List<ArraySegment<byte>>();
-                while(sendQueue.Count>0)
-                {
-                    var buff = sendQueue.Dequeue();
-                    buffers.Add(new ArraySegment<byte>(buff.Data, buff.Index, buff.Count));
-                }
-
-                try
-                {
-                    sending = true;
-                    Socket.BeginSend(buffers, SocketFlags.None, new AsyncCallback(SendCallBack), Socket);
-                }
-                catch (Exception e)
-                {
-                    Error(e);
-                }
+            try
+            {
+                Socket.BeginSend(buffers, SocketFlags.None, new AsyncCallback(SendCallBack), Socket);
+            }
+            catch (Exception e)
+            {
+                Error(e);
             }
         }
 

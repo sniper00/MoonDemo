@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -28,10 +24,10 @@ public class Login : MonoBehaviour
             Port.text = 12345.ToString();
         }
 
-        if (UserData.GameSeverID.Length != 0)
+        if (UserData.GameSeverID != 0)
         {
             Network.Close(UserData.GameSeverID);
-            UserData.GameSeverID = "";
+            UserData.GameSeverID = 0;
         }
 
         Network.Register<S2CMatchSuccess>((res) =>
@@ -43,7 +39,7 @@ public class Login : MonoBehaviour
 
     public async void OnClickLogin()
     {
-        if (UserData.GameSeverID.Length == 0)
+        if (UserData.GameSeverID == 0)
         {
             if(Ip.text.Length == 0)
             {
@@ -55,8 +51,8 @@ public class Login : MonoBehaviour
                 Port.text = 12345.ToString();
             }
 
-            var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.Socket);
-            if (result.ConnectionId.Length == 0)
+            var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.TcpMoon);
+            if (result.ConnectionId == 0)
             {
                 MessageBox.Show(result.Data.GetString());
                 return;
