@@ -44,7 +44,7 @@ public class Game : MonoBehaviour {
 
     static bool IsPlayer(long id)
     {
-        return ((id >> 24) == 1);
+        return ((id >> 62) == 0);
     }
 
     long now = Millseconds();
@@ -86,6 +86,8 @@ public class Game : MonoBehaviour {
             uid = v.id;
             UserData.time = v.time;
             now = Millseconds();
+
+            Debug.LogFormat("Entity User  id {0} S2CEnterRoom", v.id);
         });
 
         Network.Register<S2CEnterView>(v => {
@@ -110,6 +112,7 @@ public class Game : MonoBehaviour {
                     {
                         source = "Texture/bean_polygon5_1";
                     }
+                    Debug.LogFormat("Entity User  id {0} enter view", v.id);
                 }
                 else
                 {

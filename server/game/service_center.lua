@@ -1,5 +1,5 @@
 local moon = require("moon")
-local setup = require("common.setup")
+local common = require("common")
 
 local conf = ...
 
@@ -17,4 +17,4 @@ context.send_mem_user = function(uid, ...)
     moon.send("lua", context.addr_auth, "Auth.SendMemUser", uid, ...)
 end
 
-context.docmd = setup(context)
+common.setup(context)

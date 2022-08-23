@@ -1,12 +1,12 @@
 local moon = require("moon")
 local reload = require("hardreload")
----@type fs
 local fs = require("fs")
 local seri = require("seri")
 local datetime = require("moon.datetime")
-local constant = require("common.constant")
+local GameDef = require("common.GameDef")
 local protocol = require("common.protocol")
 local cmdcode = require("common.cmdcode")
+local GameCfg = require("common.GameCfg")
 
 local string = string
 local type = type
@@ -30,18 +30,6 @@ reload.addsearcher(function(file)
     local content = moon.get_env(file)
     return load(content,"@"..file), file
 end)
-
-local function direct_docmd(cmd, ...)
-    local args = {...}
-    local f = command[cmd]
-    if f then
-        moon.async(function()
-            f(table.unpack(args))
-        end)
-    else
-        assert("recv unknown cmd "..cmd)
-    end
-end
 
 local function load_scripts(context, sname)
     local dir = strfmt("game/%s/", sname)
@@ -85,9 +73,18 @@ local function load_scripts(context, sname)
 end
 
 local function _internal(context)
-    command.Hotfix = function (fixlist)
+    context.batch_invoke = function(cmd, ...)
+        for _, v in pairs(context.scripts) do
+            local f = v[cmd]
+            if f then
+                f(...)
+            end
+        end
+    end
+
+    command.hotfix = function (fixlist)
         for name, file in pairs(fixlist) do
-            local ok, t = reload.reload(file)
+            local ok, t = reload.reload_simple(file)
             if ok then
                 print(moon.name, "hotfix" , name, file)
                 if not context.scripts[name] then
@@ -106,16 +103,13 @@ local function _internal(context)
         end
     end
 
-    context.batch_invoke = function(cmd, ...)
-        for _, v in pairs(context.scripts) do
-            local f = v[cmd]
-            if f then
-                f(...)
-            end
-        end
+    command.reload = function (names)
+        GameCfg.Reload(names)
+        print(moon.name, "reload", table.concat(names," "))
     end
 
     command.Init = function(...)
+        GameCfg.Load()
         context.batch_invoke("Init", ...)
         return true
     end
@@ -212,7 +206,7 @@ return function(context, sname)
 
     moon.register_protocol({
         name = "C2S",
-        PTYPE = constant.PTYPE_C2S,
+        PTYPE = GameDef.PTYPE_C2S,
         --default client message dispatch
         dispatch = function(msg)
             local header, buf = moon.decode(msg, "HB")
@@ -230,13 +224,13 @@ return function(context, sname)
 
     moon.register_protocol({
         name = "S2C",
-        PTYPE = constant.PTYPE_S2C,
+        PTYPE = GameDef.PTYPE_S2C,
         dispatch = nil
     })
 
     moon.register_protocol({
         name = "SBC",
-        PTYPE = constant.PTYPE_SBC,
+        PTYPE = GameDef.PTYPE_SBC,
         dispatch = nil
     })
 
@@ -255,7 +249,7 @@ return function(context, sname)
         return moon.co_call("lua", context.addr_auth, "Auth.CallUser", uid, ...)
     end
 
-    return direct_docmd, command
+    return command
 end
 
 

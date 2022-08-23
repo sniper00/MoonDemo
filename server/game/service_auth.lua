@@ -1,5 +1,5 @@
 local moon = require("moon")
-local setup = require("common.setup")
+local common = require("common")
 
 ---@class AuthUser
 ---@field public addr_user integer @玩家服务address
@@ -17,15 +17,15 @@ local context = {
     service_counter = 0,
     scripts = {},
     ---other service address
-	addr_gate = false,
-	addr_db_server = false,
-	addr_db_openid = false,
-    user_db = false
+	addr_gate = 0,
+	addr_db_server = 0,
+	addr_db_openid = 0,
+    user_db = 0
 }
 
-local _, command = setup(context)
+local command = common.setup(context)
 
-command.userhotfix = function(names)
+command.hotfix = function(names)
     for _,u in pairs(context.uid_map) do
         moon.send("lua", u.addr_user, "hotfix", names)
     end

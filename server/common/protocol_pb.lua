@@ -93,10 +93,14 @@ function M.print_message(uid, m)
         local id, p, n = bunpack(buf, ">HC", offset)
         local name = id_name[id]
         offset = offset + 2
-        if size > offset then
+        if size >= offset then
             if not ignore_print[name] then
-                local t = pdecode(name, p, len - 2)
-                moon.debug(string.format("SendTo %d Message:%s size %d \n %s", uid, name, len, json.pretty_encode(t)))
+                local t = (size>offset) and pdecode(name, p, len - 2) or {}
+                if string.sub(name, 1,3) == "C2S" then
+                    moon.debug(string.format("Recv %d Message:%s size %d \n%s", uid, name, len, json.pretty_encode(t)))
+                else
+                    moon.debug(string.format("SendTo %d Message:%s size %d \n%s", uid, name, len, json.pretty_encode(t)))
+                end
             end
             offset = offset + len - 2
         end

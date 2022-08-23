@@ -1,9 +1,16 @@
 # BallGame
 多人简易版球球大作战，游戏服务器框架[moon](https://github.com/sniper00/moon)的一个使用示例。
 主要演示
-- 如何管理玩家网络连接
-- 如何动态创建服务
-- 如何使用redis数据库存储玩家数据
+- 管理玩家网络连接
+- 动态创建服务, 一个玩家一个service(LuaVM)
+- redis数据库存储玩家数据
+- 使用sharetable来处理游戏配表
+- 客户端网络消息和服务器内部消息统一自动注册
+- 游戏逻辑编写规范
+- 服务器集群搭建
+- 服务器管理后台示例
+- 代码热更
+- 使用vscode lua-language-server 插件提供lua代码智能能提示
 - 使用vscode LuaPanda 插件调试服务器代码
 
 ![image](https://github.com/sniper00/BallGame/raw/master/image/start.png)
@@ -46,8 +53,13 @@ require("common.LuaPanda").start("127.0.0.1", 8818)
 ![image](https://github.com/sniper00/BallGame/raw/master/image/debug.png)
 
 ## Server
+Hub Server:
+1. 提供服务后台管理, 服务器节点配置管理(支持动态开启新服)
+2. 提供http server 和 telnet两种协议接口
 
-服务端开启了4种服务:
+Game Server开启了6种服务:
+- node 服务器管理对接服务
+- cluster 服务器集群通信节点服务
 - gate 负责管理玩家网络连接，并转发玩家网络消息到对应玩家服务
 - auth 负责登录，创建、删除、离线加载、玩家服务
 - center 负责玩家匹配逻辑，动态创建room服务

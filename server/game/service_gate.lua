@@ -1,15 +1,16 @@
 local moon = require("moon")
 local seri = require("seri")
 local socket = require("moon.socket")
-local constant = require("common.constant")
-local setup = require("common.setup")
-local protocol = require("common.protocol")
+local common = require("common")
+local setup = common.setup
+local protocol = common.protocol
+local GameDef = common.GameDef
 
 local conf = ...
 
 local redirect = moon.redirect
 
-local PTYPE_C2S = constant.PTYPE_C2S
+local PTYPE_C2S = GameDef.PTYPE_C2S
 
 ---@class gate_context
 local context = {
@@ -18,7 +19,7 @@ local context = {
     fd_map = {},
     auth_watch = {},
     ---other service address
-    addr_auth = false,
+    addr_auth = 0,
 }
 
 setup(context)
@@ -40,6 +41,10 @@ socket.on("message", function(fd, msg)
         req.addr = socket.getaddress(fd)
         moon.send("lua", context.addr_auth, name, req)
     else
+        if moon.DEBUG() then
+            protocol.print_message(c.uid, msg)
+        end
+
         redirect(msg, "", c.addr_user, PTYPE_C2S, 0, 0)
     end
 end)
@@ -59,6 +64,7 @@ socket.on("close", function(fd, msg)
 end)
 
 moon.dispatch("S2C",function(msg)
+    ---@cast msg message_ptr
     local uid = seri.unpack(moon.decode(msg, "H"))
     local c = context.uid_map[uid]
     if not c then
@@ -72,6 +78,7 @@ moon.dispatch("S2C",function(msg)
 end)
 
 moon.dispatch("SBC",function(msg)
+    ---@cast msg message_ptr
     for _, c in pairs(context.uid_map) do
         if moon.DEBUG() then
             protocol.print_message(_, msg)

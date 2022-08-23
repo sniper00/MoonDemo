@@ -2,10 +2,12 @@
 local moon = require("moon")
 local seri = require("seri")
 local buffer = require("buffer")
-local setup = require("common.setup")
-local protocol = require("common.protocol")
-local cmdcode = require("common.cmdcode")
-local constant = require("common.constant")
+local common = require("common")
+
+local protocol = common.protocol
+local setup = common.setup
+local cmdcode = common.cmdcode
+local GameDef = common.GameDef
 
 local bunpack = buffer.unpack
 
@@ -17,7 +19,7 @@ local id_to_name = protocol.name
 
 local redirect = moon.redirect
 
-local PTYPE_C2S = constant.PTYPE_C2S
+local PTYPE_C2S = GameDef.PTYPE_C2S
 
 ---@class user_context:base_context
 ---@field public scripts user_scripts
@@ -25,7 +27,7 @@ local PTYPE_C2S = constant.PTYPE_C2S
 local context = {
     uid = 0,
     --- 玩家DB数据结构
-    model = nil,
+    model = {},
     --- 内存数据结构
     state = {
         online = false,
@@ -41,7 +43,7 @@ local context = {
     addr_auth = 0,
 }
 
-local _, command = setup(context, "user")
+local command = setup(context, "user")
 
 local function forward(msg, msgname)
     local address
@@ -87,8 +89,6 @@ context.addr_auth = moon.queryservice("auth")
 context.s2c = function(msgid, mdata)
     moon.raw_send('S2C', context.addr_gate, seri.packs(context.uid), protocol.encode(msgid, mdata))
 end
-
-print(context.addr_gate,context.addr_db_user )
 
 moon.shutdown(function()
     --- rewrite default behavior: quit immediately

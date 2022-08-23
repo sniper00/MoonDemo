@@ -1,9 +1,13 @@
 local moon = require("moon")
 local seri = require("seri")
-local vector2 = require("common.vector2")
-local constant = require("common.constant")
-local cmdcode = require("common.cmdcode")
-local protocol= require("common.protocol")
+local uuid = require("uuid")
+local common = require("common")
+
+local protocol = common.protocol
+local vector2 = common.vector2
+local GameDef = common.GameDef
+local cmdcode = common.cmdcode
+local GameCfg = common.GameCfg
 
 ---@type room_context
 local context = ...
@@ -14,20 +18,37 @@ local conf = context.conf
 
 local MemModel = {
     players = {},
-    foods = {}
+    foods = {},
+    roomid = 0,
 }
 
 ---@class Room
 local Room = {}
 
-function Room.Init()
-    -- body
-    scripts.Aoi.init_map(conf.map.x, conf.map.y, conf.map.size)
+function Room.Init(roomid)
+    MemModel.roomid = roomid
 
+    context.addr_gate = moon.queryservice("gate")
+    context.addr_auth = moon.queryservice("auth")
+    context.addr_center = moon.queryservice("center")
+
+
+    moon.timeout(GameCfg.constant.room.round_time * 1000, function()
+        Room.GameOver()
+    end)
+
+    scripts.Aoi.init_map(conf.map.x, conf.map.y, conf.map.size)
     for i=1,500 do
         local food = Room.CreateFood()
         scripts.Aoi.insert(food.id, food.x, food.y, 0, false)
     end
+
+    moon.async(function()
+        while true do
+            moon.sleep(100)
+            Room.Update()
+        end
+    end)
 end
 
 function Room.FindPlayer(uid)
@@ -58,7 +79,7 @@ end
 
 function Room.CreateFood()
     local food = {}
-    food.id = constant.MakeUUID(constant.Type.Food)
+    food.id = uuid.next(GameDef.TypeFood)
     food.x = math.random(conf.map.x, conf.map.x + conf.map.size)
     food.y = math.random(conf.map.y, conf.map.y + conf.map.size)
     food.radius = conf.food_radius
@@ -139,8 +160,8 @@ function Room.C2SMove(uid, req)
         movetime = player.movetime
         }
     ))
-    scripts.Aoi.fireEvent(uid, constant.AoiEvent.UpdateDir, function(watcher)
-        moon.send_prefab(context.addr_gate, prefabid, seri.packs(watcher), 0, constant.PTYPE_S2C)
+    scripts.Aoi.fireEvent(uid, GameDef.AoiEvent.UpdateDir, function(watcher)
+        moon.send_prefab(context.addr_gate, prefabid, seri.packs(watcher), 0, GameDef.PTYPE_S2C)
     end)
 end
 
@@ -167,11 +188,13 @@ function Room.Update()
             local res = scripts.Aoi.query(player.x, player.y, player.radius, player.radius)
             for _, id in ipairs(res) do
                 local entity
-                if constant.IsPlayer(id) then
+                if uuid.isuid(id) then
                     entity = Room.FindPlayer(id)
                 else
                     entity = Room.FindFood(id)
                 end
+
+                assert(entity, tostring(id))
 
                 if not entity.dead then
                     local distance = math.sqrt((player.x - entity.x)^2 + (player.y - entity.y)^2 )
@@ -196,8 +219,8 @@ function Room.Update()
                     radius = player.radius
                     }
                 ))
-                scripts.Aoi.fireEvent(player.id, constant.AoiEvent.UpdateRadius, function(watcher)
-                    moon.send_prefab(context.addr_gate, prefabid, seri.packs(watcher), 0, constant.PTYPE_S2C)
+                scripts.Aoi.fireEvent(player.id, GameDef.AoiEvent.UpdateRadius, function(watcher)
+                    moon.send_prefab(context.addr_gate, prefabid, seri.packs(watcher), 0, GameDef.PTYPE_S2C)
                 end)
             end
         end
@@ -207,8 +230,8 @@ function Room.Update()
 
     for _,id in ipairs(dead) do
         scripts.Aoi.erase(id)
-        if constant.IsPlayer(id) then
-            context.s2c(id,"S2CDead",{id=id})
+        if uuid.isuid(id) then
+            context.s2c(id, "S2CDead",{id=id})
             Room.RemovePlayer(id)
         else
             Room.RemoveFood(id)

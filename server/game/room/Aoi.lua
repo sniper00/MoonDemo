@@ -1,6 +1,7 @@
 local aoi = require("aoi")
-local constant = require("common.constant")
-local cmdcode = require("common.cmdcode")
+local uuid = require("uuid")
+local common = require("common")
+local cmdcode = common.cmdcode
 
 local AOI_WATCHER = 1
 local AOI_MARHER = 2
@@ -75,7 +76,7 @@ function Aoi.query(x, y, view_w, view_h)
 end
 
 function Aoi.enter(watcher, marker)
-    if constant.IsPlayer(marker) then
+    if uuid.isuid(marker) then
         context.s2c(watcher, cmdcode.S2CEnterView, scripts.Room.FindPlayer(marker))
     else
         context.s2c(watcher, cmdcode.S2CEnterView, scripts.Room.FindFood(marker))

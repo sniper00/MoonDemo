@@ -18,7 +18,7 @@ function M.normalize(v)
 end
 
 function M.distance(v)
-    math.sqrt( v.x^2+v.y^2 )
+    return math.sqrt( v.x^2+v.y^2 )
 end
 
 function M.add(v1, v2 )

@@ -42,7 +42,7 @@ public class C2SEnterRoom
 [System.Serializable]
 public class S2CEnterRoom
 {
-    public int id;
+    public long id;
     public long time;
 }
 

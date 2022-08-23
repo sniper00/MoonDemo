@@ -1,6 +1,6 @@
 require("common.LuaPanda").start("127.0.0.1", 8818)
 local moon = require("moon")
-local setup = require("common.setup")
+local common = require("common")
 
 local conf = ...
 
@@ -15,29 +15,12 @@ local context ={
     models = {},
     docmd = false,
     uid_address = {},
-    addr_gate = false,
-    addr_auth = false
+    addr_gate = 0,
+    addr_auth = 0,
+    addr_center = 0
 }
 
-local docmd = setup(context,"room")
-context.docmd = docmd
-
-context.addr_gate = moon.queryservice("gate")
-context.addr_auth = moon.queryservice("auth")
-context.addr_center = moon.queryservice("center")
-
-docmd("Init")
-
-moon.async(function()
-    while true do
-        moon.sleep(100)
-        docmd("Room.Update")
-    end
-end)
-
-moon.timeout(conf.round_time*1000, function()
-    docmd("Room.GameOver")
-end)
+common.setup(context,"room")
 
 moon.shutdown(function()
     --- rewrite default behavior: quit immediately

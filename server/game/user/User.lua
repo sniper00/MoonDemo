@@ -1,6 +1,8 @@
 local moon = require("moon")
-local db = require("common.database")
-local cmdcode = require("common.cmdcode")
+local common = require("common")
+local db = common.database
+local cmdcode = common.cmdcode
+local GameCfg = common.GameCfg
 
 ---@type user_context
 local context = ...
@@ -13,7 +15,7 @@ local User = {}
 
 function User.Load(req)
     local function fn()
-        if context.model then
+        if next(context.model) then
             return context.model
         end
 
@@ -84,7 +86,7 @@ function User.Logout()
 end
 
 function User.Init()
-    -- body
+    GameCfg.Load()
 end
 
 function User.Start()
@@ -153,9 +155,10 @@ function User.C2SMatch()
     context.s2c(cmdcode.S2CMatch,{res=true})
 end
 
-function User.MatchSuccess(addr_room)
+function User.MatchSuccess(addr_room, roomid)
     context.state.ismatching = false
     context.addr_room = addr_room
+    context.state.roomid = roomid
     context.s2c(cmdcode.S2CMatchSuccess,{res=true})
 end
 
@@ -166,6 +169,12 @@ function User.GameOver(score)
     context.addr_room = 0
     context.s2c(cmdcode.S2CGameOver,{score=score})
     User.Save()
+end
+
+function User.AddScore(count)
+    context.model.score = context.model.score + count
+    User.Save()
+    return true
 end
 
 return User

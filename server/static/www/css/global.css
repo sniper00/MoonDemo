@@ -1,0 +1,30 @@
+
+.login-container {
+    padding-top: 20%;
+}
+
+.login-panel {
+    background-color: rgb(242, 242, 242);
+}
+
+.login-content{
+    margin: 0 auto;
+    width: 300px;
+}
+
+.login-label{
+    font-size: 150%;
+    font-weight:bold;
+}
+
+.layui-input:focus
+{
+    border-color:rgb(44, 201, 5)!important;
+    box-shadow: 0 0 10px 0px #3b99fc;
+}
+
+.header{height: 59px; border-bottom: 1px solid #404553;  background-color: #393D49;}
+
+.header .layui-nav{position: absolute;right: 0;top: 0;padding: 0;background: none;}
+
+.layui-nav-right{position: absolute;right: 100px;top: 0;padding: 0;background: none;}

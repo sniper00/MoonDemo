@@ -1,9 +1,12 @@
 local moon = require("moon")
 local json = require("json")
 local socket = require("moon.socket")
-local MSGID = require("common.cmdcode")
-local msgutil = require("common.protocol")
-local vector2 = require("common.vector2")
+local common = require("common")
+
+local msgutil = common.protocol
+local MSGID = common.cmdcode
+local vector2 = common.vector2
+local GameCfg = common.GameCfg
 
 local conf = ...
 
@@ -110,6 +113,8 @@ local function client_handler( fd, uname)
 end
 
 moon.async(function()
+    GameCfg.Load()
+
     moon.sleep(10)
     local username = 0
 
@@ -135,7 +140,7 @@ moon.async(function()
     end
 
     moon.sleep(3000)
-    for _=1,conf.num do
+    for _=1, GameCfg.constant.robot_num do
         create_user()
         moon.sleep(10)
     end

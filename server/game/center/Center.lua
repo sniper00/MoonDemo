@@ -1,6 +1,9 @@
 local moon = require("moon")
-local json = require "json"
-local db = require("common.database")
+local uuid = require("uuid")
+local common = require("common")
+local GameDef = common.GameDef
+local GameCfg = common.GameCfg
+
 ---@type center_context
 local context = ...
 
@@ -17,33 +20,33 @@ local room_conf = {
     speed = 2,
     radius = 0.3,
     food_radius = 0.25,
-    round_time = conf.round_time
 }
 
 local room_name = room_conf.name
-
-local room_inrc_id = 1
 
 local rooms = {}
 
 --简单的匹配策略
 local function CheckMatchQueue(q)
-    if #q >= conf.max_room_player_number then
-        room_conf.name = room_name..room_inrc_id
+    local max_player_number =  GameCfg.constant.room.max_player_number
+    if #q >= max_player_number then
+        local roomid = uuid.next(GameDef.TypeRoom)
+        room_conf.name = room_name..roomid
         room_conf.time = conf.time
-        room_inrc_id = room_inrc_id + 1
+        room_conf.id = roomid
         local addr_room = moon.new_service("lua", room_conf)
         if addr_room == 0 then
             moon.error("create room failed!")
             return
         end
-        rooms[addr_room] = true
+        moon.send("lua", addr_room, "Init", roomid)
+        rooms[addr_room] = roomid
         local n = 0
-        while n<conf.max_room_player_number do
+        while n< max_player_number do
             local uid = table.remove(q,1)
             local p = context.match_map[uid]
             if p then
-                context.send_mem_user(uid, "User.MatchSuccess", addr_room)
+                context.send_mem_user(uid, "User.MatchSuccess", addr_room, roomid)
                 context.match_map[uid] = nil
             end
             n = n + 1
@@ -57,19 +60,6 @@ function CMD.Init()
     context.addr_gate = moon.queryservice("gate")
     context.addr_auth = moon.queryservice("auth")
     context.addr_db_server = moon.queryservice("db_server")
-
-    local data = db.loadserverdata(context.addr_db_server)
-    if not data then
-        data = {boot_times = 0}
-    else
-        data = json.decode(data)
-    end
-    data.boot_times = data.boot_times + 1
-
-    assert(db.saveserverdata(context.addr_db_server, json.encode(data)))
-
-    moon.set_env("SERVER_START_TIMES", tostring(data.boot_times))
-
     return true
 end
 

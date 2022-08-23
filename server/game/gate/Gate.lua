@@ -6,14 +6,14 @@ local context = ...
 
 local listenfd
 
-local CMD = {}
+local Gate = {}
 
-function CMD.Init()
+function Gate.Init()
     context.addr_auth = moon.queryservice("auth")
     return true
 end
 
-function CMD.Start()
+function Gate.Start()
     ---开始接收客户端网络链接
     listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET_MOON)
     assert(listenfd>0,"server listen failed")
@@ -22,7 +22,7 @@ function CMD.Start()
     return true
 end
 
-function CMD.Shutdown()
+function Gate.Shutdown()
     for _, c in pairs(context.uid_map) do
         socket.close(c.fd)
     end
@@ -33,7 +33,7 @@ function CMD.Shutdown()
     return true
 end
 
-function CMD.Kick(uid, fd, ignore_socket_event)
+function Gate.Kick(uid, fd, ignore_socket_event)
     print("gate kick", uid, fd, ignore_socket_event)
     if uid and uid >0 then
         local c = context.uid_map[uid]
@@ -52,7 +52,7 @@ function CMD.Kick(uid, fd, ignore_socket_event)
     return true
 end
 
-function CMD.BindUser(req)
+function Gate.BindUser(req)
     if context.auth_watch[req.fd] ~= req.sign then
         return false, "client closed before auth done!"
     end
@@ -72,8 +72,8 @@ function CMD.BindUser(req)
     context.fd_map[req.fd] = c
     context.uid_map[req.uid] = c
     context.auth_watch[req.fd] = nil
-    print(string.format("BindUser %d %d %08X", req.fd, req.uid,  req.addr_user))
+    print(string.format("BindUser fd:%d uid:%d serviceid:%08X", req.fd, req.uid,  req.addr_user))
     return true
 end
 
-return CMD
+return Gate

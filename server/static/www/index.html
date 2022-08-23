@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/favicon.ico">
+
+    <title>GM工具</title>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom styles for this template -->
+    <link href="/css/signin.css" rel="stylesheet">
+</head>
+
+<body>
+    <h1 class="text-center">GM工具</h1>
+    <div class="container">
+        <div class="row clearfix">
+            <div class="col-md-4 column">
+                <ul id = "gmlist">
+                </ul>
+            </div>
+            <div class="col-md-8 column">
+                <div class="panel panel-default form-gm">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <span class="glyphicon glyphicon-search"></span>
+                            请输入GM命令
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <form method="post">
+                            <div id="params">
+                                <div class="form-group">
+                                    <input type="text" name="command" class="form-control" placeholder="S1 help" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">发送</button>
+                            <label id="output"></label>
+                        </form>
+                        <pre id="gmres" class="pre-scrollable"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/axios.min.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        var gmlist = document.getElementById('gmlist');
+        var output = document.getElementById('gmres');
+        var formparams = document.getElementById('params');
+
+        sessionStorage.setItem("gmclick", "gm1")
+
+        function FindGM(gmlist, id){
+            for (var value of gmlist) {
+                if("gm" + value.index == id)
+                    return value
+            }
+            return null
+        }
+
+        axios.get('/gmlist.json')
+            .then(function (response) {
+                var str = ""
+                var index = 1
+                for (var value of response.data) {
+                    value.index = index
+                    index=index+1
+                    str += utils.StringFormat('<li><a href="#"><h3 id="gm{0}">{1}</h3></a></li>\n', value.index, value.name)
+                    console.log(value);
+                }
+                gmlist.innerHTML = str;
+
+                sessionStorage.setItem("gmlist", JSON.stringify(response.data))
+   
+                $(document).ready(function () {
+                　　$("ul").on("click", function (event) {
+                    output.innerHTML = ""
+                　　var target = $(event.target)
+                    sessionStorage.setItem("gmclick", event.target.id)
+                    let json = JSON.parse(sessionStorage.getItem("gmlist"))
+                    let gm = FindGM(json, event.target.id)
+                    if(gm != null)
+                    {
+                        formparams.innerHTML = ""
+                        console.log(gm)
+                        var str = ""
+                        if(gm.index== 1)
+                        {
+                            for (var value of gm.items){
+                                str += utils.StringFormat('\
+                                <div class="form-group">\
+                                    <textarea cols="8" rows="10" type="text" name="{0}" class="form-control" placeholder="{0}" required></textarea>\
+                                </div>', value)
+                            }
+                        }
+                        else{
+                            for (var value of gm.items){
+                                str += utils.StringFormat('\
+                                <div class="form-group">\
+                                    <input type="text" type="text" name="{0}" class="form-control" placeholder="{0}" required></input>\
+                                </div>', value)
+                            }
+                        }
+                        formparams.innerHTML = str
+                    }
+                })});
+            })
+            .catch(function (err) {
+                console.log(err)
+        });
+
+        var formobj = document.querySelector('form');
+        var output = document.getElementById('gmres');
+        formobj.addEventListener('submit', function (event) {
+            event.preventDefault();
+            //显示根据Form生成的json数据
+            var data = utils.FormToJson(new FormData(formobj))
+            let gm = FindGM(JSON.parse(sessionStorage.getItem("gmlist")), sessionStorage.getItem("gmclick"))
+            if(gm == null)
+            {
+                console.log("Not Find GM")
+                return
+            }
+
+            var json = JSON.parse(data)
+            var str = ""
+            if(gm.items[0] == "uid"){
+                str += "U"
+                for (var i=0;i<gm.items.length;i++)
+                { 
+                    str += json[gm.items[i]] + " "
+                    if(i==0){
+                        str += gm.subcommand + " "
+                    }
+                }
+                str = utils.StringFormat('{"command":"{0}"}',str)
+            }
+            else if(gm.items[0] == "serverid"){
+                str += "S"
+                for (var i=0;i<gm.items.length;i++)
+                { 
+                    str += json[gm.items[i]] + " "
+                    if(i==0){
+                        str += gm.subcommand + " "
+                    }
+                }
+                str = utils.StringFormat('{"command":"{0}"}',str)
+            }
+            else{
+                str = data
+            }
+
+            console.log(str)
+
+            json = JSON.parse(str)
+            output.innerHTML = ""
+            var arr = json.command.split("\n")
+            for(let v of arr){
+                v = v.trim()
+                var postv = utils.StringFormat('{"command":"{0}"}', v)
+                axios.post('/console', postv, { headers: { "Content-Type": "application/json" } })
+                .then(function (response) {
+                    console.log(response)
+                    if(typeof(response.data) == "object"){
+                        output.innerHTML += utils.HTMLEncode(response.request.responseText);
+                    }else{
+                        output.innerHTML += utils.HTMLEncode(response.data);
+                    }
+                })
+                .catch(function (err) {
+                    if (err.response!=null && err.response.data!=null){
+                        output.innerHTML += utils.HTMLEncode(err.response.data)
+                    }
+                    else{
+                        output.innerHTML += utils.HTMLEncode(err)
+                    }
+                });
+            }
+
+        }, false);
+    </script>
+</body>
+
+</html>

@@ -1,8 +1,10 @@
 local moon = require("moon")
+local uuid = require("uuid")
 local queue = require("moon.queue")
-local db = require("common.database")
-local cmdcode = require("common.cmdcode")
-local constant= require("common.constant")
+local common = require("common")
+
+local db = common.database
+local cmdcode = common.cmdcode
 
 local traceback = debug.traceback
 
@@ -42,6 +44,7 @@ local function doAuth(req)
 
     local openid, err = moon.co_call("lua", addr_user, "User.Login", req)
     if not openid then
+        print(openid, err)
         moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
         moon.remove_service(addr_user)
         context.uid_map[req.uid] = nil
@@ -70,9 +73,9 @@ local function doAuth(req)
 
     if pass then
         u.logouttime = 0
-        print(req.uid, "login success")
+        print("login success", req.uid)
     else
-        print(req.uid, "login failed")
+        print("login failed", req.uid)
     end
 
     moon.send("lua", context.addr_gate, "Gate.BindUser", req)
@@ -92,9 +95,9 @@ local function QuitOneUser(u)
 end
 
 ---@class Auth
-local CMD = {}
+local Auth = {}
 
-CMD.Init = function()
+Auth.Init = function()
     context.addr_gate = moon.queryservice("gate")
     context.addr_db_openid = moon.queryservice("db_openid")
     context.addr_db_server = moon.queryservice("db_server")
@@ -132,12 +135,12 @@ CMD.Init = function()
     return true
 end
 
-CMD.Start = function()
+Auth.Start = function()
     context.start_hour_timer()
     return true
 end
 
-CMD.Shutdown = function()
+Auth.Shutdown = function()
     context.server_exit = true
     print("begin: server exit save user")
     local ok, err = xpcall(function()
@@ -170,7 +173,7 @@ CMD.Shutdown = function()
     return true
 end
 
-CMD.OnHour = function(v)
+Auth.OnHour = function(v)
     print("OnHour", v)
     for _,u in pairs(context.uid_map) do
         if u.logouttime == 0 then
@@ -179,7 +182,7 @@ CMD.OnHour = function(v)
     end
 end
 
-CMD.OnDay = function(v)
+Auth.OnDay = function(v)
     print("OnDay", v)
     for _,u in pairs(context.uid_map) do
         if u.logouttime == 0 then
@@ -189,7 +192,7 @@ CMD.OnDay = function(v)
 end
 
 ---@param pull boolean @是否服务器离线加载玩家
-CMD.C2SLogin = function (req, pull)
+Auth.C2SLogin = function (req, pull)
     if not req or not (req.openid or req.uid) then
         return false
     end
@@ -210,7 +213,7 @@ CMD.C2SLogin = function (req, pull)
             ---避免同一个玩家瞬间发送大量登录请求
             uid = temp_openid_uid[req.openid]
             if not uid then
-                uid = constant.MakeUUID(constant.Type.Player)
+                uid = uuid.next()
                 temp_openid_uid[req.openid] = uid
             end
 
@@ -256,7 +259,7 @@ CMD.C2SLogin = function (req, pull)
         local c = context.uid_map[req.uid]
         if c and c.logouttime==0 then
             moon.send("lua", context.addr_gate, "Kick", req.uid, 0, true)
-            CMD.Disconnect(req.uid)
+            Auth.Disconnect(req.uid)
             return
         end
     end
@@ -267,13 +270,13 @@ CMD.C2SLogin = function (req, pull)
         return true
     end
 
-    print("user auth", req.fd, req.uid, "is pull:", pull)
+    print(string.format("User Login fd:%d uid:%d pulluser:%s", req.fd, req.uid, tostring(pull)))
 
     req.pull = pull
 
     local ok, err = xpcall(doAuth, traceback, req)
     if not ok or err then
-        moon.error("CMD.C2SLogin Error", err, pull, req.uid)
+        moon.error("Auth.C2SLogin Error", err, pull, req.uid)
         return false, err
     end
     return true
@@ -283,7 +286,7 @@ end
 local function PullUser(uid)
     local u = context.uid_map[uid]
     if not u then
-        local ok,err = CMD.C2SLogin({fd =0 ,uid = uid} , true)
+        local ok,err = Auth.C2SLogin({fd =0 ,uid = uid} , true)
         if not ok then
             return ok, err
         end
@@ -293,7 +296,7 @@ local function PullUser(uid)
 end
 
 ---向玩家发起调用，会主动加载玩家
-function CMD.CallUser(uid, cmd, ...)
+function Auth.CallUser(uid, cmd, ...)
     if context.server_exit then
         error(string.format("call user %d cmd %s when server exit", uid, cmd))
     end
@@ -311,7 +314,7 @@ function CMD.CallUser(uid, cmd, ...)
 end
 
 ---向玩家发送消息，会主动加载玩家
-function CMD.SendUser(uid, cmd, ...)
+function Auth.SendUser(uid, cmd, ...)
     local u, err = PullUser(uid)
     if not u then
         moon.error(err)
@@ -326,7 +329,7 @@ function CMD.SendUser(uid, cmd, ...)
 end
 
 ---向已经在内存的玩家发送消息,不会主动加载玩家
-function CMD.SendMemUser(uid, cmd, ...)
+function Auth.SendMemUser(uid, cmd, ...)
     local u = context.uid_map[uid]
     if not u then
         return
@@ -334,7 +337,7 @@ function CMD.SendMemUser(uid, cmd, ...)
     moon.send("lua", u.addr_user, cmd,...)
 end
 
-function CMD.Disconnect(uid)
+function Auth.Disconnect(uid)
     local u = context.uid_map[uid]
     if u then
         moon.co_call("lua", u.addr_user, "User.Logout")
@@ -342,6 +345,6 @@ function CMD.Disconnect(uid)
     end
 end
 
-return CMD
+return Auth
 
 
