@@ -13,8 +13,9 @@ function M.Load()
 end
 
 function M.Reload(names)
-    for _, name in ipairs(names) do
-        static[name] = sharetable.query(name..".lua")
+    local res = sharetable.queryall(names)
+    for k,v in pairs(res) do
+        static[k] = v
     end
 end
 

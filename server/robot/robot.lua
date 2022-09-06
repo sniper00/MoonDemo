@@ -112,6 +112,10 @@ local function client_handler( fd, uname)
     end
 end
 
+moon.dispatch("lua", function()
+    moon.warn("ignore")
+end)
+
 moon.async(function()
     GameCfg.Load()
 

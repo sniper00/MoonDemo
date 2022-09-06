@@ -10,6 +10,8 @@ local context = ...
 local NODEID = math.tointeger(moon.get_env("NODE"))
 local THREAD_NUM = math.tointeger(moon.get_env("THREAD_NUM"))
 
+local static_tables_md5 = {}
+
 local function Response(code, message, data)
 	return json.encode({ code = code, message = message, data = data })
 end
@@ -19,6 +21,7 @@ local Console = {}
 function Console.Init()
 	context.addr_auth = moon.queryservice("auth")
 	context.addr_gate = moon.queryservice("gate")
+	static_tables_md5 = Console.table_md5()
 end
 
 local help = [[
@@ -89,30 +92,25 @@ function Console.table_md5()
 	return res
 end
 
-local all_table_md5
-
 function Console.reload(...)
-	if not all_table_md5 then
-		all_table_md5 = Console.table_md5()
-	end
-
 	local names = { ... }
 	if #names == 0 then
 		local tmp = Console.table_md5()
-		for name, md5 in pairs(all_table_md5) do
+		for name, md5 in pairs(static_tables_md5) do
 			local newmd5 = tmp[name]
 			if md5 ~= newmd5 then
 				table.insert(names, name)
 			end
 		end
-		all_table_md5 = tmp
+		static_tables_md5 = tmp
 	end
 
 	local res = {}
 	if #names > 0 then
 		local all_ok = true
-		for _, name in ipairs(names) do
+		for k, name in ipairs(names) do
 			local filename = name .. ".lua"
+			names[k] = filename
 			local ok, err = sharetable.loadfile(filename)
 			if ok then
 				table.insert(res, string.format("%s:success", name))

@@ -14,7 +14,7 @@ local min_online_time = 60 --seconds，logout间隔大于这个时间的,并且�
 ---@type auth_context
 local context = ...
 
-local auth_queue = {}
+local auth_queue = context.auth_queue
 local temp_openid_uid = {}
 
 local function doAuth(req)
@@ -283,7 +283,7 @@ Auth.C2SLogin = function (req, pull)
 end
 
 ---加载离线玩家
-local function PullUser(uid)
+function Auth.PullUser(uid)
     local u = context.uid_map[uid]
     if not u then
         local ok,err = Auth.C2SLogin({fd =0 ,uid = uid} , true)
@@ -301,7 +301,7 @@ function Auth.CallUser(uid, cmd, ...)
         error(string.format("call user %d cmd %s when server exit", uid, cmd))
     end
 
-    local u, err = PullUser(uid)
+    local u, err = Auth.PullUser(uid)
     if not u then
         return false, err
     end
@@ -315,7 +315,7 @@ end
 
 ---向玩家发送消息，会主动加载玩家
 function Auth.SendUser(uid, cmd, ...)
-    local u, err = PullUser(uid)
+    local u, err = Auth.PullUser(uid)
     if not u then
         moon.error(err)
         return
