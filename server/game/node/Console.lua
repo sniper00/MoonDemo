@@ -7,8 +7,8 @@ local sharetable = require("moon.service.sharetable")
 ---@type node_context
 local context = ...
 
-local NODEID = math.tointeger(moon.get_env("NODE"))
-local THREAD_NUM = math.tointeger(moon.get_env("THREAD_NUM"))
+local NODEID = math.tointeger(moon.env("NODE"))
+local THREAD_NUM = math.tointeger(moon.env("THREAD_NUM"))
 
 local static_tables_md5 = {}
 
@@ -68,7 +68,7 @@ function Console.hotfix(sname, ...)
 			return string.format("server %d hotfix %s failed, %s", NODEID, filepath, tostring(err))
 		end
 		fixlist[modname] = filepath
-		moon.set_env(filepath, content)
+		moon.env(filepath, content)
 	end
 
 	if sname == "user" then
@@ -207,7 +207,7 @@ function Console.next_hour()
 end
 
 function Console.loglevel(lv)
-	moon.set_loglevel(lv)
+	moon.loglevel(lv)
 	return lv
 end
 

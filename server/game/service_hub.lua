@@ -296,7 +296,7 @@ end
 
 function command.loadnode()
     node_list = {}
-    local configname = moon.get_env("NODE_FILE_NAME")
+    local configname = moon.env("NODE_FILE_NAME")
     local res = json.decode(io.readfile(configname))
     for _,v in ipairs(res) do
         node_list[v.node] = v

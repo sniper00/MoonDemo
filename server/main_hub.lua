@@ -22,7 +22,7 @@ local path = table.concat({
 package.path = path .. ";"
 
 local moon = require("moon")
-moon.set_env("PATH", string.format("package.path='%s'", package.path))
+moon.env("PATH", string.format("package.path='%s'", package.path))
 
 local json = require"json"
 local serverconf = require("serverconf")
@@ -54,7 +54,7 @@ local services = {
     }
 }
 
-local worker_count = math.tointeger(moon.get_env("THREAD_NUM"))
+local worker_count = math.tointeger(moon.env("THREAD_NUM"))
 for i=1, worker_count do
     table.insert(services, {
         name = "hub"..i,
@@ -64,9 +64,9 @@ for i=1, worker_count do
 end
 
 moon.async(function()
-    moon.set_env("NODE", arg[1])
-    moon.set_env("SERVER_NAME", selfnode.type.."-"..tostring(selfnode.node))
-    moon.set_env("NODE_FILE_NAME", arg[2])
+    moon.env("NODE", arg[1])
+    moon.env("SERVER_NAME", selfnode.type.."-"..tostring(selfnode.node))
+    moon.env("NODE_FILE_NAME", arg[2])
 
     local workers = {}
     for _, one in ipairs(services) do

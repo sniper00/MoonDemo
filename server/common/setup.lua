@@ -27,13 +27,13 @@ local raw_send = moon.raw_send
 local command = {}
 
 reload.addsearcher(function(file)
-    local content = moon.get_env(file)
+    local content = moon.env(file)
     return load(content,"@"..file), file
 end)
 
 local function load_scripts(context, sname)
     local dir = strfmt("game/%s/", sname)
-    local scripts = moon.get_env_unpack(dir)
+    local scripts = moon.env_unpacked(dir)
     if not scripts then
         scripts = {}
         local list = fs.listdir(dir,10)
@@ -43,12 +43,12 @@ local function load_scripts(context, sname)
                 scripts[name] = dir..name..".lua"
             end
         end
-        moon.set_env_pack(dir, scripts)
+        moon.env_packed(dir, scripts)
     end
 
     for name, file in pairs(scripts) do
         local fn
-        local content = moon.get_env(file)
+        local content = moon.env(file)
         if content then
             fn = load(content, "@"..file)
         else

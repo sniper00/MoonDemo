@@ -34,7 +34,7 @@ local function doAuth(req)
         local ok, err = moon.co_call("lua", addr_user, "User.Load", req)
         if not ok then
             moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
-            moon.remove_service(addr_user)
+            moon.kill(addr_user)
             context.uid_map[req.uid] = nil
             return err
         end
@@ -46,7 +46,7 @@ local function doAuth(req)
     if not openid then
         print(openid, err)
         moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
-        moon.remove_service(addr_user)
+        moon.kill(addr_user)
         context.uid_map[req.uid] = nil
         return err
     end

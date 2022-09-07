@@ -65,7 +65,7 @@ end
 
 function CMD.Shutdown()
     for addr_room in pairs(rooms) do
-        moon.remove_service(addr_room)
+        moon.kill(addr_room)
     end
     moon.quit()
     return true

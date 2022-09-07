@@ -21,7 +21,7 @@ local path = table.concat({
 package.path = path .. ";"
 
 local moon = require("moon")
-moon.set_env("PATH", string.format("package.path='%s'", package.path))
+moon.env("PATH", string.format("package.path='%s'", package.path))
 
 local socket = require "moon.socket"
 local json = require("json")
@@ -146,7 +146,7 @@ local function run(node_conf)
         ---服务器启动次数+1
         data.boot_times = data.boot_times + 1
         assert(db.saveserverdata(moon.queryservice("db_server"), json.encode(data)))
-        moon.set_env("SERVER_START_TIMES", tostring(data.boot_times))
+        moon.env("SERVER_START_TIMES", tostring(data.boot_times))
         ---初始化唯一ID生成器
         uuid.init(1, tonumber(arg[1]), data.boot_times)
 
@@ -197,7 +197,7 @@ local function run(node_conf)
                 moon.raw_send("system", moon.queryservice("db_user"), "wait_save")
                 moon.raw_send("system", moon.queryservice("db_openid"), "wait_save")
 
-                moon.remove_service(moon.queryservice("robot"))
+                moon.kill(moon.queryservice("robot"))
             else
                 moon.exit(-1)
             end
@@ -212,7 +212,7 @@ local function run(node_conf)
                 print("bootstrap wait all service quit, now count:", size)
             end
 
-            moon.remove_service(moon.queryservice("sharetable"))
+            moon.kill(moon.queryservice("sharetable"))
             moon.quit()
         end)
     end)
@@ -231,7 +231,7 @@ moon.async(function()
 
     local node_conf = json.decode(response.content)
 
-    moon.set_env("NODE", arg[1])
-    moon.set_env("SERVER_NAME", node_conf.type.."-"..tostring(node_conf.node))
+    moon.env("NODE", arg[1])
+    moon.env("SERVER_NAME", node_conf.type.."-"..tostring(node_conf.node))
     run(node_conf)
 end)

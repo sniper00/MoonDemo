@@ -161,7 +161,7 @@ function Room.C2SMove(uid, req)
         }
     ))
     scripts.Aoi.fireEvent(uid, GameDef.AoiEvent.UpdateDir, function(watcher)
-        moon.send_prefab(context.addr_gate, prefabid, seri.packs(watcher), 0, GameDef.PTYPE_S2C)
+        moon.raw_send("S2C", context.addr_gate, seri.packs(watcher), prefabid, 0)
     end)
 end
 
@@ -220,7 +220,7 @@ function Room.Update()
                     }
                 ))
                 scripts.Aoi.fireEvent(player.id, GameDef.AoiEvent.UpdateRadius, function(watcher)
-                    moon.send_prefab(context.addr_gate, prefabid, seri.packs(watcher), 0, GameDef.PTYPE_S2C)
+                    moon.raw_send("S2C", context.addr_gate, seri.packs(watcher), prefabid, 0)
                 end)
             end
         end
