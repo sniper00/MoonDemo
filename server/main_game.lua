@@ -204,7 +204,7 @@ local function run(node_conf)
 
             ---wait all service quit
             while true do
-                local size = moon.size()
+                local size = moon.server_stats("service.count")
                 if size == 2 then
                     break
                 end
