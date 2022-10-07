@@ -3,7 +3,7 @@ if _G["__init__"] then
     local arg = ...
     return {
         thread = 8,
-        enable_console = (arg[3] ~= "hide"),
+        enable_stdout = (arg[3] ~= "hide"),
         logfile = string.format("log/game-%s-%s.log", arg[1], os.date("%Y-%m-%d-%H-%M-%S")),
         loglevel = arg[4] or "DEBUG",
     }
