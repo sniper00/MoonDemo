@@ -131,8 +131,7 @@ local function run(node_conf)
             file = "robot/robot.lua",
             unique = true,
             host = "127.0.0.1",
-            port = 12345,
-            num = 99 --登录99个机器人，留下一个用unity登录
+            port = 12345
         }
     }
 

@@ -63,7 +63,7 @@ socket.on("close", function(fd, msg)
     print("GAME SERVER: close", fd, c.uid, data)
 end)
 
-moon.dispatch("S2C",function(msg)
+moon.raw_dispatch("S2C",function(msg)
     ---@cast msg message_ptr
     local uid = seri.unpack(moon.decode(msg, "H"))
     local c = context.uid_map[uid]
@@ -77,7 +77,7 @@ moon.dispatch("S2C",function(msg)
     socket.write_message(c.fd,msg)
 end)
 
-moon.dispatch("SBC",function(msg)
+moon.raw_dispatch("SBC",function(msg)
     ---@cast msg message_ptr
     for _, c in pairs(context.uid_map) do
         if moon.DEBUG() then

@@ -61,7 +61,7 @@ local function forward(msg, msgname)
     redirect(msg, header, address, PTYPE_C2S)
 end
 
-moon.dispatch("C2S",function(msg)
+moon.raw_dispatch("C2S",function(msg)
     local buf = moon.decode(msg, "B")
     local msgname = id_to_name(bunpack(buf, "<H"))
     if not command[msgname] then
