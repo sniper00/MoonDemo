@@ -60,18 +60,14 @@ local function run(node_conf)
             file = "moon/service/redisd.lua",
             threadid = 1,
             poolsize = 5,
-            host = db_conf.host,
-            port = db_conf.port,
-            timeout = db_conf.timeout,
+            opts = db_conf
         },
         {
             unique = true,
             name = "db_server",
             file = "moon/service/redisd.lua",
             threadid = 1,
-            host = db_conf.host,
-            port = db_conf.port,
-            timeout = db_conf.timeout,
+            opts = db_conf
         },
         {
             unique = true,
@@ -79,9 +75,7 @@ local function run(node_conf)
             file = "moon/service/redisd.lua",
             threadid = 1,
             poolsize = 5,
-            host = db_conf.host,
-            port = db_conf.port,
-            timeout = db_conf.timeout,
+            opts = db_conf
         },
         {
             unique = true,
