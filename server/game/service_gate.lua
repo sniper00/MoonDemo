@@ -64,7 +64,6 @@ socket.on("close", function(fd, msg)
 end)
 
 moon.raw_dispatch("S2C",function(msg)
-    ---@cast msg message_ptr
     local uid = seri.unpack(moon.decode(msg, "H"))
     local c = context.uid_map[uid]
     if not c then
@@ -78,7 +77,6 @@ moon.raw_dispatch("S2C",function(msg)
 end)
 
 moon.raw_dispatch("SBC",function(msg)
-    ---@cast msg message_ptr
     for _, c in pairs(context.uid_map) do
         if moon.DEBUG() then
             protocol.print_message(_, msg)

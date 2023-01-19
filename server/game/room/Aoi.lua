@@ -36,7 +36,7 @@ local function update_aoi_event(fn)
 end
 
 function Aoi.init_map(orginx, orginy, size)
-    space = aoi.create(orginx, orginy, size, 16)
+    space = aoi.new(orginx, orginy, size, 16)
     space:enable_leave_event(true)
 end
 

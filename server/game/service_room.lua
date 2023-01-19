@@ -4,10 +4,6 @@ local common = require("common")
 
 local conf = ...
 
----@class user_scripts
----@field public Aoi Aoi
----@field public Room Room
-
 ---@class room_context:base_context
 ---@field public scripts user_scripts
 local context ={

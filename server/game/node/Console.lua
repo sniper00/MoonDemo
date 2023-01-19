@@ -54,6 +54,7 @@ function Console.help()
 	return help
 end
 
+---热更某个服务目录下的脚本
 function Console.hotfix(sname, ...)
 	local modlist = { ... }
 	if #modlist == 0 then
@@ -92,6 +93,7 @@ function Console.table_md5()
 	return res
 end
 
+---更新配表,新表覆盖旧表后,执行这个命令
 function Console.reload(...)
 	local names = { ... }
 	if #names == 0 then
@@ -131,19 +133,19 @@ function Console.reload(...)
 	return string.format("server %d reload: %s (count %d)", NODEID, table.concat(res, " "), #res)
 end
 
-local last_wstate_time = moon.clock()
+local last_tstate_time = moon.clock()
 function Console.tstate()
-	local info = moon.server_info()
+	local info = moon.server_stats()
 	local t = json.decode(info)
 	local res = {}
 	for i, one in ipairs(t) do
 		if one.id > 0 then
-			local cpu = 100 * (one.cpu / (moon.clock() - last_wstate_time))
+			local cpu = 100 * (one.cpu / (moon.clock() - last_tstate_time))
 			one.cpu = string.format("%.02f", cpu)
 		end
 		res[#res + 1] = json.encode(one) .. "\n"
 	end
-	last_wstate_time = moon.clock()
+	last_tstate_time = moon.clock()
 	return table.concat(res)
 end
 
@@ -167,7 +169,8 @@ end
 
 function Console.quit(address)
 	address = tonumber(address, 16)
-	return moon.co_remove_service(address)
+	moon.kill(address)
+	return true
 end
 
 function Console.time()

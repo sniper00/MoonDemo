@@ -18,11 +18,12 @@ local pack = moon.pack
 local raw_send = moon.raw_send
 
 ---@class base_context
----@field public s2c fun(uid:integer, msgid:integer, mdata:table) @ 给玩家发送消息
----@field public start_hour_timer fun() @ 开启整点定时器
----@field public batch_invoke fun(fnname:string) @批量调用所有脚本的函数
----@field public send_user fun(uid:integer, cmd:string, ...) @给玩家服务发送消息
----@field public call_user fun(uid:integer, cmd:string, ...) @调用玩家服务
+---@field scripts table
+---@field s2c fun(uid:integer, msgid:integer, mdata:table) @ 给玩家发送消息
+---@field start_hour_timer fun() @ 开启整点定时器
+---@field batch_invoke fun(fnname:string, ...) @批量调用所有脚本的函数
+---@field send_user fun(uid:integer, cmd:string, ...) @给玩家服务发送消息
+---@field call_user fun(uid:integer, cmd:string, ...) @调用玩家服务
 
 local command = {}
 
@@ -72,12 +73,16 @@ local function load_scripts(context, sname)
     end
 end
 
+---@param context base_context
 local function _internal(context)
     context.batch_invoke = function(cmd, ...)
         for _, v in pairs(context.scripts) do
             local f = v[cmd]
             if f then
-                f(...)
+                local ok, err = xpcall(f, traceback, ...)
+                if not ok then
+                    moon.error(err)
+                end
             end
         end
     end
@@ -120,7 +125,8 @@ local function _internal(context)
     end
 end
 
-local function start_hour_timer()
+---@param context base_context
+local function start_hour_timer(context)
     local fn = command["OnHour"]
     if not fn then
         return
@@ -131,26 +137,17 @@ local function start_hour_timer()
     local hour = datetime.localtime(moon.time()).hour
     moon.async(function()
         while true do
-            local diff = MILLSECONDS_ONE_HOUR - moon.now()%MILLSECONDS_ONE_HOUR + 1000
+            local diff = MILLSECONDS_ONE_HOUR - moon.now()%MILLSECONDS_ONE_HOUR + 1
             moon.sleep(diff)
             local tm = datetime.localtime(moon.time())
             if hour == tm.hour then
                 moon.error("not hour!")
             else
                 hour = tm.hour
-                local hourFn = command["OnHour"]
-                if hourFn then
-                    local ok, err = xpcall(hourFn, traceback, hour)
-                    if not ok then
-                        moon.error(err)
-                    end
-                end
+                context.batch_invoke("OnHour", hour)
                 if hour == 0 then
-                    local dayFn = command["OnDay"]
-                    local ok, err = xpcall(dayFn, traceback, datetime.localday())
-                    if not ok then
-                        moon.error(err)
-                    end
+                    hour = tm.hour
+                    context.batch_invoke("OnDay",  datetime.localday())
                 end
             end
         end
@@ -185,7 +182,9 @@ return function(context, sname)
         context.scripts = {}
     end
 
-    context.start_hour_timer = start_hour_timer
+    context.start_hour_timer = function ()
+        start_hour_timer(context)
+    end 
 
     _internal(context)
 
@@ -208,6 +207,7 @@ return function(context, sname)
         name = "C2S",
         PTYPE = GameDef.PTYPE_C2S,
         --default client message dispatch
+        israw = true,
         dispatch = function(msg)
             local header, buf = moon.decode(msg, "HB")
             --see: user service's forward

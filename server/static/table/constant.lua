@@ -7,7 +7,7 @@ local constant = {
         round_time = 60,
     },
     --- 登录99个机器人, 留下一个用unity登录
-    robot_num = 99,
+    robot_num = 100,
 }
 
 return constant

@@ -1,3 +1,5 @@
+--可以使用脚本自动生成, 根据proto描述文件生成， 或者遍历目录生成
+
 ---@class UserData
 ---@field openid string
 ---@field uid integer
@@ -11,3 +13,7 @@
 
 ---@class auth_scripts
 ---@field Auth Auth
+
+---@class user_scripts
+---@field public Aoi Aoi
+---@field public Room Room
