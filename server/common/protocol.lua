@@ -1,11 +1,10 @@
 local moon = require "moon"
 local json = require("json")
-local seri = require("seri")
 local buffer = require("buffer")
 local code = require("common.cmdcode")
 
 local jdecode = json.decode
-local concats = seri.concats
+local concats = buffer.concat_string
 local type = type
 
 local bsize = buffer.size
