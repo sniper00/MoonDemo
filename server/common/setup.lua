@@ -1,5 +1,5 @@
 local moon = require("moon")
-local reload = require("hardreload")
+local hotfix = require("hotfix")
 local fs = require("fs")
 local seri = require("seri")
 local datetime = require("moon.datetime")
@@ -27,7 +27,7 @@ local raw_send = moon.raw_send
 
 local command = {}
 
-reload.addsearcher(function(file)
+hotfix.addsearcher(function(file)
     local content = moon.env(file)
     return load(content,"@"..file), file
 end)
@@ -59,7 +59,7 @@ local function load_scripts(context, sname)
         assert(type(t) == "table")
 
         context.scripts[name] = t
-        reload.register(file, fn, t)
+        hotfix.register(file, fn, t)
 
         for k,v in pairs(t) do
             if type(v) == "function" then
@@ -89,7 +89,7 @@ local function _internal(context)
 
     command.hotfix = function (fixlist)
         for name, file in pairs(fixlist) do
-            local ok, t = reload.reload_simple(file)
+            local ok, t = hotfix.update(file)
             if ok then
                 print(moon.name, "hotfix" , name, file)
                 if not context.scripts[name] then
