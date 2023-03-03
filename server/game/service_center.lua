@@ -3,7 +3,7 @@ local common = require("common")
 
 local conf = ...
 
----@class center_context
+---@class center_context:base_context
 local context ={
     conf = conf,
     match_map={},
@@ -13,8 +13,6 @@ local context ={
     addr_auth = 0,
 }
 
-context.send_mem_user = function(uid, ...)
-    moon.send("lua", context.addr_auth, "Auth.SendMemUser", uid, ...)
-end
+
 
 common.setup(context)

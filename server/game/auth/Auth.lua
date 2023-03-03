@@ -329,7 +329,7 @@ function Auth.SendUser(uid, cmd, ...)
 end
 
 ---向已经在内存的玩家发送消息,不会主动加载玩家
-function Auth.SendMemUser(uid, cmd, ...)
+function Auth.TrySendUser(uid, cmd, ...)
     local u = context.uid_map[uid]
     if not u then
         return

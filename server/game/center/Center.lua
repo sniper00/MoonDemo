@@ -46,7 +46,7 @@ local function CheckMatchQueue(q)
             local uid = table.remove(q,1)
             local p = context.match_map[uid]
             if p then
-                context.send_mem_user(uid, "User.MatchSuccess", addr_room, roomid)
+                context.try_send_user(uid, "User.MatchSuccess", addr_room, roomid)
                 context.match_map[uid] = nil
             end
             n = n + 1

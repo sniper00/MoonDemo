@@ -24,6 +24,7 @@ local raw_send = moon.raw_send
 ---@field batch_invoke fun(fnname:string, ...) @批量调用所有脚本的函数
 ---@field send_user fun(uid:integer, cmd:string, ...) @给玩家服务发送消息
 ---@field call_user fun(uid:integer, cmd:string, ...) @调用玩家服务
+---@field try_send_user fun(uid:integer, cmd:string, ...) @尝试给玩家服务发送消息
 
 local command = {}
 
@@ -247,6 +248,10 @@ return function(context, sname)
     --- send message to user-service and get results.
     context.call_user = function(uid, ...)
         return moon.co_call("lua", context.addr_auth, "Auth.CallUser", uid, ...)
+    end
+
+    context.try_send_user = function(uid, ...)
+        moon.send("lua", context.addr_auth, "Auth.TrySendUser", uid, ...)
     end
 
     return command
