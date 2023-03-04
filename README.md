@@ -17,6 +17,16 @@
 
 ![image](https://github.com/sniper00/BallGame/raw/master/image/game.png)
 
+如果lua-language-server没有代码提示
+在.vscode目录下, 创建或者修改settings.json, 添加
+```json
+{
+    "Lua.workspace.library": [
+        "./moon/lualib"
+    ]
+}
+```
+
 # 编译Server
 
 1. clone
