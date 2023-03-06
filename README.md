@@ -17,14 +17,74 @@
 
 ![image](https://github.com/sniper00/BallGame/raw/master/image/game.png)
 
-如果lua-language-server没有代码提示
-在.vscode目录下, 创建或者修改settings.json, 添加
+安装`lua-language-server`使用vscode打开server目录，即可获得代码提示能力，如果没有代码提示，在.vscode目录下, 创建或者修改settings.json, 添加
 ```json
 {
     "Lua.workspace.library": [
-        "./moon/lualib"
+        "./moon/lualib",
+        "./moon/service/"
     ]
 }
+```
+
+# Server结构介绍
+
+Hub Server:
+1. 提供服务后台管理, 服务器节点配置管理(支持动态开启新服)
+2. 提供http server 和 telnet两种协议接口
+
+Game Server开启了7种服务:
+- node 服务器管理对接服务
+- cluster 服务器集群通信节点服务
+- gate 负责管理玩家网络连接，并转发玩家网络消息到对应玩家服务
+- auth 负责登录，创建、删除、离线加载、玩家服务
+- center 负责玩家匹配逻辑，动态创建room服务
+- user 玩家服务，一个服务对应一个玩家，处理玩家消息，管理玩家私有状态。 与其它玩家交互的消息转发到room服务。
+- room 游戏场景服务，简易球球大作战玩法逻辑
+
+目录结构
+```
+./
+├── common/  #逻辑公共模块目录
+│   ├── GameCfg.lua*
+│   ├── GameDef.lua*
+│   ├── LuaPanda.lua*
+│   ├── cmdcode.lua*
+│   ├── database.lua*
+│   ├── init.lua*
+│   ├── intellisense.lua* # 代码智能提示注解文件
+│   ├── protocol.lua*
+│   ├── protocol_pb.lua*
+│   ├── setup.lua*
+│   └── vector2.lua*
+├── game/
+│   ├── auth/   # 逻辑脚本目录, 在对应服务添加脚本，会自动注册消息处理函数
+│   ├── center/
+│   ├── gate/
+│   ├── node/
+│   ├── room/
+│   ├── service_auth.lua*  # 服务初始化文件
+│   ├── service_center.lua*
+│   ├── service_gate.lua*
+│   ├── service_hub.lua*
+│   ├── service_node.lua*
+│   ├── service_room.lua*
+│   ├── service_user.lua*
+│   └── user/
+├── log/   # 游戏运行日志文件
+├── main_game.lua* # game 进程启动文件
+├── main_hub.lua*  # hub 进程启动文件
+├── moon/          # moon源码
+├── node.json*     # 节点通信配置文件，也用于cluster通信
+├── robot/ 
+│   └── robot.lua* # 机器人脚本，模拟玩家行为
+├── serverconf.lua* # 服务器全局配置
+├── start_game.sh*
+├── start_hub.sh*
+├── start_server.bat*
+└── static/
+    ├── table/  # 配置表目录
+    └── www/    # GM web 目录
 ```
 
 # 编译Server
@@ -62,21 +122,7 @@ require("common.LuaPanda").start("127.0.0.1", 8818)
 
 ![image](https://github.com/sniper00/BallGame/raw/master/image/debug.png)
 
-## Server
-Hub Server:
-1. 提供服务后台管理, 服务器节点配置管理(支持动态开启新服)
-2. 提供http server 和 telnet两种协议接口
-
-Game Server开启了6种服务:
-- node 服务器管理对接服务
-- cluster 服务器集群通信节点服务
-- gate 负责管理玩家网络连接，并转发玩家网络消息到对应玩家服务
-- auth 负责登录，创建、删除、离线加载、玩家服务
-- center 负责玩家匹配逻辑，动态创建room服务
-- user 玩家服务，一个服务对应一个玩家，处理玩家消息。 与其它玩家交互的消息转发到room服务。
-- room 游戏场景服务，简易球球大作战玩法逻辑
-
-## Client
+# Client
 
 客户端主要用来演示怎样使用 asyn/await 来处理网络消息，等异步操作。
 ```csharp
