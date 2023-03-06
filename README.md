@@ -91,7 +91,7 @@ Game Server开启了7种服务:
 
 1. clone
 ```
-git clone --recursive https://github.com/sniper00/BallGame.git --depth=1
+git clone --recursive https://github.com/sniper00/BallGame.git
 ```
 
 2. [参考moon编译](https://github.com/sniper00/moon#%E7%BC%96%E8%AF%91)
