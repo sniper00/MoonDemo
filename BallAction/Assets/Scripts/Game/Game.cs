@@ -136,7 +136,7 @@ public class Game : MonoBehaviour {
                 int numDigitsToKeep = 8;
                 string result = number.ToString().Substring(Math.Max(0, number.ToString().Length - numDigitsToKeep));
 
-                text.text = isplayer ? e.name : "Food" + result;
+                text.text = isplayer ? e.name : "food" + result;
                 text.color = UnityEngine.Color.green;
                 text.alignment = TextAnchor.UpperCenter;
                 text.fontStyle = FontStyle.Bold;
