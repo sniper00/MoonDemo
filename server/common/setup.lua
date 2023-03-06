@@ -19,7 +19,7 @@ local raw_send = moon.raw_send
 
 ---@class base_context
 ---@field scripts table
----@field s2c fun(uid:integer, msgid:integer, mdata:table) @ 给玩家发送消息
+---@field s2c fun(uid:integer, msgid:integer|string, mdata:table) @ 给玩家发送消息
 ---@field start_hour_timer fun() @ 开启整点定时器
 ---@field batch_invoke fun(fnname:string, ...) @批量调用所有脚本的函数
 ---@field send_user fun(uid:integer, cmd:string, ...) @给玩家服务发送消息

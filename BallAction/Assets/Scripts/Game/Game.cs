@@ -91,9 +91,9 @@ public class Game : MonoBehaviour {
         });
 
         Network.Register<S2CEnterView>(v => {
-            var e = new Entity();
             if(!entitas.ContainsKey(v.id))
             {
+                var e = new Entity();
                 e.id = v.id;
                 e.radius = v.radius;
                 e.speed = v.speed;
@@ -131,7 +131,12 @@ public class Game : MonoBehaviour {
                 e.NameText = Instantiate(namePrefab);
                 e.NameText.transform.SetParent(transform);
                 var text = e.NameText.GetComponent<Text>();
-                text.text = isplayer ? e.name : e.id.ToString();
+
+                long number = e.id;
+                int numDigitsToKeep = 8;
+                string result = number.ToString().Substring(Math.Max(0, number.ToString().Length - numDigitsToKeep));
+
+                text.text = isplayer ? e.name : "Food" + result;
                 text.color = UnityEngine.Color.green;
                 text.alignment = TextAnchor.UpperCenter;
                 text.fontStyle = FontStyle.Bold;

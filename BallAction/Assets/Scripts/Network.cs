@@ -239,12 +239,20 @@ public class Network:MonoBehaviour
 
     void Start()
     {
-        socket.HandleMessage = Dispatch;
+
     }
 
     void Update()
     {
-        socket.Update();
+        while (true)
+        {
+            var m = socket.PopMessage();
+            if(m == null)
+            {
+                break;
+            }
+            Dispatch(m);
+        }
     }
 
     void OnApplicationQuit()

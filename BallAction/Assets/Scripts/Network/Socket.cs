@@ -61,8 +61,6 @@ namespace Moon
 
         ConcurrentQueue<SocketMessage> messageQueue = new ConcurrentQueue<SocketMessage>();
 
-        public Action<SocketMessage> HandleMessage { get; set; }
-
         long connectionIdSeq = 0;
 
         BaseConnection MakeConnection(SocketProtocolType protocolType)
@@ -214,12 +212,13 @@ namespace Moon
             return false;
         }
 
-        public void Update()
+        public SocketMessage PopMessage()
         {
-            while (messageQueue.TryDequeue(out SocketMessage m))
+            if (messageQueue.TryDequeue(out SocketMessage m))
             {
-                HandleMessage(m);
+                return m;
             }
+            return null;
         }
     }
 }
