@@ -115,9 +115,9 @@ function Console.reload(...)
 			names[k] = filename
 			local ok, err = sharetable.loadfile(filename)
 			if ok then
-				table.insert(res, string.format("%s:success", name))
+				table.insert(res, string.format("%s(success)", name))
 			else
-				table.insert(res, string.format("%s:failed,%s", name, tostring(err)))
+				table.insert(res, string.format("%s(failed,%s)", name, tostring(err)))
 				all_ok = false
 				break
 			end
@@ -130,7 +130,7 @@ function Console.reload(...)
 			end
 		end
 	end
-	return string.format("server %d reload: %s (count %d)", NODEID, table.concat(res, " "), #res)
+	return string.format("server %d reload (count %d): %s", NODEID, #res, table.concat(res, " "))
 end
 
 local last_tstate_time = moon.clock()

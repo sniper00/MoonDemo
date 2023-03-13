@@ -83,7 +83,7 @@ Game Server开启了7种服务:
 ├── start_hub.sh*
 ├── start_server.bat*
 └── static/
-    ├── table/  # 配置表目录
+    ├── table/  # 游戏配置表目录
     └── www/    # GM web 目录
 ```
 
@@ -103,6 +103,11 @@ git clone --recursive https://github.com/sniper00/BallGame.git
 - client 请使用unity2018 启动执行第一个场景Prepare。
 
 - 使用 `start_server` 脚本运行。默认会自动运行机器人服务。[配表](https://github.com/sniper00/BallGame/blob/master/server/static/table/constant.lua) 可以修改机器人数量
+
+# 简易后台管理
+
+- 方式一 Web http://127.0.0.1:8003/
+- 方式而 `telnet 127.0.0.1 8003`, 输入 `S1 help`
 
 # 调试
 

@@ -7,6 +7,14 @@
         ]
     },
     {
+        "index":2,
+        "name":"重载游戏配表",
+        "subcommand": "reload",
+        "items":[
+            "serverid"
+        ]
+    },
+    {
         "index":3,
         "name":"增加积分",
         "subcommand":"addscore",
