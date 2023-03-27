@@ -26,12 +26,12 @@ local function doAuth(req)
             file = "game/service_user.lua",
             user_db = context.user_db,
         }
-        addr_user = moon.new_service("lua", conf)
+        addr_user = moon.new_service(conf)
         if addr_user == 0 then
             return "create user service failed!"
         end
 
-        local ok, err = moon.co_call("lua", addr_user, "User.Load", req)
+        local ok, err = moon.call("lua", addr_user, "User.Load", req)
         if not ok then
             moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
             moon.kill(addr_user)
@@ -42,7 +42,7 @@ local function doAuth(req)
         addr_user = u.addr_user
     end
 
-    local openid, err = moon.co_call("lua", addr_user, "User.Login", req)
+    local openid, err = moon.call("lua", addr_user, "User.Login", req)
     if not openid then
         print(openid, err)
         moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
@@ -310,7 +310,7 @@ function Auth.CallUser(uid, cmd, ...)
         u.logouttime = moon.time()
     end
 
-    return moon.co_call("lua", u.addr_user, cmd, ...)
+    return moon.call("lua", u.addr_user, cmd, ...)
 end
 
 ---向玩家发送消息，会主动加载玩家
@@ -340,7 +340,7 @@ end
 function Auth.Disconnect(uid)
     local u = context.uid_map[uid]
     if u then
-        moon.co_call("lua", u.addr_user, "User.Logout")
+        moon.call("lua", u.addr_user, "User.Logout")
         u.logouttime = moon.time()
     end
 end

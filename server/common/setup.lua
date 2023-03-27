@@ -247,7 +247,7 @@ return function(context, sname)
 
     --- send message to user-service and get results.
     context.call_user = function(uid, ...)
-        return moon.co_call("lua", context.addr_auth, "Auth.CallUser", uid, ...)
+        return moon.call("lua", context.addr_auth, "Auth.CallUser", uid, ...)
     end
 
     context.try_send_user = function(uid, ...)

@@ -70,7 +70,7 @@ moon.async(function()
 
     local workers = {}
     for _, one in ipairs(services) do
-        local addr = moon.new_service("lua", one)
+        local addr = moon.new_service(one)
         if 0 == addr then
             moon.exit(-1)
             return

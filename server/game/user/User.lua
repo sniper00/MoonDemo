@@ -146,7 +146,7 @@ function User.C2SMatch()
 
     context.state.ismatching = true
     --向匹配服务器请求
-    local ok, err = moon.co_call("lua", context.addr_center, "Center.Match", context.uid, moon.id)
+    local ok, err = moon.call("lua", context.addr_center, "Center.Match", context.uid, moon.id)
     if not ok then
         context.state.ismatching = false
         moon.error(err)

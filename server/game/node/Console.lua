@@ -216,7 +216,7 @@ end
 
 function Console.gc(addr)
 	if addr then
-		local res, err = moon.co_call("debug", tonumber(addr, 16), "gc")
+		local res, err = moon.call("debug", tonumber(addr, 16), "gc")
 		if not res then
 			return string.format("error(%s)", tostring(err))
 		else
@@ -229,7 +229,7 @@ function Console.gc(addr)
 			local services = json.decode(moon.scan_services(i))
 			if services then
 				for _, s in pairs(services) do
-					local res, err = moon.co_call("debug", tonumber(s.serviceid, 16), "gc")
+					local res, err = moon.call("debug", tonumber(s.serviceid, 16), "gc")
 					if not res then
 						print("error: ", err)
 					else
@@ -244,7 +244,7 @@ end
 
 function Console.state(addr)
 	if addr then
-		local state, err = moon.co_call("debug", tonumber(addr, 16), "state")
+		local state, err = moon.call("debug", tonumber(addr, 16), "state")
 		if not state then
 			return string.format("error(%s)", err)
 		else
@@ -257,7 +257,7 @@ function Console.state(addr)
 			local services = json.decode(moon.scan_services(i))
 			if services then
 				for _, s in ipairs(services) do
-					local state, err = moon.co_call("debug", tonumber(s.serviceid, 16), "state")
+					local state, err = moon.call("debug", tonumber(s.serviceid, 16), "state")
 					if not state then
 						s.state = string.format("error(%s)", err)
 					else
@@ -273,7 +273,7 @@ end
 
 function Console.mem(addr)
 	if addr then
-		local kb, err = moon.co_call("debug", tonumber(addr, 16), "mem")
+		local kb, err = moon.call("debug", tonumber(addr, 16), "mem")
 		if not kb then
 			return string.format("err (%s)", err)
 		else
@@ -286,7 +286,7 @@ function Console.mem(addr)
 			local services = json.decode(moon.scan_services(i))
 			if services then
 				for _, s in pairs(services) do
-					local kb, err = moon.co_call("debug", tonumber(s.serviceid, 16), "mem")
+					local kb, err = moon.call("debug", tonumber(s.serviceid, 16), "mem")
 					if not kb then
 						s.mem = string.format("err (%s)", err)
 					else

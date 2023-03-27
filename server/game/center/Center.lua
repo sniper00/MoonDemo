@@ -34,7 +34,7 @@ local function CheckMatchQueue(q)
         room_conf.name = room_name..roomid
         room_conf.time = conf.time
         room_conf.id = roomid
-        local addr_room = moon.new_service("lua", room_conf)
+        local addr_room = moon.new_service(room_conf)
         if addr_room == 0 then
             moon.error("create room failed!")
             return

@@ -144,14 +144,14 @@ local function run(node_conf)
         uuid.init(1, tonumber(arg[1]), data.boot_times)
 
         ---控制服务初始化顺序,Init一般为加载DB
-        assert(moon.co_call("lua", moon.queryservice("auth"), "Init"))
-        assert(moon.co_call("lua", moon.queryservice("center"), "Init"))
-        assert(moon.co_call("lua", moon.queryservice("gate"), "Init"))
-        assert(moon.co_call("lua", moon.queryservice("node"), "Init"))
+        assert(moon.call("lua", moon.queryservice("auth"), "Init"))
+        assert(moon.call("lua", moon.queryservice("center"), "Init"))
+        assert(moon.call("lua", moon.queryservice("gate"), "Init"))
+        assert(moon.call("lua", moon.queryservice("node"), "Init"))
 
         ---加载完数据后 开始接受网络连接
-        assert(moon.co_call("lua", moon.queryservice("cluster"), "Start"))
-        assert(moon.co_call("lua", moon.queryservice("gate"), "Start"))
+        assert(moon.call("lua", moon.queryservice("cluster"), "Start"))
+        assert(moon.call("lua", moon.queryservice("gate"), "Start"))
     end
 
     local server_ok = false
@@ -159,7 +159,7 @@ local function run(node_conf)
 
     moon.async(function()
         for _, conf in ipairs(services) do
-            local addr = moon.new_service("lua", conf)
+            local addr = moon.new_service(conf)
             ---如果关键服务创建失败，立刻退出进程
             if 0 == addr then
                 moon.exit(-1)
@@ -182,9 +182,9 @@ local function run(node_conf)
         print("receive shutdown")
         moon.async(function()
             if server_ok then
-                assert(moon.co_call("lua", moon.queryservice("gate"), "Gate.Shutdown"))
-                assert(moon.co_call("lua", moon.queryservice("center"), "Center.Shutdown"))
-                assert(moon.co_call("lua", moon.queryservice("auth"), "Auth.Shutdown"))
+                assert(moon.call("lua", moon.queryservice("gate"), "Gate.Shutdown"))
+                assert(moon.call("lua", moon.queryservice("center"), "Center.Shutdown"))
+                assert(moon.call("lua", moon.queryservice("auth"), "Auth.Shutdown"))
                 moon.sleep(5000)
                 moon.raw_send("system", moon.queryservice("db_server"), "wait_save")
                 moon.raw_send("system", moon.queryservice("db_user"), "wait_save")
