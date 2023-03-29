@@ -17,7 +17,7 @@
 
 ![image](https://github.com/sniper00/BallGame/raw/master/image/game.png)
 
-安装`lua-language-server`使用vscode打开server目录，即可获得代码提示能力，如果没有代码提示，在.vscode目录下, 创建或者修改settings.json, 添加
+vscode打开server目录，安装[`lua-language-server`](https://marketplace.visualstudio.com/items?itemName=sumneko.lua)插件，即可获得代码提示能力，如果没有代码提示，在.vscode目录下, 创建或者修改settings.json, 添加
 ```json
 {
     "Lua.workspace.library": [
