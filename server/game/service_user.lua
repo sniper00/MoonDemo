@@ -4,16 +4,16 @@ local seri = require("seri")
 local buffer = require("buffer")
 local common = require("common")
 
-local protocol = common.protocol
+local protocol = common.protocol_pb
 local setup = common.setup
-local cmdcode = common.cmdcode
+local CmdCode = common.CmdCode
 local GameDef = common.GameDef
 
 local bunpack = buffer.unpack
 
 local mdecode = protocol.decode
 
-local fwd_addr = cmdcode.forward
+local fwd_addr = CmdCode.forward
 
 local id_to_name = protocol.name
 
@@ -73,9 +73,9 @@ moon.raw_dispatch("C2S",function(msg)
             local ok, res = xpcall(fn, debug.traceback, data)
             if not ok then
                 moon.error(res)
-                context.s2c(cmdcode.S2CErrorCode,{code = 1}) --server internal error
+                context.s2c(CmdCode.S2CErrorCode,{code = 1}) --server internal error
             elseif res then
-                context.s2c(cmdcode.S2CErrorCode,{code = res})
+                context.s2c(CmdCode.S2CErrorCode,{code = res})
             end
         end)
     end

@@ -1,4 +1,4 @@
-local sharetable = require("moon.service.sharetable")
+local sharetable = require("sharetable")
 
 ---@class confutil : static_conf
 local M = {}

@@ -4,17 +4,28 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
+using ProtoBuf;
+using UnityEngine.XR;
 
 public static class Serializer
 {
     public static Message Decode<Message>(byte[] data,int index, int count)
     {
-        return JsonUtility.FromJson<Message>(Encoding.Default.GetString(data, index, count));
+        using (MemoryStream memory = new MemoryStream(data, index, count))
+        {
+            //Type t = Type.GetType(Message);
+            return (Message)ProtoBuf.Serializer.Deserialize(typeof(Message), memory);
+        }
     }
 
     public static byte[] Encode<Message>(Message msg)
     {
-        return Encoding.Default.GetBytes(JsonUtility.ToJson(msg));
+        using (MemoryStream memory = new MemoryStream())
+        {
+            ProtoBuf.Serializer.Serialize(memory, msg);
+            return memory.ToArray();
+        }
     }
 }
 
@@ -25,7 +36,7 @@ public class Network:MonoBehaviour
     static Dictionary<int, Action<SocketMessage>> actions = new Dictionary<int, Action<SocketMessage>>();
     static Dictionary<int, TaskCompletionSource<SocketMessage>> tasks = new Dictionary<int, TaskCompletionSource<SocketMessage>>();
 
-    static Dictionary<Type, MSGID> messageIDmap = new Dictionary<Type, MSGID>();
+    static Dictionary<Type, CmdCode> messageIDmap = new Dictionary<Type, CmdCode>();
 
     static int uuid = 0xFFFF;
 
@@ -138,13 +149,13 @@ public class Network:MonoBehaviour
         return task.Task;
     }
 
-    static public MSGID ToMessageID(Type t)
+    static public CmdCode ToMessageID(Type t)
     {
-        MSGID id;
+        CmdCode id;
         if (!messageIDmap.TryGetValue(t, out id))
         {
             var name = t.Name;
-            id = (MSGID)Enum.Parse(typeof(MSGID), name);
+            id = (CmdCode)Enum.Parse(typeof(CmdCode), name);
             messageIDmap.Add(t, id);
         }
         return id;

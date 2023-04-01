@@ -30,7 +30,7 @@ local httpc = require("moon.http.client")
 local serverconf = require("serverconf")
 local common = require("common")
 local GameDef = common.GameDef
-local db = common.database
+local db = common.Database
 
 local arg = moon.args()
 
@@ -45,7 +45,7 @@ local function load_protocol(file)
 end
 
 -- If use protobuf, load *.pb file here, only need load once.
--- load_protocol("game.pb")
+load_protocol("protocol/proto.pb")
 
 local function run(node_conf)
     local gate_host, gate_port = socket.parse_host_port(node_conf.host)

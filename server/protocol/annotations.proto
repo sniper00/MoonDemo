@@ -1,0 +1,4 @@
+syntax = "proto3";
+option csharp_namespace = "NetMessage";
+
+import "common.proto";

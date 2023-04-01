@@ -1,0 +1,59 @@
+syntax = "proto3";
+option csharp_namespace = "NetMessage";
+import "common.proto";
+
+message C2SEnterRoom
+{
+    string name = 1; //玩家名字
+}
+
+message S2CEnterRoom
+{
+    int64 id = 1; //对象唯一ID
+    int64 time = 2; //当前服务器时间ms
+}
+
+message C2SMove
+{
+    float x = 1; //方向
+    float y = 2;
+}
+
+message S2CMove
+{
+    int64 id = 1; //对象唯一ID
+    float x = 2; //当前位置x
+    float y = 3; //当前位置y
+    float dirx = 4; //当前方向x
+    float diry = 5; //当前方向y
+    int64 movetime = 6; //当前服务器时间ms
+}
+
+message S2CEnterView
+{
+    int64 id = 1;
+    float x = 2;
+    float y = 3;
+    float radius = 4;
+    int64 spriteid = 5;
+    float speed = 6;
+    Vector2 dir = 7;
+    string name = 8;
+    int64 movetime = 9;
+}
+
+message S2CLeaveView
+{
+    int64 id = 1; //对象唯一ID
+}
+
+message S2CUpdateRadius
+{
+    int64 id = 1;
+    float radius = 2;
+}
+
+message S2CDead
+{
+    int64 id = 1;
+}

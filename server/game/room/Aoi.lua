@@ -1,7 +1,7 @@
 local aoi = require("aoi")
 local uuid = require("uuid")
 local common = require("common")
-local cmdcode = common.cmdcode
+local CmdCode = common.CmdCode
 
 local AOI_WATCHER = 1
 local AOI_MARHER = 2
@@ -77,14 +77,14 @@ end
 
 function Aoi.enter(watcher, marker)
     if uuid.isuid(marker) then
-        context.s2c(watcher, cmdcode.S2CEnterView, scripts.Room.FindPlayer(marker))
+        context.s2c(watcher, CmdCode.S2CEnterView, scripts.Room.FindPlayer(marker))
     else
-        context.s2c(watcher, cmdcode.S2CEnterView, scripts.Room.FindFood(marker))
+        context.s2c(watcher, CmdCode.S2CEnterView, scripts.Room.FindFood(marker))
     end
 end
 
 function Aoi.leave(watcher, marker)
-    context.s2c(watcher, cmdcode.S2CLeaveView, {id = marker})
+    context.s2c(watcher, CmdCode.S2CLeaveView, {id = marker})
 end
 
 return Aoi

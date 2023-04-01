@@ -2,7 +2,7 @@ local moon = require "moon"
 local pb = require "pb"
 local json = require "json"
 local buffer = require("buffer")
-local code = require("common.cmdcode")
+local code = require("common.CmdCode")
 
 local concats = buffer.concat_string
 
@@ -23,7 +23,7 @@ local id_bytes = {}
 for k,v in pairs(code) do
     assert(not id_name[v], "msgcode repeated")
     id_name[v] = k
-    id_bytes[v] = string.pack(">H",v)
+    id_bytes[v] = string.pack("<H",v)
 end
 
 local M = {}
@@ -57,7 +57,7 @@ function M.encodestring(id,t)
 end
 
 function M.decode(buf)
-    local id, p, n = bunpack(buf, ">HC")
+    local id, p, n = bunpack(buf, "<HC")
     local name = id_name[id]
     if not name then
         error(string.format("recv unknown message code: %d. client server version mismatch", id))
@@ -65,6 +65,17 @@ function M.decode(buf)
     return name, pdecode(name, p, n)
 end
 
+function M.decodestring(data)
+    local id = string.unpack("<H", data)
+    local pbdata = string.sub(data, 3)
+    local name = id_name[id]
+    if not name then
+        error(string.format("recv unknown message code: %d. client server version mismatch", id))
+    end
+    return name, pdecode(name, pbdata), id
+end
+
+---@return string
 function M.name(id)
     return id_name[id]
 end
@@ -89,7 +100,7 @@ function M.print_message(uid, m)
             len = bunpack(buf, ">H", offset)
             offset = offset + 2
         end
-        local id, p, n = bunpack(buf, ">HC", offset)
+        local id, p, n = bunpack(buf, "<HC", offset)
         local name = id_name[id]
         offset = offset + 2
         if size >= offset then

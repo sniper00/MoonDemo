@@ -4,8 +4,8 @@ local fs = require("fs")
 local seri = require("seri")
 local datetime = require("moon.datetime")
 local GameDef = require("common.GameDef")
-local protocol = require("common.protocol")
-local cmdcode = require("common.cmdcode")
+local protocol = require("common.protocol_pb")
+local CmdCode = require("common.CmdCode")
 local GameCfg = require("common.GameCfg")
 
 local string = string
@@ -168,7 +168,7 @@ local function do_client_command(context, cmd, uid, req)
         local callok, res = xpcall(fn, traceback, uid, req)
         if not callok or res then
             res = res or 1 --server internal error
-            context.s2c(uid,cmdcode.S2CErrorCode,{code = res})
+            context.s2c(uid,CmdCode.S2CErrorCode,{code = res})
         end
     else
         moon.error(moon.name, "receive unknown PTYPE_C2S cmd "..tostring(cmd) .. " " .. tostring(uid))

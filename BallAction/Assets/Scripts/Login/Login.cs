@@ -30,7 +30,7 @@ public class Login : MonoBehaviour
             UserData.GameSeverID = 0;
         }
 
-        Network.Register<S2CMatchSuccess>((res) =>
+        Network.Register<NetMessage.S2CMatchSuccess>((res) =>
         {
             MessageBox.SetVisible(false);
             SceneManager.LoadScene("Game");
@@ -60,12 +60,12 @@ public class Login : MonoBehaviour
             UserData.GameSeverID = result.ConnectionId;
         }
 
-        var v = await Network.Call<S2CLogin>(UserData.GameSeverID, new C2SLogin { openid = userName.text });
-        if (v.ok)
+        var v = await Network.Call<NetMessage.S2CLogin>(UserData.GameSeverID, new NetMessage.C2SLogin { Openid = userName.text });
+        if (v.Ok)
         {
-            UserData.time = v.time;
+            UserData.time = v.Time;
             UserData.username = userName.text;
-            await Network.Call<S2CMatch>(UserData.GameSeverID, new C2SMatch {});
+            await Network.Call<NetMessage.S2CMatch>(UserData.GameSeverID, new NetMessage.C2SMatch {});
             SceneManager.LoadScene("MatchWait");
         }
         else

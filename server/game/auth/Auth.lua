@@ -3,8 +3,8 @@ local uuid = require("uuid")
 local queue = require("moon.queue")
 local common = require("common")
 
-local db = common.database
-local cmdcode = common.cmdcode
+local db = common.Database
+local CmdCode = common.CmdCode
 
 local traceback = debug.traceback
 
@@ -86,7 +86,7 @@ local function doAuth(req)
         timezone = moon.timezone,
         uid = req.uid,
     }
-    context.s2c(req.uid, cmdcode.S2CLogin, res)
+    context.s2c(req.uid, CmdCode.S2CLogin, res)
 end
 
 local function QuitOneUser(u)

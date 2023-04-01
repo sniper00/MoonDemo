@@ -3,7 +3,7 @@ local seri = require("seri")
 local socket = require("moon.socket")
 local common = require("common")
 local setup = common.setup
-local protocol = common.protocol
+local protocol = common.protocol_pb
 local GameDef = common.GameDef
 
 local conf = ...

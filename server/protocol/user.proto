@@ -1,0 +1,20 @@
+syntax = "proto3";
+option csharp_namespace = "NetMessage";
+// import "common.proto";
+
+message S2CErrorCode
+{
+    int32 code = 1;//错误码
+}
+
+message C2SLogin
+{
+    string openid = 1;//openid
+}
+
+message S2CLogin
+{
+    bool ok = 1; //是否登录成功
+    int64 time = 2; //服务器当前时间ms
+    int64 timezone = 3; //服务器当前时区
+}

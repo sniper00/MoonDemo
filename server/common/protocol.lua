@@ -1,7 +1,7 @@
 local moon = require "moon"
 local json = require("json")
 local buffer = require("buffer")
-local code = require("common.cmdcode")
+local code = require("common.CmdCode")
 
 local jdecode = json.decode
 local concats = buffer.concat_string
@@ -36,6 +36,8 @@ function M.encode(id,t)
         return data
     end
 end
+
+M.encodestring = M.encode
 
 function M.decode(buf)
     local size = bsize(buf)

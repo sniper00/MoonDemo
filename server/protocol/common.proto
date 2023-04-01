@@ -1,0 +1,8 @@
+syntax = "proto3";
+option csharp_namespace = "NetMessage";
+
+message Vector2
+{
+    float x = 1;
+    float y = 2;
+}

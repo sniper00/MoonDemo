@@ -34,7 +34,7 @@ Hub Server:
 2. 提供http server 和 telnet两种协议接口
 
 Game Server开启了7种服务:
-- node 服务器管理对接服务
+- node 处理hub的请求消息，常用于对接SDK和服务器后台管理
 - cluster 服务器集群通信节点服务
 - gate 负责管理玩家网络连接，并转发玩家网络消息到对应玩家服务
 - auth 负责登录，创建、删除、离线加载、玩家服务
@@ -145,4 +145,29 @@ require("common.LuaPanda").start("127.0.0.1", 8818)
   }
 ```
 
+```csharp
+    //注册回调方式的网络消息
+    Network.Register<NetMessage.S2CMatchSuccess>((res) =>
+    {
+        MessageBox.SetVisible(false);
+        SceneManager.LoadScene("Game");
+    });
+```
+
+# 添加新协议
+
+修改server的protocol目录下的proto文件
+
+协议命名规则`C2Sxxxx`表示客户端发送给服务器的消息；`S2Cxxxxx`,`SBCxxxxx` 表示服务器发送给客户端的消息，其中`SBC`表示广播消息，只是为了便于区分。
+
+```
+user.proto center.proto room.proto 对应各自服务的消息
+
+common.proto 公共的proto定义
+
+annotations.proto 根据proto定义生成lua注解使用(暂未实现)
+
+```
+
+编写完成协议后，运行tools目录下的`moonfly.bat`,其它平台运行`python3 moonfly.py`
 

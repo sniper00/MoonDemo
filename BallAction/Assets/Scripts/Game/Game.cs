@@ -82,26 +82,27 @@ public class Game : MonoBehaviour {
 
 
 
-        Network.Register<S2CEnterRoom>(v => {
-            uid = v.id;
-            UserData.time = v.time;
+        Network.Register<NetMessage.S2CEnterRoom>(v => {
+            uid = v.Id;
+            UserData.time = v.Time;
             now = Millseconds();
 
-            Debug.LogFormat("Entity User  id {0} S2CEnterRoom", v.id);
+            Debug.LogFormat("Entity User  id {0} S2CEnterRoom", v.Id);
         });
 
-        Network.Register<S2CEnterView>(v => {
-            if(!entitas.ContainsKey(v.id))
+        Network.Register<NetMessage.S2CEnterView>(v => {
+            if(!entitas.ContainsKey(v.Id))
             {
                 var e = new Entity();
-                e.id = v.id;
-                e.radius = v.radius;
-                e.speed = v.speed;
-                e.spriteid = v.spriteid;
-                e.pos =  new Vector2 { x = v.x, y = v.y };
-                e.dir = v.dir;
-                e.name = v.name;
-                e.movetime = v.movetime;
+                e.id = v.Id;
+                e.radius = v.Radius;
+                e.speed = v.Speed;
+                e.spriteid = v.Spriteid;
+                e.pos =  new Vector2 { x = v.X, y = v.Y };
+                if(null!=v.Dir)
+                    e.dir = new Vector2 { x= v.Dir.X, y =v.Dir.Y };
+                e.name = v.Name;
+                e.movetime = v.Movetime;
                 bool isplayer = IsPlayer(e.id);
                 GameObject go = Instantiate(playerPrefab, new Vector3(e.pos.x, e.pos.y, 0), Quaternion.identity);
                 var spr = go.GetComponent<SpriteRenderer>();
@@ -112,7 +113,7 @@ public class Game : MonoBehaviour {
                     {
                         source = "Texture/bean_polygon5_1";
                     }
-                    Debug.LogFormat("Entity User  id {0} enter view", v.id);
+                    Debug.LogFormat("Entity User  id {0} enter view", v.Id);
                 }
                 else
                 {
@@ -141,20 +142,20 @@ public class Game : MonoBehaviour {
                 text.alignment = TextAnchor.UpperCenter;
                 text.fontStyle = FontStyle.Bold;
                 text.fontSize = 21;
-                entitas.Add(v.id, e);
-                Debug.LogFormat("Entity  id {0} enter view", v.id);
+                entitas.Add(v.Id, e);
+                Debug.LogFormat("Entity  id {0} enter view", v.Id);
 
-                if(v.id == uid)
+                if(v.Id == uid)
                 {
                     local = e;
                 }
             }
         });
 
-        Network.Register<S2CLeaveView>(v =>
+        Network.Register<NetMessage.S2CLeaveView>(v =>
         {
             Entity e;
-            if (entitas.TryGetValue(v.id, out e))
+            if (entitas.TryGetValue(v.Id, out e))
             {
                 var text = e.NameText.GetComponent<Text>();
                 text.text = "DEAD";
@@ -164,45 +165,45 @@ public class Game : MonoBehaviour {
                 Destroy(e.Go);
                 e.NameText = null;
                 e.Go = null;
-                if(entitas.Remove(v.id))
+                if(entitas.Remove(v.Id))
                 {
-                    Debug.LogFormat("Entity Destroy {0} {1} {2}", v.id, e.pos.x, e.pos.y);
+                    Debug.LogFormat("Entity Destroy {0} {1} {2}", v.Id, e.pos.x, e.pos.y);
                 }
             }
         });
 
-        Network.Register<S2CMove>(v =>{
+        Network.Register<NetMessage.S2CMove>(v =>{
             Entity e;
-            if (entitas.TryGetValue(v.id, out e))
+            if (entitas.TryGetValue(v.Id, out e))
             {
                 //var delta = (UserData.time - e.movetime) / 1000.0f;
                 //var deltalen = e.dir.normalized * e.speed * delta;
                 //Vector2 nowPos = e.pos + deltalen;
                 //Debug.LogFormat("S2CMove {0} {1} {2} {3}", UserData.time, e.movetime, nowPos.x, nowPos.y);
-                e.pos.x = v.x;
-                e.pos.y = v.y;
-                e.dir.x = v.dirx;
-                e.dir.y = v.diry;
-                e.movetime = v.movetime;
+                e.pos.x = v.X;
+                e.pos.y = v.Y;
+                e.dir.x = v.Dirx;
+                e.dir.y = v.Diry;
+                e.movetime = v.Movetime;
             }
         });
 
-        Network.Register<S2CUpdateRadius>(v =>
+        Network.Register<NetMessage.S2CUpdateRadius>(v =>
         {
             Entity e;
-            if (entitas.TryGetValue(v.id, out e))
+            if (entitas.TryGetValue(v.Id, out e))
             {
-                e.radius = v.radius;
+                e.radius = v.Radius;
             }
         });
 
-        Network.Register<S2CDead>(v =>
+        Network.Register<NetMessage.S2CDead>(v =>
         {
             Entity e;
-            if (entitas.TryGetValue(v.id, out e))
+            if (entitas.TryGetValue(v.Id, out e))
             {
-                Debug.LogFormat("You dead id {0} dead", v.id);
-                if (v.id == UserData.uid)
+                Debug.LogFormat("You dead id {0} dead", v.Id);
+                if (v.Id == UserData.uid)
                 {
                     SceneManager.LoadScene("Login");
                     return;
@@ -210,14 +211,14 @@ public class Game : MonoBehaviour {
             }
         });
 
-        Network.Register<S2CGameOver>(v => {
+        Network.Register<NetMessage.S2CGameOver>(v => {
             gameOver = true;
-            MessageBox.Show(string.Format("Game Over, Score : {0}", v.score),(res)=> {
+            MessageBox.Show(string.Format("Game Over, Score : {0}", v.Score),(res)=> {
                 SceneManager.LoadScene("Login");
             });
         });
 
-        Network.Send(UserData.GameSeverID, new C2SEnterRoom { name = UserData.username });
+        Network.Send(UserData.GameSeverID, new NetMessage.C2SEnterRoom { Name = UserData.username });
 
         InvokeRepeating("CountDown", 1f, 1.0f);
     }
@@ -262,7 +263,7 @@ public class Game : MonoBehaviour {
             Vector3 target = new Vector3(mousePosition.x, mousePosition.y, 0);
             var dir = target - local.Go.transform.position;
             dir.Normalize();
-            Network.Send(UserData.GameSeverID, new C2SMove { x = dir.x,y= dir.y });
+            Network.Send(UserData.GameSeverID, new NetMessage.C2SMove { X = dir.x,Y= dir.y });
         }
 
         foreach(var e in entitas.Values)

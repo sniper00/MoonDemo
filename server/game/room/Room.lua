@@ -3,10 +3,10 @@ local seri = require("seri")
 local uuid = require("uuid")
 local common = require("common")
 
-local protocol = common.protocol
+local protocol = common.protocol_pb
 local vector2 = common.vector2
 local GameDef = common.GameDef
-local cmdcode = common.cmdcode
+local CmdCode = common.CmdCode
 local GameCfg = common.GameCfg
 
 ---@type room_context
@@ -111,7 +111,7 @@ function Room.GetAllPlayer()
 end
 
 function Room.C2SEnterRoom(uid, req)
-    context.s2c(uid, cmdcode.S2CEnterRoom, {id = uid, time = moon.now()})
+    context.s2c(uid, CmdCode.S2CEnterRoom, {id = uid, time = moon.now()})
     local player = Room.FindPlayer(uid)
     if not player then
         player = Room.CreatePlayer(uid, req)
@@ -151,7 +151,7 @@ function Room.C2SMove(uid, req)
     Room.UpdatePos(Room.FindPlayer(uid))
     --print(moon.now(), mt, p.x, p.y)
     local player = Room.UpdateDir(uid, req)
-    local prefabid = moon.make_prefab(protocol.encode(cmdcode.S2CMove,{
+    local prefabid = moon.make_prefab(protocol.encode(CmdCode.S2CMove,{
         id = uid,
         x = player.x,
         y = player.y,
@@ -214,7 +214,7 @@ function Room.Update()
             end
 
             if player.radius ~= radius then
-                local prefabid = moon.make_prefab(protocol.encode(cmdcode.S2CUpdateRadius,{
+                local prefabid = moon.make_prefab(protocol.encode(CmdCode.S2CUpdateRadius,{
                     id = player.id,
                     radius = player.radius
                     }

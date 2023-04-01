@@ -1,0 +1,21 @@
+syntax = "proto3";
+option csharp_namespace = "NetMessage";
+// import "common.proto";
+
+message C2SMatch
+{
+}
+
+message S2CMatch
+{
+    bool res = 1;
+}
+
+message S2CMatchSuccess
+{
+}
+
+message S2CGameOver
+{
+    int64 score = 1;
+}

@@ -3,8 +3,8 @@ local json = require("json")
 local socket = require("moon.socket")
 local common = require("common")
 
-local msgutil = common.protocol
-local MSGID = common.cmdcode
+local protocol = common.protocol_pb
+local MSGID = common.CmdCode
 local vector2 = common.vector2
 local GameCfg = common.GameCfg
 
@@ -21,11 +21,12 @@ local function client_read( fd )
     if not data then
         return false, err
     end
-    local id = string.unpack("<H",string.sub(data,1,2))
-    if id == MSGID.S2CErrorCode then
-        moon.error(string.sub(data,3))
-    end
-    return id,json.decode(string.sub(data,3))
+    -- local id = string.unpack("<H",string.sub(data,1,2))
+    -- if id == MSGID.S2CErrorCode then
+    --     moon.error(string.sub(data,3))
+    -- end
+    local name, t, id = protocol.decodestring(data)
+    return id, t
 end
 
 local function send(fd,data)
@@ -39,14 +40,14 @@ end
 --游戏逻辑流程
 local function client_handler( fd, uname)
     ---auth message
-    send(fd, msgutil.encode(MSGID.C2SLogin, {openid = uname}))
+    send(fd, protocol.encodestring(MSGID.C2SLogin, {openid = uname}))
 
     local _,data = client_read(fd)
     assert(data.ok == true,data)
     -- print_r(data)
 
     --请求匹配
-    local C2SMatch = msgutil.encode(MSGID.C2SMatch)
+    local C2SMatch = protocol.encodestring(MSGID.C2SMatch)
     send(fd,C2SMatch)
 
     local _,data = client_read(fd)
@@ -58,10 +59,8 @@ local function client_handler( fd, uname)
         local id = client_read(fd)
     until id == MSGID.S2CMatchSuccess
 
-    print("robot", uname ," match success")
-
     --请求进入房间
-    local c2s_enterroom = msgutil.encode(MSGID.C2SEnterRoom,{name = uname})
+    local c2s_enterroom = protocol.encodestring(MSGID.C2SEnterRoom,{name = uname})
     if not c2s_enterroom then
         print("MSGID.C2SEnterRoom encode error")
         return
@@ -83,7 +82,7 @@ local function client_handler( fd, uname)
             end
             local dir = {x = math.random(-10, 10), y = math.random(-10, 10)}
             vector2.normalize(dir)
-            local c2s_move = msgutil.encode(MSGID.C2SMove, dir)
+            local c2s_move = protocol.encodestring(MSGID.C2SMove, dir)
             if not c2s_move then
                 print("MSGID.C2SCommandMove encode error")
                 return
