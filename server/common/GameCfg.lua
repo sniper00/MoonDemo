@@ -1,6 +1,6 @@
 local sharetable = require("sharetable")
 
----@class confutil : static_conf
+---@class GameCfg : static_conf
 local M = {}
 
 ---@type static_conf

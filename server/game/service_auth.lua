@@ -1,13 +1,6 @@
 local moon = require("moon")
 local common = require("common")
 
----@class AuthUser
----@field addr_user integer @玩家服务address
----@field openid string @
----@field uid integer @玩家uid
----@field logouttime integer @玩家登出时间
----@field online boolean @是否在线
-
 ---@class auth_context:base_context
 ---@field uid_map table<integer,AuthUser> @内存加载的玩家服务信息
 ---@field scripts auth_scripts

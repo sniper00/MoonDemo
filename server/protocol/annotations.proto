@@ -2,3 +2,22 @@ syntax = "proto3";
 option csharp_namespace = "NetMessage";
 
 import "common.proto";
+
+//本文件只用于描述游戏内逻辑数据结构，生成代码注解
+
+message AuthUser{
+    uint32 addr_user = 1;//玩家服务address
+    string openid = 2;//
+    int64 uid = 3;//玩家uid
+    int64 logouttime = 4;//玩家登出时间,0表示在线
+    bool online = 5;//@是否在线
+}
+
+message UserData{
+    string openid = 1;//
+    int64 uid = 2;//玩家uid
+    string name = 3;//玩家名字
+    int32 level = 4;//玩家等级
+    int32 score = 5;//玩家分数
+    int64 logintime = 6;//玩家上线时间
+}

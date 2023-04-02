@@ -54,6 +54,7 @@ local function CheckMatchQueue(q)
     end
 end
 
+---@class Center
 local CMD = {}
 
 function CMD.Init()

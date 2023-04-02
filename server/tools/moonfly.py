@@ -223,7 +223,7 @@ class ProtoGen(object):
 
 config = Config(
     protoc_file = "protoc3.exe",
-    csharp_protoc_file= "protogen.exe",
+    csharp_protoc_file= "protogen/protogen.exe",
     proto_src_dir="../protocol/",
     ignore_file_list=["annotations"],
     special_file_list=["common"],
@@ -237,6 +237,8 @@ proto_gen = ProtoGen(config)
 
 proto_gen.gen()
 proto_gen.gen_cmdcode()
+
+import make_annotations
 
 print("Execution successful. Press any key to continue.")
 os.system("pause()")

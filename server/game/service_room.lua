@@ -5,7 +5,7 @@ local common = require("common")
 local conf = ...
 
 ---@class room_context:base_context
----@field public scripts user_scripts
+---@field scripts user_scripts
 local context ={
     conf = conf,
     models = {},

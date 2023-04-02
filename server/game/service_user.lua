@@ -22,8 +22,8 @@ local redirect = moon.redirect
 local PTYPE_C2S = GameDef.PTYPE_C2S
 
 ---@class user_context:base_context
----@field public scripts user_scripts
----@field public model UserData @玩家数据结构protobuf文件描述
+---@field scripts user_scripts
+---@field model UserData
 local context = {
     uid = 0,
     --- 玩家DB数据结构

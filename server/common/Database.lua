@@ -1,5 +1,7 @@
+local moon = require("moon")
 local json = require("json")
 local redisd = require("redisd")
+local verify_proto = require("common.verify_proto")
 
 local jencode = json.encode
 
@@ -18,7 +20,7 @@ local _M = {}
 function _M.loadallopenid(addr_db)
     local res, err = redis_call(addr_db, "hgetall", "openidmap")
     if res == false then
-        error("loadallopenid failed:"..tostring(err))
+        error("loadallopenid failed:" .. tostring(err))
     end
     return res
 end
@@ -26,7 +28,7 @@ end
 function _M.loadserverdata(addr_db)
     local res, err = redis_call(addr_db, "get", "serverdata")
     if res == false then
-        error("loadserverdata failed:"..tostring(err))
+        error("loadserverdata failed:" .. tostring(err))
     end
     return res
 end
@@ -34,7 +36,7 @@ end
 function _M.saveserverdata(addr_db, data)
     local res, err = redis_call(addr_db, "set", "serverdata", data)
     if res == false then
-        error("loadserverdata failed:"..tostring(err))
+        error("loadserverdata failed:" .. tostring(err))
     end
     return res
 end
@@ -42,7 +44,7 @@ end
 function _M.queryuserid(addr_db, openid)
     local res, err = redis_call(addr_db, "hget", "openidmap", openid)
     if res == false then
-        error("queryuserid failed:"..tostring(err))
+        error("queryuserid failed:" .. tostring(err))
     end
 
     if res then
@@ -52,14 +54,14 @@ function _M.queryuserid(addr_db, openid)
     return res
 end
 
-function _M.insertuserid(addr_db , openid, userid)
+function _M.insertuserid(addr_db, openid, userid)
     return redis_call(addr_db, "hset", "openidmap", openid, userid)
 end
 
 function _M.loaduser(addr_db, userid)
     local res, err = redis_hcall(userid, addr_db, "hget", "usermap", userid)
     if res == false then
-        error("loaduser failed:"..tostring(err))
+        error("loaduser failed:" .. tostring(err))
     end
 
     if res then
@@ -70,8 +72,13 @@ function _M.loaduser(addr_db, userid)
 end
 
 function _M.saveuser(addr_db, userid, data)
+    if moon.DEBUG() then
+        verify_proto("UserData", data)
+        moon.warn("verify success")
+    end
+
     data = jencode(data)
-    redis_hsend(userid, addr_db,  "hset", "usermap", userid, data)
+    redis_hsend(userid, addr_db, "hset", "usermap", userid, data)
 end
 
 return _M

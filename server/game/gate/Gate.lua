@@ -6,6 +6,7 @@ local context = ...
 
 local listenfd
 
+---@class Gate
 local Gate = {}
 
 function Gate.Init()

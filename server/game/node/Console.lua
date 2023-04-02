@@ -16,6 +16,7 @@ local function Response(code, message, data)
 	return json.encode({ code = code, message = message, data = data })
 end
 
+---@class Console
 local Console = {}
 
 function Console.Init()

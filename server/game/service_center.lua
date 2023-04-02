@@ -4,6 +4,7 @@ local common = require("common")
 local conf = ...
 
 ---@class center_context:base_context
+---@field scripts center_scripts
 local context ={
     conf = conf,
     match_map={},

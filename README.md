@@ -165,9 +165,13 @@ user.proto center.proto room.proto 对应各自服务的消息
 
 common.proto 公共的proto定义
 
-annotations.proto 根据proto定义生成lua注解使用(暂未实现)
+annotations.proto 只生成lua注解时使用
 
 ```
 
 编写完成协议后，运行tools目录下的`moonfly.bat`,其它平台运行`python3 moonfly.py`
+
+# 代码注解，提高开发速度
+
+**所有的proto目录的文件都会生成lua注解，建议逻辑中多定义proto结构，提高开发速度，特别是复杂的对象，能达到 typescript 80%的代码提示能力。对于关键数据可以用使用 verify_proto 进行验证，如需要存数据库的数据。**
 

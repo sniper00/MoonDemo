@@ -13,6 +13,7 @@ local redirect = moon.redirect
 local PTYPE_C2S = GameDef.PTYPE_C2S
 
 ---@class gate_context
+---@field scripts gate_scripts
 local context = {
     conf = conf,
     uid_map = {},
