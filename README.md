@@ -107,7 +107,7 @@ git clone --recursive https://github.com/sniper00/BallGame.git
 # 简易后台管理
 
 - 方式一 Web http://127.0.0.1:8003/
-- 方式而 `telnet 127.0.0.1 8003`, 输入 `S1 help`
+- 方式二 `telnet 127.0.0.1 8003`, 输入 `S1 help`
 
 # 调试
 
