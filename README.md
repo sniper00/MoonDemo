@@ -10,6 +10,7 @@
 - 服务器集群搭建
 - 服务器管理后台示例
 - 代码热更
+- 代码注解
 - 使用vscode lua-language-server 插件提供lua代码智能能提示
 - 使用vscode LuaPanda 插件调试服务器代码
 
