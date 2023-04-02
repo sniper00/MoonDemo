@@ -19,5 +19,9 @@ public enum CmdCode
     S2CDead = 13,
     S2CErrorCode = 14,
     S2CGameOver = 15,
+    C2SItemList = 16,
+    S2CItemList = 17,
+    C2SUseItem = 18,
+    S2CUpdateItem = 19,
 
 }

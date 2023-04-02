@@ -1,28 +1,33 @@
 local moon = require("moon")
 local common = require("common")
-local db = common.Database
 local CmdCode = common.CmdCode
 local GameCfg = common.GameCfg
+local Database = common.Database
 
 ---@type user_context
 local context = ...
 local scripts = context.scripts
 
-local state = context.state
+local state = { ---内存中的状态
+    online = false,
+    ismatching = false,
+    data_changed = false
+}
 
 ---@class User
 local User = {}
-
 function User.Load(req)
     local function fn()
-        if next(context.model) then
-            return context.model
+
+        local data = scripts.UserModel.Get()
+        if data then
+            return data
         end
 
-        context.model = db.loaduser(context.addr_db_user, req.uid)
+        data = Database.loaduser(context.addr_db_user, req.uid)
 
         local isnew = false
-        if not context.model then
+        if not data then
             if #req.openid==0 or req.pull then
                 return
             end
@@ -30,7 +35,7 @@ function User.Load(req)
             isnew = true
 
             ---create new user
-            context.model = {
+            data = {
                 openid = req.openid,
                 uid = req.uid,
                 name = req.openid,
@@ -38,7 +43,8 @@ function User.Load(req)
                 score = 0
             }
         end
-        -- print_r(context.model)
+
+        scripts.UserModel.Create(data)
 
         ---初始化自己数据
         context.batch_invoke("Init")
@@ -48,7 +54,7 @@ function User.Load(req)
         if isnew then
 
         end
-        return context.model
+        return data
     end
 
     local ok, res = xpcall(fn, debug.traceback, req)
@@ -66,19 +72,15 @@ function User.Load(req)
     return true
 end
 
-function User.Save()
-    db.saveuser(context.addr_db_user, context.model.uid, context.model)
-end
-
 function User.Login(req)
     if req.pull then--服务器主动拉起玩家
-        return context.model.openid
+        return scripts.UserModel.Get().openid
     end
     if state.online then
         context.batch_invoke("Offline")
     end
     context.batch_invoke("Online")
-    return context.model.openid
+    return scripts.UserModel.Get().openid
 end
 
 function User.Logout()
@@ -95,7 +97,7 @@ end
 
 function User.Online()
     state.online = true
-    context.model.logintime = moon.time()
+    scripts.UserModel.MutGet().logintime = moon.time()
 end
 
 function User.Offline()
@@ -121,7 +123,7 @@ function User.OnDay()
 end
 
 function User.Exit()
-    local ok, err = xpcall(User.Save, debug.traceback)
+    local ok, err = xpcall(scripts.UserModel.Save, debug.traceback)
     if not ok then
         moon.error("user exit save db error", err)
     end
@@ -130,50 +132,50 @@ function User.Exit()
 end
 
 function User.C2SUserData()
-    context.s2c(CmdCode.S2CUserData, context.model)
+    context.S2C(CmdCode.S2CUserData, scripts.UserModel.Get())
 end
 
 function User.C2SPing(req)
     req.stime = moon.time()
-    context.s2c(CmdCode.S2CPong, req)
+    context.S2C(CmdCode.S2CPong, req)
 end
 
 --请求匹配
 function User.C2SMatch()
-    if context.state.ismatching then
+    if state.ismatching then
         return
     end
 
-    context.state.ismatching = true
+    state.ismatching = true
     --向匹配服务器请求
     local ok, err = moon.call("lua", context.addr_center, "Center.Match", context.uid, moon.id)
     if not ok then
-        context.state.ismatching = false
+        state.ismatching = false
         moon.error(err)
         return
     end
-    context.s2c(CmdCode.S2CMatch,{res=true})
+    context.S2C(CmdCode.S2CMatch,{res=true})
 end
 
 function User.MatchSuccess(addr_room, roomid)
-    context.state.ismatching = false
+    state.ismatching = false
     context.addr_room = addr_room
-    context.state.roomid = roomid
-    context.s2c(CmdCode.S2CMatchSuccess,{res=true})
+    state.roomid = roomid
+    context.S2C(CmdCode.S2CMatchSuccess,{res=true})
 end
 
 --房间一局结束
 function User.GameOver(score)
     print("GameOver, add score", score)
-    context.model.score = context.model.score + score
+    local data = scripts.UserModel.MutGet()
+    data.score = data.score + score
     context.addr_room = 0
-    context.s2c(CmdCode.S2CGameOver,{score=score})
-    User.Save()
+    context.S2C(CmdCode.S2CGameOver,{score=score})
 end
 
 function User.AddScore(count)
-    context.model.score = context.model.score + count
-    User.Save()
+    local data = scripts.UserModel.MutGet()
+    data.score = data.score + count
     return true
 end
 

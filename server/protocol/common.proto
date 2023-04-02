@@ -6,3 +6,9 @@ message Vector2
     float x = 1;
     float y = 2;
 }
+
+message ItemData
+{
+    int32 id = 1;//道具id
+    int64 count =2;//道具数量
+}

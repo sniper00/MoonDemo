@@ -2,7 +2,7 @@ local moon = require("moon")
 local json = require("json")
 local fs = require("fs")
 local datetime = require("moon.datetime")
-local sharetable = require("moon.service.sharetable")
+local sharetable = require("sharetable")
 
 ---@type node_context
 local context = ...

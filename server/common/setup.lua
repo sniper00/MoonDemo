@@ -19,12 +19,12 @@ local raw_send = moon.raw_send
 
 ---@class base_context
 ---@field scripts table
----@field s2c fun(uid:integer, msgid:integer|string, mdata:table) @ 给玩家发送消息
+---@field S2C fun(uid:integer, msgid:integer|string, mdata:table) @ 给玩家发送消息
 ---@field start_hour_timer fun() @ 开启整点定时器
 ---@field batch_invoke fun(fnname:string, ...) @批量调用所有脚本的函数
----@field send_user fun(uid:integer, cmd:string, ...) @给玩家服务发送消息
----@field call_user fun(uid:integer, cmd:string, ...) @调用玩家服务
----@field try_send_user fun(uid:integer, cmd:string, ...) @尝试给玩家服务发送消息
+---@field send_user fun(uid:integer, cmd:string, ...) @给玩家服务发送消息,如果玩家不在线,会加载玩家
+---@field call_user fun(uid:integer, cmd:string, ...) @调用玩家服务,如果玩家不在线,会加载玩家
+---@field try_send_user fun(uid:integer, cmd:string, ...) @尝试给玩家服务发送消息,如果玩家不在线,消息会被忽略
 
 local command = {}
 
@@ -168,7 +168,7 @@ local function do_client_command(context, cmd, uid, req)
         local callok, res = xpcall(fn, traceback, uid, req)
         if not callok or res then
             res = res or 1 --server internal error
-            context.s2c(uid,CmdCode.S2CErrorCode,{code = res})
+            context.S2C(uid,CmdCode.S2CErrorCode,{code = res})
         end
     else
         moon.error(moon.name, "receive unknown PTYPE_C2S cmd "..tostring(cmd) .. " " .. tostring(uid))
@@ -236,7 +236,7 @@ return function(context, sname)
     })
 
     --- send message to client.
-    context.s2c = function(uid, msgid, mdata)
+    context.S2C = function(uid, msgid, mdata)
         moon.raw_send('S2C', context.addr_gate, seri.packs(uid), protocol.encode(msgid, mdata))
     end
 

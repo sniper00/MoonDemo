@@ -9,11 +9,14 @@
 S2CGameOver
 score (RscoreBª
 NetMessagebproto3
-L
+~
 common.proto"%
 Vector2
 x (Rx
-y (RyBª
+y (Ry"0
+ItemData
+id (Rid
+count (RcountBª
 NetMessagebproto3
 ô
 
@@ -51,9 +54,9 @@ room.protocommon.proto""
 S2CDead
 id (RidBª
 NetMessagebproto3
-·
+·
 
-user.proto""
+user.protocommon.proto""
 S2CErrorCode
 code (Rcode""
 C2SLogin
@@ -61,5 +64,17 @@ user.proto""
 S2CLogin
 ok (Rok
 time (Rtime
-timezone (RtimezoneBª
+timezone (Rtimezone"
+C2SItemList"}
+S2CItemList*
+list (2.S2CItemList.ListEntryRlistB
+	ListEntry
+key (Rkey
+value (2	.ItemDataRvalue:8"2
+
+C2SUseItem
+id (Rid
+count (Rcount".
+S2CUpdateItem
+list (2	.ItemDataRlistBª
 NetMessagebproto3

@@ -20,4 +20,9 @@ message UserData{
     int32 level = 4;//玩家等级
     int32 score = 5;//玩家分数
     int64 logintime = 6;//玩家上线时间
+    int64 diamond = 7;//宝石
+    int64 gold = 8;//金币
+    int32 chapterid = 9;//当前章节ID
+    int64 exp = 10;//当前经验
+    map<int32,ItemData> itemlist = 11;//道具列表
 }

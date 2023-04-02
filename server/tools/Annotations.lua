@@ -18,6 +18,11 @@
 ---@field public level integer @玩家等级
 ---@field public score integer @玩家分数
 ---@field public logintime integer @玩家上线时间
+---@field public diamond integer @宝石
+---@field public gold integer @金币
+---@field public chapterid integer @当前章节ID
+---@field public exp integer @当前经验
+---@field public itemlist table<integer, ItemData> @道具列表
 
 
 ---@class C2SMatch
@@ -37,6 +42,11 @@
 ---@class Vector2
 ---@field public x number
 ---@field public y number
+
+
+---@class ItemData
+---@field public id integer @道具id
+---@field public count integer @道具数量
 
 
 ---@class C2SEnterRoom
@@ -101,6 +111,22 @@
 ---@field public timezone integer @服务器当前时区
 
 
+---@class C2SItemList
+
+
+---@class S2CItemList
+---@field public list table<integer, ItemData> @道具列表
+
+
+---@class C2SUseItem
+---@field public id integer
+---@field public count integer
+
+
+---@class S2CUpdateItem
+---@field public list ItemData[]
+
+
 
 
 
@@ -127,9 +153,12 @@
 
 
 ---@class user_scripts
+---@field Item Item
 ---@field User User
+---@field UserModel UserModel
 
 
 ---@class static_conf
 ---@field constant constant_cfg[]
 ---@field example example_cfg[]
+---@field item item_cfg[]

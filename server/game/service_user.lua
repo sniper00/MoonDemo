@@ -23,17 +23,8 @@ local PTYPE_C2S = GameDef.PTYPE_C2S
 
 ---@class user_context:base_context
 ---@field scripts user_scripts
----@field model UserData
 local context = {
     uid = 0,
-    --- 玩家DB数据结构
-    model = {},
-    --- 内存数据结构
-    state = {
-        online = false,
-        ---穿戴的装备
-        ismatching = false,
-    },
     scripts = {},
     ---other service address
     addr_gate = 0,
@@ -73,9 +64,9 @@ moon.raw_dispatch("C2S",function(msg)
             local ok, res = xpcall(fn, debug.traceback, data)
             if not ok then
                 moon.error(res)
-                context.s2c(CmdCode.S2CErrorCode,{code = 1}) --server internal error
+                context.S2C(CmdCode.S2CErrorCode,{code = 1}) --server internal error
             elseif res then
-                context.s2c(CmdCode.S2CErrorCode,{code = res})
+                context.S2C(CmdCode.S2CErrorCode,{code = res})
             end
         end)
     end
@@ -86,7 +77,7 @@ context.addr_db_user = moon.queryservice("db_user")
 context.addr_center = moon.queryservice("center")
 context.addr_auth = moon.queryservice("auth")
 
-context.s2c = function(msgid, mdata)
+context.S2C = function(msgid, mdata)
     moon.raw_send('S2C', context.addr_gate, seri.packs(context.uid), protocol.encode(msgid, mdata))
 end
 

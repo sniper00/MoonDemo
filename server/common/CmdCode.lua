@@ -18,6 +18,10 @@ local M={
     S2CDead = 13,
     S2CErrorCode = 14,
     S2CGameOver = 15,
+    C2SItemList = 16,
+    S2CItemList = 17,
+    C2SUseItem = 18,
+    S2CUpdateItem = 19,
 
 }
 
@@ -26,6 +30,8 @@ local forward = {
     C2SMatch = 'addr_center',
     C2SEnterRoom = 'addr_room',
     C2SMove = 'addr_room',
+    C2SItemList = 'addr_user',
+    C2SUseItem = 'addr_user',
 
 }
 

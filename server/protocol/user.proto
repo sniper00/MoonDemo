@@ -1,6 +1,6 @@
 syntax = "proto3";
 option csharp_namespace = "NetMessage";
-// import "common.proto";
+import "common.proto";
 
 message S2CErrorCode
 {
@@ -18,3 +18,26 @@ message S2CLogin
     int64 time = 2; //服务器当前时间ms
     int64 timezone = 3; //服务器当前时区
 }
+
+//请求到道具列表
+message C2SItemList
+{
+
+}
+
+message S2CItemList
+{
+    map<int32,ItemData> list = 11;//道具列表
+}
+
+message C2SUseItem
+{
+    int32 id = 1;
+    int64 count = 2;
+}
+
+message S2CUpdateItem
+{
+    repeated ItemData list = 1;
+}
+

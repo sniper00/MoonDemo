@@ -111,7 +111,7 @@ function Room.GetAllPlayer()
 end
 
 function Room.C2SEnterRoom(uid, req)
-    context.s2c(uid, CmdCode.S2CEnterRoom, {id = uid, time = moon.now()})
+    context.S2C(uid, CmdCode.S2CEnterRoom, {id = uid, time = moon.now()})
     local player = Room.FindPlayer(uid)
     if not player then
         player = Room.CreatePlayer(uid, req)
@@ -231,7 +231,7 @@ function Room.Update()
     for _,id in ipairs(dead) do
         scripts.Aoi.erase(id)
         if uuid.isuid(id) then
-            context.s2c(id, "S2CDead",{id=id})
+            context.S2C(id, "S2CDead",{id=id})
             Room.RemovePlayer(id)
         else
             Room.RemoveFood(id)

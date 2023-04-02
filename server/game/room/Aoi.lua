@@ -77,14 +77,14 @@ end
 
 function Aoi.enter(watcher, marker)
     if uuid.isuid(marker) then
-        context.s2c(watcher, CmdCode.S2CEnterView, scripts.Room.FindPlayer(marker))
+        context.S2C(watcher, CmdCode.S2CEnterView, scripts.Room.FindPlayer(marker))
     else
-        context.s2c(watcher, CmdCode.S2CEnterView, scripts.Room.FindFood(marker))
+        context.S2C(watcher, CmdCode.S2CEnterView, scripts.Room.FindFood(marker))
     end
 end
 
 function Aoi.leave(watcher, marker)
-    context.s2c(watcher, CmdCode.S2CLeaveView, {id = marker})
+    context.S2C(watcher, CmdCode.S2CLeaveView, {id = marker})
 end
 
 return Aoi
