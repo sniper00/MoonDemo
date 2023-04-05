@@ -8,8 +8,7 @@ namespace Moon
         const int headLen = sizeof(ushort);
         readonly byte[] head_ = new byte[headLen];
 
-        const int MASK_CONTINUED = 1 << (sizeof(ushort) * 8 - 1);
-        const int MAX_CHUNK_SIZE = MASK_CONTINUED ^ ushort.MaxValue;
+        const ushort MESSAGE_CONTINUED_FLAG = ushort.MaxValue;
 
         Buffer buf = null;
 
@@ -36,20 +35,12 @@ namespace Moon
                     return;
                 }
 
-                var size = ToInt16(head_);
-                size = IPAddress.NetworkToHostOrder(size);
-
-                bool fin = ((size & MASK_CONTINUED) == 0);
-                if (!fin)
-                {
-                    size &= MAX_CHUNK_SIZE;
-                }
-
-                ReadBody(size, fin);
+                var size = (ushort)IPAddress.NetworkToHostOrder(ToInt16(head_));
+                ReadBody(size, size < MESSAGE_CONTINUED_FLAG);
             });
         }
 
-        void ReadBody(short size, bool fin)
+        void ReadBody(ushort size, bool fin)
         {
             if (buf == null)
             {
