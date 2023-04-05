@@ -23,5 +23,7 @@ public enum CmdCode
     S2CItemList = 17,
     C2SUseItem = 18,
     S2CUpdateItem = 19,
+    C2SHello = 20,
+    S2CWorld = 21,
 
 }

@@ -59,7 +59,7 @@ Game Server开启了7种服务:
 │   ├── setup.lua*
 │   └── vector2.lua*
 ├── game/
-│   ├── auth/   # 逻辑脚本目录, 在对应服务添加脚本，会自动注册消息处理函数
+│   ├── auth/ # 每个服务对应的逻辑脚本目录, 处理客户端消息和服务间交互消息。 在对应服务添加规范格式的lua脚本，会自动注册消息处理函数。
 │   ├── center/
 │   ├── gate/
 │   ├── node/
@@ -175,4 +175,117 @@ annotations.proto 只生成lua注解时使用
 # 代码注解，提高开发速度
 
 **所有的proto目录的文件都会生成lua注解，建议逻辑中多定义proto结构，提高开发速度，特别是复杂的对象，能达到 typescript 80%的代码提示能力。对于关键数据可以用使用 verify_proto 进行验证，如需要存数据库的数据。**
+
+# User逻辑开发流程示例
+
+### 定义协议
+
+在 `protocol/user.proto` 中添加, 然后运行`tools/moonfly.bat`
+```proto
+//客户端发送
+message C2SHello
+{
+    string hello = 1;
+}
+
+//服务器返回
+message S2CWorld
+{
+    string world = 1;
+}
+```
+
+### 编写逻辑
+
+在`game/user/`目录下新建文件 "Hello.lua"
+
+1. Lua逻辑脚本标准定义
+
+```lua
+local common = require "common"
+local GameCfg = common.GameCfg --游戏配置
+local ErrorCode = common.ErrorCode --逻辑错误码
+local CmdCode = common.CmdCode --客户端通信消息码
+
+---@type user_context
+local context = ...
+local scripts = context.scripts ---方便访问同服务的其它lua模块
+
+local Hello = {}
+
+---这里初始化本模块相关的数据
+function Hello.Init()
+    -- local DB = scripts.UserModel.Get()
+    -- if not DB.hello then
+    --     DB.hello = {
+    --         a = 1,
+    --         b = 2
+    --     }
+    -- end
+end
+
+---这里可以访问其它模块,做更多初始化工作
+function Hello.Start()
+    --scripts.Item.AddItem(1,1,1)
+end
+
+return Hello
+```
+
+2. 编写逻辑(完整代码)
+
+```lua
+local moon = require("moon")
+local common = require "common"
+local GameCfg = common.GameCfg --游戏配置
+local ErrorCode = common.ErrorCode --逻辑错误码
+local CmdCode = common.CmdCode --客户端通信消息码
+
+---@type user_context
+local context = ...
+local scripts = context.scripts ---方便访问同服务的其它lua模块
+
+local Hello = {}
+
+---这里初始化本模块相关的数据
+function Hello.Init()
+    -- local DB = scripts.UserModel.Get()
+    -- if not DB.hello then
+    --     DB.hello = {
+    --         a = 1,
+    --         b = 2
+    --     }
+    -- end
+end
+
+---这里可以访问其它模块,做更多初始化工作
+function Hello.Start()
+    scripts.Item.AddItem(1,1,1)
+end
+
+---注册服务间通信的消息处理函数
+---其它服务可以访问`context.send_user(uid, "Hello.DoSometing1", 1)`
+function Hello.DoSometing1(params)
+
+end
+
+---注册服务间通信的消息处理函数
+---其它服务可以访问`local res = context.call_user(uid, "Hello.DoSometing1", 1)`
+function Hello.DoSometing2()
+    return "OK"
+end
+
+---注册客户端消息处理函数
+---@param req C2SHello
+function Hello.C2SHello(req)
+    local cfg = GameCfg.item[1]
+    if not cfg then
+        return ErrorCode.ItemNotExist ---直接返回错误码, 会给玩家发送 S2CErrorCode 消息
+    end
+    context.S2C(CmdCode.S2CWorld, {world=req.hello}) ---给客户端发送消息
+end
+
+return Hello
+```
+
 

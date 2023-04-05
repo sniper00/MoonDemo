@@ -22,6 +22,8 @@ local M={
     S2CItemList = 17,
     C2SUseItem = 18,
     S2CUpdateItem = 19,
+    C2SHello = 20,
+    S2CWorld = 21,
 
 }
 
@@ -32,6 +34,7 @@ local forward = {
     C2SMove = 'addr_room',
     C2SItemList = 'addr_user',
     C2SUseItem = 'addr_user',
+    C2SHello = 'addr_user',
 
 }
 

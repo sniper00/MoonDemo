@@ -41,3 +41,12 @@ message S2CUpdateItem
     repeated ItemData list = 1;
 }
 
+message C2SHello
+{
+    string hello = 1;
+}
+
+message S2CWorld
+{
+    string world = 1;
+}

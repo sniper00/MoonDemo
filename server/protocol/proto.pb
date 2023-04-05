@@ -54,7 +54,7 @@ room.protocommon.proto""
 S2CDead
 id (RidBª
 NetMessagebproto3
-·
+û
 
 user.protocommon.proto""
 S2CErrorCode
@@ -76,5 +76,9 @@ C2SUseItem
 id (Rid
 count (Rcount".
 S2CUpdateItem
-list (2	.ItemDataRlistBª
+list (2	.ItemDataRlist" 
+C2SHello
+hello (	Rhello" 
+S2CWorld
+world (	RworldBª
 NetMessagebproto3

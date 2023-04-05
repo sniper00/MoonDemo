@@ -127,6 +127,14 @@
 ---@field public list ItemData[]
 
 
+---@class C2SHello
+---@field public hello string
+
+
+---@class S2CWorld
+---@field public world string
+
+
 
 
 
@@ -153,6 +161,7 @@
 
 
 ---@class user_scripts
+---@field Hello Hello
 ---@field Item Item
 ---@field User User
 ---@field UserModel UserModel
