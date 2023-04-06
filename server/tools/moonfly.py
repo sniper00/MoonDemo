@@ -3,6 +3,7 @@ import json
 import os
 import re
 import subprocess
+import traceback
 
 
 def listdirs(path, depth=0, res=None):
@@ -233,12 +234,17 @@ config = Config(
     cmdcode_out_file="../Common/CmdCode.lua"
 )
 
-proto_gen = ProtoGen(config)
+try:
+    proto_gen = ProtoGen(config)
 
-proto_gen.gen()
-proto_gen.gen_cmdcode()
+    proto_gen.gen()
+    proto_gen.gen_cmdcode()
 
-import make_annotations
+    import make_annotations
 
-print("Execution successful. Press any key to continue.")
+    print("Execution successful. Press any key to continue.")
+
+except Exception as e:
+    traceback.print_exc()
+
 os.system("pause()")
