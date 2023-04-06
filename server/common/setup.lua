@@ -30,7 +30,7 @@ local command = {}
 
 hotfix.addsearcher(function(file)
     local content = moon.env(file)
-    return load(content,"@"..file), file
+    return load(content, "@" .. file), file
 end)
 
 local function load_scripts(context, sname)
@@ -38,11 +38,11 @@ local function load_scripts(context, sname)
     local scripts = moon.env_unpacked(dir)
     if not scripts then
         scripts = {}
-        local list = fs.listdir(dir,10)
+        local list = fs.listdir(dir, 10)
         for _, file in ipairs(list) do
             if not fs.isdir(file) then
                 local name = fs.stem(file)
-                scripts[name] = dir..name..".lua"
+                scripts[name] = dir .. name .. ".lua"
             end
         end
         moon.env_packed(dir, scripts)
@@ -52,7 +52,7 @@ local function load_scripts(context, sname)
         local fn
         local content = moon.env(file)
         if content then
-            fn = load(content, "@"..file)
+            fn = load(content, "@" .. file)
         else
             fn = assert(loadfile(file))
         end
@@ -62,12 +62,12 @@ local function load_scripts(context, sname)
         context.scripts[name] = t
         hotfix.register(file, fn, t)
 
-        for k,v in pairs(t) do
+        for k, v in pairs(t) do
             if type(v) == "function" then
-                if string.sub(k,1,3) == "C2S" then
+                if string.sub(k, 1, 3) == "C2S" then
                     command[k] = v
                 else
-                    command[name.."."..k] = v
+                    command[name .. "." .. k] = v
                 end
             end
         end
@@ -88,30 +88,30 @@ local function _internal(context)
         end
     end
 
-    command.hotfix = function (fixlist)
+    command.hotfix = function(fixlist)
         for name, file in pairs(fixlist) do
             local ok, t = hotfix.update(file)
             if ok then
-                print(moon.name, "hotfix" , name, file)
+                print(moon.name, "hotfix", name, file)
                 if not context.scripts[name] then
-                    for k,v in pairs(t) do
-                        if string.sub(k,1,3) == "C2S" then
+                    for k, v in pairs(t) do
+                        if string.sub(k, 1, 3) == "C2S" then
                             command[k] = v
                         else
-                            command[name.."."..k] = v
+                            command[name .. "." .. k] = v
                         end
                     end
                 end
             else
-                moon.error(moon.name, "hotfix failed" , t, name, file)
+                moon.error(moon.name, "hotfix failed", t, name, file)
                 break
             end
         end
     end
 
-    command.reload = function (names)
+    command.reload = function(names)
         GameCfg.Reload(names)
-        print(moon.name, "reload", table.concat(names," "))
+        print(moon.name, "reload", table.concat(names, " "))
     end
 
     command.Init = function(...)
@@ -133,12 +133,12 @@ local function start_hour_timer(context)
         return
     end
 
-    local MILLSECONDS_ONE_HOUR<const> = 3600000
+    local MILLSECONDS_ONE_HOUR <const> = 3600000
 
     local hour = datetime.localtime(moon.time()).hour
     moon.async(function()
         while true do
-            local diff = MILLSECONDS_ONE_HOUR - moon.now()%MILLSECONDS_ONE_HOUR + 1
+            local diff = MILLSECONDS_ONE_HOUR - moon.now() % MILLSECONDS_ONE_HOUR + 100
             moon.sleep(diff)
             local tm = datetime.localtime(moon.time())
             if hour == tm.hour then
@@ -148,7 +148,7 @@ local function start_hour_timer(context)
                 context.batch_invoke("OnHour", hour)
                 if hour == 0 then
                     hour = tm.hour
-                    context.batch_invoke("OnDay",  datetime.localday())
+                    context.batch_invoke("OnDay", datetime.localday())
                 end
             end
         end
@@ -165,27 +165,30 @@ end
 local function do_client_command(context, cmd, uid, req)
     local fn = command[cmd]
     if fn then
-        local callok, res = xpcall(fn, traceback, uid, req)
-        if not callok or res then
-            res = res or 1 --server internal error
-            context.S2C(uid,CmdCode.S2CErrorCode,{code = res})
+        local ok, res = xpcall(fn, traceback, uid, req)
+        if not ok then
+            moon.error(res)
+            context.S2C(uid, CmdCode.S2CErrorCode, { code = 1 }) -- server internal error
+        else
+            if res and res > 0 then
+                context.S2C(uid, CmdCode.S2CErrorCode, { code = res })
+            end
         end
     else
-        moon.error(moon.name, "receive unknown PTYPE_C2S cmd "..tostring(cmd) .. " " .. tostring(uid))
+        moon.error(moon.name, "receive unknown PTYPE_C2S cmd " .. tostring(cmd) .. " " .. tostring(uid))
     end
 end
 
 return function(context, sname)
-
     sname = sname or moon.name
 
     if not context.scripts then
         context.scripts = {}
     end
 
-    context.start_hour_timer = function ()
+    context.start_hour_timer = function()
         start_hour_timer(context)
-    end 
+    end
 
     _internal(context)
 
@@ -200,7 +203,7 @@ return function(context, sname)
                 fn(...)
             end
         else
-            moon.error(moon.name, "recv unknown cmd "..tostring(cmd))
+            moon.error(moon.name, "recv unknown cmd " .. tostring(cmd))
         end
     end)
 
@@ -256,5 +259,6 @@ return function(context, sname)
 
     return command
 end
+
 
 
