@@ -103,12 +103,13 @@ git clone --recursive https://github.com/sniper00/BallGame.git
 
 - client 请使用unity2018 启动执行第一个场景Prepare。
 
-- windows使用 `start_server.bat` 脚本运行。linux和macos使用`start_hub.sh`,`start_game.sh`以此启动。默认会自动运行机器人服务。[配表](https://github.com/sniper00/BallGame/blob/master/server/static/table/constant.lua) 可以修改机器人数量
+- windows使用 `start_server.bat` 脚本运行。linux和macos使用`start_hub.sh`,`start_game.sh`依次启动。默认会自动运行机器人服务。[配表](https://github.com/sniper00/BallGame/blob/master/server/static/table/constant.lua) 可以修改机器人数量
 
-# 简易后台管理
+- 简易后台管理
+    - 方式一 Web http://127.0.0.1:8003/
+    - 方式二 `telnet 127.0.0.1 8003`, 输入 `S1 help`
 
-- 方式一 Web http://127.0.0.1:8003/
-- 方式二 `telnet 127.0.0.1 8003`, 输入 `S1 help`
+- 如需要自己部署，可以修改`node.json`中的ip地址
 
 # 调试
 
@@ -155,11 +156,15 @@ require("common.LuaPanda").start("127.0.0.1", 8818)
     });
 ```
 
-# 添加新协议
+# 开发流程
 
-修改server的protocol目录下的proto文件
 
-协议命名规则`C2Sxxxx`表示客户端发送给服务器的消息；`S2Cxxxxx`,`SBCxxxxx` 表示服务器发送给客户端的消息，其中`SBC`表示广播消息，只是为了便于区分。
+需要安装`python3`
+
+
+## 添加新协议
+
+修改server的protocol目录下的proto文件，协议命名规则`C2Sxxxx`表示客户端发送给服务器的消息；`S2Cxxxxx`,`SBCxxxxx` 表示服务器发送给客户端的消息，其中`SBC`表示广播消息，只是为了便于区分。
 
 ```
 user.proto center.proto room.proto 对应各自服务的消息
@@ -172,11 +177,11 @@ annotations.proto 只生成lua注解时使用
 
 编写完成协议后，运行tools目录下的`moonfly.bat`,其它平台运行`python3 moonfly.py`
 
-# 代码注解，提高开发速度
+## 代码注解
 
-**所有的proto目录的文件都会生成lua注解，建议逻辑中多定义proto结构，提高开发速度，特别是复杂的对象，能达到 typescript 80%的代码提示能力。对于关键数据可以用使用 verify_proto 进行验证，如需要存数据库的数据。**
+protocol目录的文件都会生成lua注解，建议逻辑中多定义proto结构，提高开发速度，特别是复杂的对象，能达到 typescript 80% 的代码提示能力。对于关键数据可以用使用 verify_proto 进行验证，如需要存数据库的数据。
 
-# User逻辑开发流程示例
+## User逻辑开发流程示例
 
 ### 定义协议
 
