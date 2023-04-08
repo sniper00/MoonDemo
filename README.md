@@ -115,7 +115,7 @@ git clone --recursive https://github.com/sniper00/BallGame.git
 
 - 安装vscode
 - 安装 LuaPanda 插件
-- 在需要调试的服务第一行添加代码(作为示例，room服务第一行添加了这行代码)
+- 在需要调试的服务第一行添加代码(作为示例，center服务第一行添加了这行代码)
 ```lua
 require("common.LuaPanda").start("127.0.0.1", 8818)
 ```
