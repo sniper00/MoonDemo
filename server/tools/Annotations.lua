@@ -168,6 +168,6 @@
 
 
 ---@class static_conf
----@field constant constant_cfg[]
+---@field constant constant
 ---@field example example_cfg[]
 ---@field item item_cfg[]

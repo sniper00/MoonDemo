@@ -1,4 +1,4 @@
----@class constant_cfg
+---@class constant
 local constant = {
     room = {
         --- 匹配人数达到100就创建房间

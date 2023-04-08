@@ -275,7 +275,7 @@ class EmmyLuaIntelliSense:
         content = "\n\n"
         content += "---@class static_conf\n"
         for confname in conf_list:
-            if confname == "constant_func":
+            if confname == "constant":
                 content += "---@field %s %s\n" % (confname, confname)
             else:
                 content += "---@field %s %s_cfg[]\n" % (confname, confname)
