@@ -151,17 +151,17 @@ function Room.C2SMove(uid, req)
     Room.UpdatePos(Room.FindPlayer(uid))
     --print(moon.now(), mt, p.x, p.y)
     local player = Room.UpdateDir(uid, req)
-    local prefabid = moon.make_prefab(protocol.encode(CmdCode.S2CMove,{
-        id = uid,
-        x = player.x,
-        y = player.y,
-        dirx = player.dir.x,
-        diry = player.dir.y,
-        movetime = player.movetime
-        }
-    ))
-    scripts.Aoi.fireEvent(uid, GameDef.AoiEvent.UpdateDir, function(watcher)
-        moon.raw_send("S2C", context.addr_gate, seri.packs(watcher), prefabid, 0)
+
+    scripts.Aoi.fireEvent(uid, GameDef.AoiEvent.UpdateDir, function(watchers)
+        moon.raw_send("S2C", context.addr_gate, protocol.encode(watchers, CmdCode.S2CMove,{
+            id = uid,
+            x = player.x,
+            y = player.y,
+            dirx = player.dir.x,
+            diry = player.dir.y,
+            movetime = player.movetime
+            }
+            ), 0)
     end)
 end
 
@@ -214,13 +214,12 @@ function Room.Update()
             end
 
             if player.radius ~= radius then
-                local prefabid = moon.make_prefab(protocol.encode(CmdCode.S2CUpdateRadius,{
-                    id = player.id,
-                    radius = player.radius
-                    }
-                ))
-                scripts.Aoi.fireEvent(player.id, GameDef.AoiEvent.UpdateRadius, function(watcher)
-                    moon.raw_send("S2C", context.addr_gate, seri.packs(watcher), prefabid, 0)
+                scripts.Aoi.fireEvent(player.id, GameDef.AoiEvent.UpdateRadius, function(watchers)
+                    moon.raw_send("S2C", context.addr_gate, protocol.encode(watchers, CmdCode.S2CUpdateRadius,{
+                        id = player.id,
+                        radius = player.radius
+                        }
+                    ), 0)
                 end)
             end
         end

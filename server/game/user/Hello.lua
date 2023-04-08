@@ -8,6 +8,7 @@ local CmdCode = common.CmdCode --客户端通信消息码
 local context = ...
 local scripts = context.scripts ---方便访问同服务的其它lua模块
 
+---@class Hello
 local Hello = {}
 
 ---这里初始化本模块相关的数据

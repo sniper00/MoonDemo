@@ -13,7 +13,7 @@ local type = type
 local strfmt = string.format
 local traceback = debug.traceback
 
-local unpack = moon.unpack
+local unpack_one = seri.unpack_one
 local pack = moon.pack
 local raw_send = moon.raw_send
 
@@ -198,7 +198,7 @@ return function(context, sname)
         local fn = command[cmd]
         if fn then
             if session ~= 0 then
-                raw_send("lua", sender, "", xpcall_ret(xpcall(fn, traceback, ...)), session)
+                raw_send("lua", sender, xpcall_ret(xpcall(fn, traceback, ...)), session)
             else
                 fn(...)
             end
@@ -213,9 +213,9 @@ return function(context, sname)
         --default client message dispatch
         israw = true,
         dispatch = function(msg)
-            local header, buf = moon.decode(msg, "HB")
+            local buf = moon.decode(msg, "B")
             --see: user service's forward
-            local uid = unpack(header)
+            local uid = unpack_one(buf, true)
             local ok, cmd, data = pcall(protocol.decode, buf)
             if not ok then
                 moon.error("protobuffer decode client message failed", cmd)
@@ -239,8 +239,8 @@ return function(context, sname)
     })
 
     --- send message to client.
-    context.S2C = function(uid, msgid, mdata)
-        moon.raw_send('S2C', context.addr_gate, seri.packs(uid), protocol.encode(msgid, mdata))
+    context.S2C = function(uid, cmd_code, mtable)
+        moon.raw_send('S2C', context.addr_gate, protocol.encode(uid, cmd_code, mtable))
     end
 
     --- send message to user-service.

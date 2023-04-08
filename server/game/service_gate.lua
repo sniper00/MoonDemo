@@ -46,7 +46,7 @@ socket.on("message", function(fd, msg)
             protocol.print_message(c.uid, msg)
         end
 
-        redirect(msg, "", c.addr_user, PTYPE_C2S, 0, 0)
+        redirect(msg, c.addr_user, PTYPE_C2S, 0, 0)
     end
 end)
 
@@ -65,16 +65,28 @@ socket.on("close", function(fd, msg)
 end)
 
 moon.raw_dispatch("S2C",function(msg)
-    local uid = seri.unpack(moon.decode(msg, "H"))
-    local c = context.uid_map[uid]
-    if not c then
-        return
+    local buf = moon.decode(msg, "B")
+    local uid = seri.unpack_one(buf, true)
+    if type(uid) == "number" then
+        local c = context.uid_map[uid]
+        if not c then
+            return
+        end
+        socket.write_message(c.fd,msg)
+        if moon.DEBUG() then
+            protocol.print_message(uid, msg)
+        end
+    else
+        for _, one in ipairs(uid) do
+            local c = context.uid_map[one]
+            if c then
+                socket.write_message(c.fd,msg)
+                if moon.DEBUG() then
+                    protocol.print_message(one, msg)
+                end
+            end
+        end
     end
-
-    if moon.DEBUG() then
-        protocol.print_message(uid, msg)
-    end
-    socket.write_message(c.fd,msg)
 end)
 
 moon.raw_dispatch("SBC",function(msg)

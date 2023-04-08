@@ -10,6 +10,7 @@ local CmdCode = common.CmdCode
 local GameDef = common.GameDef
 
 local bunpack = buffer.unpack
+local wfront = buffer.write_front
 
 local mdecode = protocol.decode
 
@@ -48,14 +49,14 @@ local function forward(msg, msgname)
         return
     end
 
-    local header = seri.packs(context.uid)
-    redirect(msg, header, address, PTYPE_C2S)
+    redirect(msg, address, PTYPE_C2S)
 end
 
 moon.raw_dispatch("C2S",function(msg)
     local buf = moon.decode(msg, "B")
     local msgname = id_to_name(bunpack(buf, "<H"))
     if not command[msgname] then
+        wfront(buf, seri.packs(context.uid))
         forward(msg, msgname)
     else
         local cmd, data = mdecode(buf)
@@ -77,8 +78,8 @@ context.addr_db_user = moon.queryservice("db_user")
 context.addr_center = moon.queryservice("center")
 context.addr_auth = moon.queryservice("auth")
 
-context.S2C = function(msgid, mdata)
-    moon.raw_send('S2C', context.addr_gate, seri.packs(context.uid), protocol.encode(msgid, mdata))
+context.S2C = function(cmd_code, mtable)
+    moon.raw_send('S2C', context.addr_gate, protocol.encode(context.uid, cmd_code, mtable))
 end
 
 moon.shutdown(function()

@@ -1,8 +1,9 @@
 local moon = require "moon"
 local pb = require "pb"
 local json = require "json"
-local buffer = require("buffer")
-local code = require("common.CmdCode")
+local buffer = require "buffer"
+local seri = require "seri"
+local CmdCode = require "common.CmdCode"
 
 local concats = buffer.concat_string
 
@@ -20,31 +21,31 @@ local id_name = {}
 -- used for id bytes cache
 local id_bytes = {}
 
-for k,v in pairs(code) do
+for k, v in pairs(CmdCode) do
     assert(not id_name[v], "msgcode repeated")
     id_name[v] = k
-    id_bytes[v] = string.pack("<H",v)
+    id_bytes[v] = string.pack("<H", v)
 end
 
 local M = {}
 
-function M.encode(id,t)
-    if type(id)=='string' then
-        id = code[id]
+function M.encode(uid, id, t)
+    if type(id) == 'string' then
+        id = CmdCode[id]
     end
     local data = id_bytes[id]
     if t then
         local name = id_name[id]
         assert(name, id)
-        return concat(data, pencode(name, t))
+        return concat(seri.packs(uid), data, pencode(name, t))
     else
-        return data
+        return seri.packs(uid) .. data
     end
 end
 
-function M.encodestring(id,t)
-    if type(id)=='string' then
-        id = code[id]
+function M.encodestring(id, t)
+    if type(id) == 'string' then
+        id = CmdCode[id]
     end
     local data = id_bytes[id]
     if t then
@@ -60,7 +61,7 @@ function M.decode(buf)
     local id, p, n = bunpack(buf, "<HC")
     local name = id_name[id]
     if not name then
-        error(string.format("recv unknown message code: %d. client server version mismatch", id))
+        error(string.format("recv unknown message CmdCode: %d. client server version mismatch", id))
     end
     return name, pdecode(name, p, n)
 end
@@ -70,7 +71,7 @@ function M.decodestring(data)
     local pbdata = string.sub(data, 3)
     local name = id_name[id]
     if not name then
-        error(string.format("recv unknown message code: %d. client server version mismatch", id))
+        error(string.format("recv unknown message CmdCode: %d. client server version mismatch", id))
     end
     return name, pdecode(name, pbdata), id
 end
@@ -105,8 +106,8 @@ function M.print_message(uid, m)
         offset = offset + 2
         if size >= offset then
             if not ignore_print[name] then
-                local t = (size>offset) and pdecode(name, p, len - 2) or {}
-                if string.sub(name, 1,3) == "C2S" then
+                local t = (size > offset) and pdecode(name, p, len - 2) or {}
+                if string.sub(name, 1, 3) == "C2S" then
                     moon.debug(string.format("Recv %d Message:%s size %d \n%s", uid, name, len, json.pretty_encode(t)))
                 else
                     moon.debug(string.format("SendTo %d Message:%s size %d \n%s", uid, name, len, json.pretty_encode(t)))

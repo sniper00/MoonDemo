@@ -21,6 +21,7 @@ local space
 local event_cache = {}
 local function update_aoi_event(fn)
     local count = space:update_event(event_cache)
+    local watchers
 	for i=1,count,3 do
         local watcher = event_cache[i]
         local marker = event_cache[i+1]
@@ -30,9 +31,16 @@ local function update_aoi_event(fn)
         elseif eventid == EVENT_LEAVE then
             Aoi.leave(watcher, marker)
         else
-            fn(watcher)
+            if not watchers then
+                watchers = {}
+            end
+            watchers[#watchers+1] = watcher
 		end
 	end
+
+    if watchers and next(watchers) then
+        fn(watchers)
+    end
 end
 
 function Aoi.init_map(orginx, orginy, size)

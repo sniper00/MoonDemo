@@ -317,7 +317,7 @@ moon.dispatch("lua", function(sender, session, cmd, ...)
     local fn = command[cmd]
     if fn then
         if session ~= 0 then
-            moon.raw_send("lua", sender, "", xpcall_ret(xpcall(fn, debug.traceback, ...)), session)
+            moon.raw_send("lua", sender, xpcall_ret(xpcall(fn, debug.traceback, ...)), session)
         else
             fn(...)
         end
