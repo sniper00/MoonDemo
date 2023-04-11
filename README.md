@@ -101,7 +101,7 @@ git clone --recursive https://github.com/sniper00/MoonDemo.git
 
 - 安装redis 采用默认配置即可
 
-- client 请使用unity2018 启动执行第一个场景Prepare。
+- client 请使用unity2020 启动执行第一个场景Prepare。
 
 - windows使用 `start_server.bat` 脚本运行。linux和macos使用`start_hub.sh`,`start_game.sh`依次启动。默认会自动运行机器人服务。[配表](https://github.com/sniper00/BallGame/blob/master/server/static/table/constant.lua) 可以修改机器人数量
 
