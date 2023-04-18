@@ -118,7 +118,7 @@ git clone --recursive https://github.com/sniper00/BallGame.git
 
 # 运行
 
-- 安装`redis`采用默认配置即可
+- 安装`redis`采用默认配置即可。如需要修改数据库配置, 可以修改server目录下的`serverconf.lua`。
 
 - windows使用 `start_server.bat` 脚本运行。linux和macos使用`start_hub.sh`,`start_game.sh`依次启动。默认会自动运行机器人服务。[配表](https://github.com/sniper00/BallGame/blob/master/server/static/table/constant.lua) 可以修改机器人数量
 
