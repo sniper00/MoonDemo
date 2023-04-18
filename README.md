@@ -1,32 +1,33 @@
-# BallGame
-多人简易版球球大作战，游戏服务器框架[moon](https://github.com/sniper00/moon)的一个使用示例。
-主要演示
-- 管理玩家网络连接
-- 动态创建服务, 一个玩家一个service(LuaVM)
-- redis数据库存储玩家数据
-- 使用sharetable来处理游戏配表
-- 客户端网络消息和服务器内部消息统一自动注册
-- 游戏逻辑编写规范
-- 服务器集群搭建
-- 服务器管理后台示例
-- 代码热更
-- 代码注解
-- 使用vscode lua-language-server 插件提供lua代码智能能提示
-- 使用vscode LuaPanda 插件调试服务器代码
+# 项目简介
 
 ![image](https://github.com/sniper00/BallGame/raw/master/image/start.png)
 
 ![image](https://github.com/sniper00/BallGame/raw/master/image/game.png)
 
-vscode打开server目录，安装[`lua-language-server`](https://marketplace.visualstudio.com/items?itemName=sumneko.lua)插件，即可获得代码提示能力，如果没有代码提示，在.vscode目录下, 创建或者修改settings.json, 添加
-```json
-{
-    "Lua.workspace.library": [
-        "./moon/lualib",
-        "./moon/service/"
-    ]
-}
-```
+多人简易版球球大作战，游戏服务器框架[moon](https://github.com/sniper00/moon)的一个使用示例。
+主要演示
+- 游戏服管理大量客户端网络连接
+- `One Player One Service`模式,处理玩家非共享状态,提高单服承载能力和更加Clean的内存管理
+- 异步`Redis`连接池服务的使用
+- 使用`sharetable`管理和更新游戏配表
+- 客户端消息自动注册和处理
+- 服务间消息自动注册和通信
+- 游戏逻辑编写规范
+- 服务器集群搭建
+- 服务器简易管理后台
+- 代码热更
+- 代码注解
+- 使用vscode LuaPanda 插件调试服务器代码
+- 使用vscode lua-language-server 插件提供lua代码智能能提示:
+    vscode打开server目录，安装[`lua-language-server`](https://marketplace.visualstudio.com/items?itemName=sumneko.lua)插件，即可获得代码提示能力，如果没有代码提示，在.vscode目录下, 创建或者修改settings.json, 添加
+    ```json
+        {
+            "Lua.workspace.library": [
+                "./moon/lualib/",
+                "./moon/service/"
+            ]
+        }
+    ```
 
 # Server结构介绍
 
@@ -44,64 +45,80 @@ Game Server开启了7种服务:
 - room 游戏场景服务，简易球球大作战玩法逻辑
 
 目录结构
-```
-./
-├── common/  #逻辑公共模块目录
-│   ├── GameCfg.lua*
-│   ├── GameDef.lua*
-│   ├── LuaPanda.lua*
-│   ├── cmdcode.lua*
-│   ├── database.lua*
-│   ├── init.lua*
-│   ├── intellisense.lua* # 代码智能提示注解文件
-│   ├── protocol.lua*
-│   ├── protocol_pb.lua*
-│   ├── setup.lua*
-│   └── vector2.lua*
-├── game/
-│   ├── auth/ # 每个服务对应的逻辑脚本目录, 处理客户端消息和服务间交互消息。 在对应服务添加规范格式的lua脚本，会自动注册消息处理函数。
-│   ├── center/
-│   ├── gate/
-│   ├── node/
-│   ├── room/
-│   ├── service_auth.lua*  # 服务初始化文件
-│   ├── service_center.lua*
-│   ├── service_gate.lua*
-│   ├── service_hub.lua*
-│   ├── service_node.lua*
-│   ├── service_room.lua*
-│   ├── service_user.lua*
-│   └── user/
-├── log/   # 游戏运行日志文件
-├── main_game.lua* # game 进程启动文件
-├── main_hub.lua*  # hub 进程启动文件
-├── moon/          # moon源码
-├── node.json*     # 节点通信配置文件，也用于cluster通信
-├── robot/ 
-│   └── robot.lua* # 机器人脚本，模拟玩家行为
-├── serverconf.lua* # 服务器全局配置
-├── start_game.sh*
-├── start_hub.sh*
-├── start_server.bat*
-└── static/
-    ├── table/  # 游戏配置表目录
-    └── www/    # GM web 目录
+```shell
+.
+├── common/                 #逻辑公共模块目录
+│   ├── CmdCode.lua         #自动生成的和客户端通信的协议定义文件
+│   ├── Database.lua        #数据库操作
+│   ├── ErrorCode.lua       #逻辑错误码定义
+│   ├── GameCfg.lua         #游戏配表
+│   ├── GameDef.lua         #游戏内部相关配置
+│   ├── LuaPanda.lua        #LuaPanda调试库
+│   ├── init.lua            #common目录初始化脚本
+│   ├── protocol.lua        
+│   ├── protocol_pb.lua     #protobuf消息编码和解码逻辑
+│   ├── setup.lua           #All In One包装: 消息注册，服务内模块注册，配表更新，代码热更
+│   ├── vector2.lua
+│   └── verify_proto.lua    #开发环境下，Lua数据结构严格验证库
+├── game
+│   ├── auth                #每个服务对应的逻辑脚本目录
+│   ├── center
+│   ├── gate
+│   ├── node
+│   ├── room
+│   ├── service_auth.lua
+│   ├── service_center.lua
+│   ├── service_gate.lua
+│   ├── service_hub.lua
+│   ├── service_node.lua
+│   ├── service_room.lua
+│   ├── service_user.lua
+│   └── user
+├── log                     # 运行日志目录
+├── main_game.lua           # game 进程启动文件
+├── main_hub.lua            # hub 进程启动文件
+├── moon                    # moon源码
+├── node.json               # 节点配置文件，用于集群通信
+├── protocol                # protobuf协议定义目录
+│   ├── annotations.proto   # 只用于生成Lua代码注解
+│   ├── center.proto        # 定义自动转发到Center服务的消息
+│   ├── common.proto        # 公共protobuf定义
+│   ├── json_verify.json    # 用于verify_proto
+│   ├── proto.pb
+│   ├── room.proto          # 定义自动转发到Room服务的消息
+│   └── user.proto          # 定义自动转发到User服务的消息
+├── robot
+│   └── robot.lua           # 机器人脚本
+├── serverconf.lua          # 数据库相关配置
+├── start_game.sh
+├── start_hub.sh
+├── start_server.bat
+├── static      
+│   ├── table               # 游戏配表目录
+│   └── www                 # GM后台目录
+└── tools
+    ├── Annotations.lua     # 自动生成的代码注解文件
+    ├── ProtoEnum.lua       
+    ├── __pycache__
+    ├── make_annotations.py
+    ├── moonfly.bat
+    ├── moonfly.py          # 代码注解生成脚本
+    ├── protoc3.exe
+    └── protogen            # Windows版客户端用的协议生成软件(后续考虑编写python脚本生成)
 ```
 
 # 编译Server
 
 1. clone
 ```
-git clone --recursive https://github.com/sniper00/MoonDemo.git
+git clone --recursive https://github.com/sniper00/BallGame.git
 ```
 
 2. [参考moon编译](https://github.com/sniper00/moon#%E7%BC%96%E8%AF%91)
 
 # 运行
 
-- 安装redis 采用默认配置即可
-
-- client 请使用unity2020 启动执行第一个场景Prepare。
+- 安装`redis`采用默认配置即可
 
 - windows使用 `start_server.bat` 脚本运行。linux和macos使用`start_hub.sh`,`start_game.sh`依次启动。默认会自动运行机器人服务。[配表](https://github.com/sniper00/BallGame/blob/master/server/static/table/constant.lua) 可以修改机器人数量
 
@@ -111,11 +128,13 @@ git clone --recursive https://github.com/sniper00/MoonDemo.git
 
 - 如需要自己部署，可以修改`node.json`中的ip地址
 
+- Client请使用unity2018 启动执行第一个场景Prepare。
+
 # 调试
 
-- 安装vscode
-- 安装 LuaPanda 插件
-- 在需要调试的服务第一行添加代码(作为示例，center服务第一行添加了这行代码)
+- 安装`vscode`
+- 安装LuaPanda 插件
+- 在需要调试的服务第一行添加代码(作为示例，room服务第一行添加了这行代码)
 ```lua
 require("common.LuaPanda").start("127.0.0.1", 8818)
 ```
@@ -133,27 +152,27 @@ require("common.LuaPanda").start("127.0.0.1", 8818)
 
 客户端主要用来演示怎样使用 asyn/await 来处理网络消息，等异步操作。
 ```csharp
-  var v = await Network.Call<S2CLogin>(UserData.GameSeverID, new C2SLogin { openid = userName.text });
-  if (v.ok)
-  {
-      UserData.time = v.time;
-      UserData.username = userName.text;
-      await Network.Call<S2CMatch>(UserData.GameSeverID, new C2SMatch {});
-      SceneManager.LoadScene("MatchWait");
-  }
-  else
-  {
-      MessageBox.Show("auth failed");
-  }
+var v = await Network.Call<S2CLogin>(UserData.GameSeverID, new C2SLogin { openid = userName.text });
+if (v.ok)
+{
+    UserData.time = v.time;
+    UserData.username = userName.text;
+    await Network.Call<S2CMatch>(UserData.GameSeverID, new C2SMatch {});
+    SceneManager.LoadScene("MatchWait");
+}
+else
+{
+    MessageBox.Show("auth failed");
+}
 ```
 
 ```csharp
-    //注册回调方式的网络消息
-    Network.Register<NetMessage.S2CMatchSuccess>((res) =>
-    {
-        MessageBox.SetVisible(false);
-        SceneManager.LoadScene("Game");
-    });
+//注册回调方式的网络消息
+Network.Register<NetMessage.S2CMatchSuccess>((res) =>
+{
+    MessageBox.SetVisible(false);
+    SceneManager.LoadScene("Game");
+});
 ```
 
 # 开发流程
@@ -164,13 +183,15 @@ require("common.LuaPanda").start("127.0.0.1", 8818)
 
 ## 添加新协议
 
-修改server的protocol目录下的proto文件，协议命名规则`C2Sxxxx`表示客户端发送给服务器的消息；`S2Cxxxxx`,`SBCxxxxx` 表示服务器发送给客户端的消息，其中`SBC`表示广播消息，只是为了便于区分。
+修改`server`的`protocol`目录下的proto文件，协议命名规则
+- `C2Sxxxx`表示客户端发送给服务器的消息；
+- `S2Cxxxxx`,`SBCxxxxx` 表示服务器发送给客户端的消息，其中`SBC`表示广播消息，只是为了便于区分。
 
-```
-user.proto center.proto room.proto 对应各自服务的消息
-
-common.proto 公共的proto定义
-
+```shell
+user.proto
+center.proto 
+room.proto 
+common.proto
 annotations.proto 只生成lua注解时使用
 
 ```
@@ -216,7 +237,6 @@ local CmdCode = common.CmdCode --客户端通信消息码
 local context = ...
 local scripts = context.scripts ---方便访问同服务的其它lua模块
 
----@class Hello ---模块代码注解
 local Hello = {}
 
 ---这里初始化本模块相关的数据
@@ -251,7 +271,7 @@ local CmdCode = common.CmdCode --客户端通信消息码
 local context = ...
 local scripts = context.scripts ---方便访问同服务的其它lua模块
 
----@class Hello ---模块代码注解
+---@class Hello ---代码提示
 local Hello = {}
 
 ---这里初始化本模块相关的数据
@@ -273,13 +293,17 @@ end
 ---注册服务间通信的消息处理函数
 ---其它服务可以访问`context.send_user(uid, "Hello.DoSometing1", 1)`
 function Hello.DoSometing1(params)
-
+    ---访问内存中的数据库对象: MutGet会触发存库操作
+    local data = scripts.UserModel.MutGet().hello
+    data.a = 100
 end
 
 ---注册服务间通信的消息处理函数
 ---其它服务可以访问`local res = context.call_user(uid, "Hello.DoSometing1", 1)`
 function Hello.DoSometing2()
-    return "OK"
+    ---访问内存中的数据库对象: Get用于只读，不会触发存库
+    local data = scripts.UserModel.Get().hello
+    return data.a
 end
 
 ---注册客户端消息处理函数
