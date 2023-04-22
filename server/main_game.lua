@@ -29,8 +29,8 @@ local uuid = require("uuid")
 local httpc = require("moon.http.client")
 local serverconf = require("serverconf")
 local common = require("common")
-local GameDef = common.GameDef
 local db = common.Database
+local CreateTable = common.CreateTable
 
 local arg = moon.args()
 
@@ -60,14 +60,14 @@ local function run(node_conf)
             file = "moon/service/redisd.lua",
             threadid = 1,
             poolsize = 5,
-            opts = db_conf
+            opts = db_conf.redis
         },
         {
             unique = true,
             name = "db_server",
             file = "moon/service/redisd.lua",
             threadid = 1,
-            opts = db_conf
+            opts = db_conf.redis
         },
         {
             unique = true,
@@ -75,8 +75,17 @@ local function run(node_conf)
             file = "moon/service/redisd.lua",
             threadid = 1,
             poolsize = 5,
-            opts = db_conf
+            opts = db_conf.redis
         },
+        -- {
+        --     unique = true,
+        --     name = "db_game",
+        --     file = "moon/service/sqldriver.lua",
+        --     provider = "moon.db.pg",
+        --     threadid = 2,
+        --     poolsize = 5,
+        --     opts = db_conf.pg
+        -- },
         {
             unique = true,
             name = "auth",
@@ -130,6 +139,10 @@ local function run(node_conf)
     }
 
     local function Start()
+        if moon.queryservice("db_game") > 0 then
+            CreateTable(moon.queryservice("db_game"))
+        end
+
         local data = db.loadserverdata(moon.queryservice("db_server"))
         if not data then
             data = {boot_times = 0}
@@ -189,6 +202,10 @@ local function run(node_conf)
                 moon.raw_send("system", moon.queryservice("db_server"), "wait_save")
                 moon.raw_send("system", moon.queryservice("db_user"), "wait_save")
                 moon.raw_send("system", moon.queryservice("db_openid"), "wait_save")
+
+                if moon.queryservice("db_game") > 0 then
+                    moon.raw_send("system", moon.queryservice("db_game"), "wait_save")
+                end
 
                 moon.kill(moon.queryservice("robot"))
             else

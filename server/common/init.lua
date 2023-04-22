@@ -11,4 +11,5 @@ return {
     GameCfg = require("common.GameCfg"),
     GameDef = require("common.GameDef"),
     ErrorCode = require("common.ErrorCode"),
+    CreateTable = require("common.CreateTable")
 }
