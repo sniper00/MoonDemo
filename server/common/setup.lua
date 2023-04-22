@@ -93,13 +93,11 @@ local function _internal(context)
             local ok, t = hotfix.update(file)
             if ok then
                 print(moon.name, "hotfix", name, file)
-                if context.scripts[name] then
-                    for k, v in pairs(t) do
-                        if string.sub(k, 1, 3) == "C2S" then
-                            command[k] = v
-                        else
-                            command[name .. "." .. k] = v
-                        end
+                for k, v in pairs(t) do
+                    if string.sub(k, 1, 3) == "C2S" then
+                        command[k] = v
+                    else
+                        command[name .. "." .. k] = v
                     end
                 end
             else
