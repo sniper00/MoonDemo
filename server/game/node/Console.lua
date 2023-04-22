@@ -44,7 +44,7 @@ Command List:
 	mem:                               List all services's lua memory.
 	ping <address> :                   Ping the specificed service.
 	reload:                            Reload static table files.
-	hotfix <servicename> <filename_no_path_no_ext_1> <filename_no_path_no_ext_2>....: Hotfix script file. e. S1 hotfix User Hello
+	hotfix <servicename> <filename_no_path_no_ext_1> <filename_no_path_no_ext_2>....: Hotfix script file. e. S1 hotfix user Hello
 
 User command format:     U<uid> command params
 Command List:
