@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import json
 import os
 import re
 import subprocess
 import traceback
+import make_annotations
+import make_csharp_proto
 
 
 def listdirs(path, depth=0, res=None):
@@ -164,10 +165,10 @@ class ProtoGen(object):
                         if is_service_message:
                             self.forward_dict[one] = name_without_extension
 
-                fff = os.path.relpath(filename, self.config.proto_src_dir)
-                with chdir(self.config.proto_src_dir):
-                    exec("{0}  --csharp_out=\"{1}\" --proto_path=\"{2}\" {3}".format(
-                        self.config.csharp_protoc_file, self.config.csharp_out_dir, "./", fff))
+                # fff = os.path.relpath(filename, self.config.proto_src_dir)
+                # with chdir(self.config.proto_src_dir):
+                #     exec("{0}  --csharp_out=\"{1}\" --proto_path=\"{2}\" {3}".format(
+                #         self.config.csharp_protoc_file, self.config.csharp_out_dir, "./", fff))
 
         tmp = " ".join(protofiles)
         exec("{0} -I{1} -o{2} {3}".format(self.config.protoc_file, self.config.proto_src_dir,
@@ -240,7 +241,17 @@ try:
     proto_gen.gen()
     proto_gen.gen_cmdcode()
 
-    import make_annotations
+
+    intelliSense = make_annotations.EmmyLuaIntelliSense()
+
+    protolist, proto_list_with_file = intelliSense.run(
+        proto_src_dir= config.proto_src_dir,
+        game_dir="../game/",
+        game_config_dir="../static/table/",
+        json_verify_out_file="../protocol/json_verify.json"
+    )
+
+    make_csharp_proto.make_proto(proto_list_with_file, config.csharp_out_dir, config.ignore_file_list)
 
     print("Execution successful. Press any key to continue.")
 

@@ -2,6 +2,7 @@
 import os
 import re
 import json
+import copy
 from enum import Enum
 
 
@@ -130,6 +131,7 @@ class EmmyLuaIntelliSense:
         enum_field_re = re.compile(r'\s*(\w+)\s*=\s*(\d+);\s*(\/\/.*)?')
 
         proto_list = list()
+        proto_list_with_file = dict()
 
         protofiles = listdirs(protopath, 3)
 
@@ -137,7 +139,7 @@ class EmmyLuaIntelliSense:
             if not filepath.endswith(".proto"):
                 continue
             parse_stack = list()
-
+            file_proto_list = list()
             with open(filepath, 'r', encoding='utf-8') as fobj:
                 for line in fobj:
                     if line.lstrip().startswith("//"):
@@ -178,9 +180,12 @@ class EmmyLuaIntelliSense:
                                 # print("2", line)
                                 pass
                         if line.find("}") != -1:
-                            proto_list.append(parse_stack.pop())
+                            item = parse_stack.pop()
+                            proto_list.append(item)
+                            file_proto_list.append(item)
+            proto_list_with_file[filepath] = file_proto_list
 
-        return proto_list
+        return proto_list, proto_list_with_file
 
     def make_proto_annotations(self, proto_list, json_verify_out_file):
         message_content = ""
@@ -283,7 +288,7 @@ class EmmyLuaIntelliSense:
 
     def run(self, proto_src_dir, game_dir, game_config_dir, json_verify_out_file):
 
-        protolist = self.parse_proto(proto_src_dir)
+        protolist, proto_list_with_file = self.parse_proto(proto_src_dir)
 
         message_content, enum_content = self.make_proto_annotations(
             protolist, json_verify_out_file)
@@ -302,15 +307,6 @@ class EmmyLuaIntelliSense:
             fobj.write(logic_content)
             fobj.write(conf_content)
 
-        return protolist
+        return protolist, proto_list_with_file
 
-
-intelliSense = EmmyLuaIntelliSense()
-
-protolist = intelliSense.run(
-    proto_src_dir="../protocol/",
-    game_dir="../game/",
-    game_config_dir="../static/table/",
-    json_verify_out_file="../protocol/json_verify.json"
-)
 # you can use protolist do something
