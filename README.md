@@ -103,8 +103,7 @@ Game Server开启了7种服务:
     ├── make_annotations.py
     ├── moonfly.bat
     ├── moonfly.py          # 代码注解生成脚本
-    ├── protoc3.exe
-    └── protogen            # Windows版客户端用的协议生成软件(后续考虑编写python脚本生成)
+    └── protoc3.exe
 ```
 
 # 编译Server
