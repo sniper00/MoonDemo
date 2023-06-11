@@ -110,10 +110,8 @@ local function run(node_conf)
             unique = true,
             name = "cluster",
             file = "moon/service/cluster.lua",
-            host = cluster_host,
-            port = cluster_port,
             etc_host = serverconf.NODE_ETC_HOST,
-            etc_path = "/conf.cluster",
+            etc_path = "/conf.cluster?node=%s",
             threadid = 5,
         },
         {
@@ -163,7 +161,7 @@ local function run(node_conf)
         assert(moon.call("lua", moon.queryservice("node"), "Init"))
 
         ---加载完数据后 开始接受网络连接
-        assert(moon.call("lua", moon.queryservice("cluster"), "Start"))
+        assert(moon.call("lua", moon.queryservice("cluster"), "Listen"))
         assert(moon.call("lua", moon.queryservice("gate"), "Start"))
     end
 

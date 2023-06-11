@@ -235,7 +235,7 @@ httpserver.on("/conf.updatenode",function(request, response)
 end)
 
 httpserver.on("/conf.node",function(request, response)
-    local query = request.parse_query()
+    local query = request:parse_query()
     local node = tonumber(query.node)
     local cfg = node_list[node]
     if not cfg then
@@ -250,7 +250,7 @@ httpserver.on("/conf.node",function(request, response)
 end)
 
 httpserver.on("/conf.cluster", function(request, response)
-    local query = request.parse_query()
+    local query = request:parse_query()
     local node = tonumber(query.node)
     local cfg = node_list[node]
     if not cfg or not cfg.cluster then

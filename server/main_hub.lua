@@ -50,7 +50,7 @@ local services = {
         file = "moon/service/cluster.lua",
         threadid = 1,
         etc_host = serverconf.NODE_ETC_HOST,
-        etc_path = "/conf.cluster"
+        etc_path = "/conf.cluster?node=%s"
     }
 }
 
