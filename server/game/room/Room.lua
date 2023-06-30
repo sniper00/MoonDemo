@@ -28,11 +28,6 @@ local Room = {}
 function Room.Init(roomid)
     MemModel.roomid = roomid
 
-    context.addr_gate = moon.queryservice("gate")
-    context.addr_auth = moon.queryservice("auth")
-    context.addr_center = moon.queryservice("center")
-
-
     moon.timeout(GameCfg.constant.room.round_time * 1000, function()
         Room.GameOver()
     end)
@@ -49,6 +44,8 @@ function Room.Init(roomid)
             Room.Update()
         end
     end)
+
+    return true
 end
 
 function Room.FindPlayer(uid)

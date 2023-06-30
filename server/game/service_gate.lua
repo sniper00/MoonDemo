@@ -12,15 +12,13 @@ local redirect = moon.redirect
 
 local PTYPE_C2S = GameDef.PTYPE_C2S
 
----@class gate_context
+---@class gate_context:base_context
 ---@field scripts gate_scripts
 local context = {
     conf = conf,
     uid_map = {},
     fd_map = {},
     auth_watch = {},
-    ---other service address
-    addr_auth = 0,
 }
 
 setup(context)
@@ -40,6 +38,7 @@ socket.on("message", function(fd, msg)
         req.sign = context.auth_watch[fd]
         req.fd = fd
         req.addr = socket.getaddress(fd)
+        req.pull = false
         moon.send("lua", context.addr_auth, name, req)
     else
         if moon.DEBUG() then

@@ -10,7 +10,6 @@ local listenfd
 local Gate = {}
 
 function Gate.Init()
-    context.addr_auth = moon.queryservice("auth")
     return true
 end
 

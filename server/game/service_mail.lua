@@ -4,8 +4,8 @@ local common = require("common")
 
 local conf = ...
 
----@class room_context:base_context
----@field scripts room_scripts
+---@class mail_context:base_context
+---@field scripts mail_scripts
 local context ={
     conf = conf,
     models = {},

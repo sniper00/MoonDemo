@@ -75,7 +75,6 @@ end
 function _M.saveuser(addr_db, userid, data)
     if moon.DEBUG() then
         verify_proto("UserData", data)
-        moon.warn("verify success")
     end
 
     data = jencode(data)
@@ -128,6 +127,17 @@ function _M.saveuser(db, uid, data)
 end
 end
 
+function _M.LoadUserMail(addr_db, uid)
+    local res, err = redis_hcall(uid, addr_db, "HEGTALL", "mail_"..uid)
+    if err then
+        moon.error("LoadUserMail failed ", uid, err)
+        return false
+    end
+    return res
+end
 
+function _M.SaveUserMail(addr_db, uid, mailId, data)
+    redis_hsend(uid, addr_db, "HSET", "mail_"..uid, mailId, data)
+end
 
 return _M

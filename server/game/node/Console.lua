@@ -20,9 +20,8 @@ end
 local Console = {}
 
 function Console.Init()
-	context.addr_auth = moon.queryservice("auth")
-	context.addr_gate = moon.queryservice("gate")
 	static_tables_md5 = Console.table_md5()
+	return true
 end
 
 local help = [[

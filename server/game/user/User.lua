@@ -10,8 +10,7 @@ local scripts = context.scripts
 
 local state = { ---内存中的状态
     online = false,
-    ismatching = false,
-    data_changed = false
+    ismatching = false
 }
 
 ---@class User
@@ -28,7 +27,7 @@ function User.Load(req)
 
         local isnew = false
         if not data then
-            if #req.openid==0 or req.pull then
+            if req.pull then
                 return
             end
 
@@ -47,13 +46,9 @@ function User.Load(req)
         scripts.UserModel.Create(data)
 
         ---初始化自己数据
-        context.batch_invoke("Init")
+        context.batch_invoke("Init", isnew)
         ---初始化互相引用的数据
         context.batch_invoke("Start")
-
-        if isnew then
-
-        end
         return data
     end
 
@@ -67,7 +62,7 @@ function User.Load(req)
         moon.error(errmsg)
         return false, errmsg
     end
-    req.openid = res.openid
+
     context.uid = res.uid
     return true
 end
@@ -85,6 +80,7 @@ end
 
 function User.Logout()
     context.batch_invoke("Offline")
+    return true
 end
 
 function User.Init()

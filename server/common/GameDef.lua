@@ -16,6 +16,22 @@ local M = {
         UpdateDir = 10,
         UpdateRadius = 11,
     },
+
+    ---邮件操作类型
+    MailOpt={
+        --- 请求邮件列表
+        ReqMailList = 1,
+        --- 设置邮件已读
+        SetMailRead = 2,
+        --- 删除邮件
+        DelMail = 3,
+        --- 锁定邮件
+        LockMail = 4,
+        --- 领取邮件奖励
+        GetReward = 5,
+        --- 收藏邮件
+        CollectMail = 6,
+    },
 }
 
 function M.LogShrinkToFit(dir, nameprefix, maxcount)

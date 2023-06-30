@@ -39,7 +39,7 @@ local function CheckMatchQueue(q)
             moon.error("create room failed!")
             return
         end
-        moon.send("lua", addr_room, "Init", roomid)
+        assert(moon.call("lua", addr_room, "Init", roomid))
         rooms[addr_room] = roomid
         local n = 0
         while n< max_player_number do
@@ -56,13 +56,6 @@ end
 
 ---@class Center
 local CMD = {}
-
-function CMD.Init()
-    context.addr_gate = moon.queryservice("gate")
-    context.addr_auth = moon.queryservice("auth")
-    context.addr_db_server = moon.queryservice("db_server")
-    return true
-end
 
 function CMD.Shutdown()
     for addr_room in pairs(rooms) do

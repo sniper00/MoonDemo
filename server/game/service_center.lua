@@ -9,10 +9,7 @@ local conf = ...
 local context ={
     conf = conf,
     match_map={},
-    match_queue={},
-    docmd = nil,
-    addr_gate = 0,
-    addr_auth = 0,
+    match_queue={}
 }
 
 

@@ -28,11 +28,7 @@ local context = {
     uid = 0,
     scripts = {},
     ---other service address
-    addr_gate = 0,
-    addr_db_user = 0,
-    addr_center = 0,
-    addr_room = 0,
-    addr_auth = 0
+    addr_room = 0
 }
 
 local command = setup(context, "user")
@@ -86,7 +82,7 @@ context.S2C = function(cmd_code, mtable)
 end
 
 moon.shutdown(function()
-    --- rewrite default behavior: quit immediately
+    --- rewrite default behavior: Avoid automatic service exits
 end)
 
 ---垃圾收集器间歇率控制着收集器需要在开启新的循环前要等待多久。 

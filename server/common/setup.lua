@@ -25,6 +25,12 @@ local raw_send = moon.raw_send
 ---@field send_user fun(uid:integer, cmd:string, ...) @给玩家服务发送消息,如果玩家不在线,会加载玩家
 ---@field call_user fun(uid:integer, cmd:string, ...) @调用玩家服务,如果玩家不在线,会加载玩家
 ---@field try_send_user fun(uid:integer, cmd:string, ...) @尝试给玩家服务发送消息,如果玩家不在线,消息会被忽略
+---@field addr_gate integer
+---@field addr_auth integer
+---@field addr_center integer
+---@field addr_db_user integer
+---@field addr_db_server integer
+---@field addr_db_openid integer
 
 local command = {}
 
@@ -178,6 +184,21 @@ local function do_client_command(context, cmd, uid, req)
 end
 
 return function(context, sname)
+
+    setmetatable (context, {
+        __index = function(t, key)
+            if string.sub(key, 1, 5) == "addr_" then
+                local addr = moon.queryservice(string.sub(key, 6))
+                if addr == 0 then
+                    error("Can not found service: ".. tostring(key))
+                end
+                t[key] = addr
+                return addr
+            end
+            return nil
+        end
+    })
+
     sname = sname or moon.name
 
     if not context.scripts then

@@ -10,11 +10,6 @@ local context = {
     auth_queue = {},
     service_counter = 0,
     scripts = {},
-    ---other service address
-	addr_gate = 0,
-	addr_db_server = 0,
-	addr_db_openid = 0,
-    user_db = 0
 }
 
 local command = common.setup(context)

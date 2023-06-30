@@ -23,8 +23,7 @@ local function doAuth(req)
     if not u then
         local conf = {
             name = "user"..req.uid,
-            file = "game/service_user.lua",
-            user_db = context.user_db,
+            file = "game/service_user.lua"
         }
         addr_user = moon.new_service(conf)
         if addr_user == 0 then
@@ -98,9 +97,6 @@ end
 local Auth = {}
 
 Auth.Init = function()
-    context.addr_gate = moon.queryservice("gate")
-    context.addr_db_openid = moon.queryservice("db_openid")
-    context.addr_db_server = moon.queryservice("db_server")
 
     moon.async(function()
         while true do
@@ -191,25 +187,23 @@ Auth.OnDay = function(v)
     end
 end
 
----@param pull boolean @是否服务器离线加载玩家
-Auth.C2SLogin = function (req, pull)
-    if not req or not (req.openid or req.uid) then
+Auth.C2SLogin = function (req)
+
+    if not req then
         return false
     end
 
-    pull = pull or false
-
-    if req.openid then
-        if #req.openid == 0 then
+    ---pull boolean @是否离线加载玩家
+    if not req.pull then
+        if not req.openid or #req.openid == 0 then
             moon.error("user auth illegal", req.fd, req.openid)
             moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
             return false
         end
 
-        ---如果是opendid, 先得到openid对应的 uid
+        ---如果是opendid登录, 先得到openid对应的 uid
         local uid = context.openid_map[req.openid]
         if not uid then
-
             ---避免同一个玩家瞬间发送大量登录请求
             uid = temp_openid_uid[req.openid]
             if not uid then
@@ -230,15 +224,17 @@ Auth.C2SLogin = function (req, pull)
         req.uid = uid
     else
         req.openid = ""
-        if req.uid == 0 then
-            moon.error("user auth illegal", req.fd, req.uid)
-            moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+        if not req.uid or req.uid == 0 then
+            if req.fd then
+                moon.error("user auth illegal", req.fd, req.uid)
+                moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+            end
             return false
         end
     end
 
     ---服务器关闭时,中断所有客户端的登录请求
-    if context.server_exit and not pull then
+    if context.server_exit and not req.pull then
         return false, "auth abort"
     end
 
@@ -248,9 +244,9 @@ Auth.C2SLogin = function (req, pull)
         auth_queue[req.uid] = lock
     end
 
-    if not pull then
+    if not req.pull then
         if lock("count") > 0 then
-            moon.error("user auth too quickly", req.fd, req.uid, req.addr, "is pull:", pull)
+            moon.error("user auth too quickly", req.fd, req.uid, req.addr, "is pull:", req.pull)
             moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
             return
         end
@@ -266,17 +262,15 @@ Auth.C2SLogin = function (req, pull)
 
     local scope_lock<close> = lock()
 
-    if pull and context.uid_map[req.uid] then
+    if req.pull and context.uid_map[req.uid] then
         return true
     end
 
-    print(string.format("User Login fd:%d uid:%d pulluser:%s", req.fd, req.uid, tostring(pull)))
-
-    req.pull = pull
+    print(string.format("User Login fd:%d uid:%d pulluser:%s", req.fd, req.uid, req.pull))
 
     local ok, err = xpcall(doAuth, traceback, req)
     if not ok or err then
-        moon.error("Auth.C2SLogin Error", err, pull, req.uid)
+        moon.error("Auth.C2SLogin Error", err, table.tostring(req))
         return false, err
     end
     return true
@@ -286,7 +280,7 @@ end
 function Auth.PullUser(uid)
     local u = context.uid_map[uid]
     if not u then
-        local ok,err = Auth.C2SLogin({fd =0 ,uid = uid} , true)
+        local ok,err = Auth.C2SLogin({fd =0 ,uid = uid, pull = true})
         if not ok then
             return ok, err
         end
@@ -340,7 +334,7 @@ end
 function Auth.Disconnect(uid)
     local u = context.uid_map[uid]
     if u then
-        moon.call("lua", u.addr_user, "User.Logout")
+        assert(moon.call("lua", u.addr_user, "User.Logout"))
         u.logouttime = moon.time()
     end
 end
