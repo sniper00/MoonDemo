@@ -12,9 +12,7 @@ local jdecode = json.decode
 
 local redis_call = redisd.call
 
-local redis_hcall = redisd.hash_call
-
-local redis_hsend = redisd.hash_send
+local redis_send = redisd.send
 
 local _M = {}
 
@@ -60,7 +58,7 @@ function _M.insertuserid(addr_db, openid, userid)
 end
 
 function _M.loaduser(addr_db, userid)
-    local res, err = redis_hcall(userid, addr_db, "hget", "usermap", userid)
+    local res, err = redis_call(addr_db, "hget", "usermap", userid)
     if res == false then
         error("loaduser failed:" .. tostring(err))
     end
@@ -78,7 +76,7 @@ function _M.saveuser(addr_db, userid, data)
     end
 
     data = jencode(data)
-    redis_hsend(userid, addr_db, "hset", "usermap", userid, data)
+    redis_send(addr_db, "hset", "usermap", userid, data)
 end
 
 if moon.queryservice("db_game") > 0 then
@@ -128,7 +126,7 @@ end
 end
 
 function _M.LoadUserMail(addr_db, uid)
-    local res, err = redis_hcall(uid, addr_db, "HEGTALL", "mail_"..uid)
+    local res, err = redis_call(addr_db, "HEGTALL", "mail_"..uid)
     if err then
         moon.error("LoadUserMail failed ", uid, err)
         return false
@@ -137,7 +135,7 @@ function _M.LoadUserMail(addr_db, uid)
 end
 
 function _M.SaveUserMail(addr_db, uid, mailId, data)
-    redis_hsend(uid, addr_db, "HSET", "mail_"..uid, mailId, data)
+    redis_send(addr_db, "HSET", "mail_"..uid, mailId, data)
 end
 
 return _M
