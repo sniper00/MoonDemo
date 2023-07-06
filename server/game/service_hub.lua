@@ -161,7 +161,6 @@ local function command_handler(cmdline, echo)
 end
 
 httpserver.content_max_len = 8192
-httpserver.header_max_len = 8192
 
 httpserver.on("/console",function(request, response)
     local command = string.trim(request.content)
