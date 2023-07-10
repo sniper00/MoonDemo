@@ -1,3 +1,4 @@
+local moon = require "moon"
 local common = require "common"
 local GameCfg = common.GameCfg
 local ErrorCode = common.ErrorCode
@@ -87,6 +88,7 @@ function Item.AddItem(id, count, trace, send_list)
 
     local cfg = GameCfg.item[id]
     if not cfg then
+        moon.error("item not exist", id)
         return ErrorCode.ItemNotExist
     end
 

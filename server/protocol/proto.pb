@@ -9,15 +9,51 @@
 S2CGameOver
 score (RscoreBª
 NetMessagebproto3
-~
+³
 common.proto"%
 Vector2
 x (Rx
 y (Ry"0
 ItemData
 id (Rid
-count (RcountBª
+count (Rcount"²
+MailData
+id (Rid
+mail_key (	RmailKey
+ctime (Rctime
+flag (Rflag#
+rewards (2	.ItemDataRrewards
+trace (Rtrace
+parmas (	RparmasBª
 NetMessagebproto3
+ë
+
+mail.protocommon.proto"
+C2SMailList"Ž
+S2CMailList7
+	mail_list (2.S2CMailList.MailListEntryRmailListF
+MailListEntry
+key (Rkey
+value (2	.MailDataRvalue:8"7
+S2CUpdateMail&
+	mail_list (2	.MailDataRmailList"
+C2SMailRead
+id (Rid"
+C2SMailLock
+id (Rid"1
+C2SMailReward 
+mail_id_list (R
+mailIdList"
+C2SMailMark
+id (Rid".
+
+C2SMailDel 
+mail_id_list (R
+mailIdList".
+
+S2CMailDel 
+mail_id_list (R
+mailIdListbproto3
 ô
 
 room.protocommon.proto""

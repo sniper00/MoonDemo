@@ -1,0 +1,47 @@
+syntax = "proto3";
+import "common.proto";
+
+message C2SMailList
+{
+
+}
+
+message S2CMailList
+{
+    map<int64,MailData> mail_list = 1;
+}
+
+message S2CUpdateMail
+{
+    repeated MailData mail_list = 1;
+}
+
+message C2SMailRead
+{
+    int64 id = 1;
+}
+
+message C2SMailLock
+{
+    int64 id = 1;
+}
+
+message C2SMailReward
+{
+    repeated int64 mail_id_list = 1;
+}
+
+message C2SMailMark
+{
+    int64 id = 1;
+}
+
+message C2SMailDel
+{
+    repeated int64 mail_id_list = 1;
+}
+
+message S2CMailDel
+{
+    repeated int64 mail_id_list = 1;
+}

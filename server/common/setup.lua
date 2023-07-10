@@ -31,6 +31,7 @@ local raw_send = moon.raw_send
 ---@field addr_db_user integer
 ---@field addr_db_server integer
 ---@field addr_db_openid integer
+---@field addr_mail integer
 
 local command = {}
 

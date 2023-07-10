@@ -109,9 +109,8 @@ public enum CmdCode
 ######################TEMPLATE END#######################
 
 class Config:
-    def __init__(self, protoc_file:str, csharp_protoc_file:str, proto_src_dir: str, ignore_file_list: list, special_file_list: list, descriptor_out_file: str, csharp_out_dir: str, csharp_cmd_file: str, cmdcode_out_file: str):
+    def __init__(self, protoc_file:str, proto_src_dir: str, ignore_file_list: list, special_file_list: list, descriptor_out_file: str, csharp_out_dir: str, csharp_cmd_file: str, cmdcode_out_file: str):
         self.protoc_file = os.path.abspath(protoc_file)
-        self.csharp_protoc_file = os.path.abspath(csharp_protoc_file)
         self.proto_src_dir = os.path.abspath(proto_src_dir)
         self.ignore_file_list = ignore_file_list
         self.special_file_list = special_file_list
@@ -224,15 +223,14 @@ class ProtoGen(object):
 
 
 config = Config(
-    protoc_file = "protoc3.exe",
-    csharp_protoc_file= "protogen/protogen.exe",
+    protoc_file = "protoc",
     proto_src_dir="../protocol/",
     ignore_file_list=["annotations"],
     special_file_list=["common"],
     descriptor_out_file="../protocol/proto.pb",
     csharp_out_dir="../../BallAction/Assets/Proto",
     csharp_cmd_file="../../BallAction/Assets/Proto/CmdCode.cs",
-    cmdcode_out_file="../Common/CmdCode.lua"
+    cmdcode_out_file="../common/CmdCode.lua"
 )
 
 try:

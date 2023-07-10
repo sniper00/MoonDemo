@@ -5,6 +5,7 @@ local ErrorCode = {
     ServerInternalError = 1,
     ParamInvalid = 2,
     ConfigError =3,
+    OperationNotPermit = 4,
 
     ---没有这个装备
     EquipNotFound = 101,

@@ -25,5 +25,14 @@ public enum CmdCode
     S2CUpdateItem = 19,
     C2SHello = 20,
     S2CWorld = 21,
+    C2SMailList = 22,
+    S2CMailList = 23,
+    S2CUpdateMail = 24,
+    C2SMailRead = 25,
+    C2SMailLock = 26,
+    C2SMailReward = 27,
+    C2SMailMark = 28,
+    C2SMailDel = 29,
+    S2CMailDel = 30,
 
 }

@@ -80,62 +80,79 @@ function _M.saveuser(addr_db, userid, data)
 end
 
 if moon.queryservice("db_game") > 0 then
-    ---async
----@param db integer
----@param uid integer
----@overload fun(db: integer, uid: integer):boolean,string
----@overload fun(db: integer, uid: integer):UserData
----@overload fun(db: integer, uid: integer):nil
-function _M.loaduser(db, uid)
-    local res, err = pgsql.query(db, string.format("select * from userdata where uid=%s;", uid), uid)
-    if not res then
-        ---xpcall lua error
-        return false, "loaduser "..tostring(err)
+        ---async
+    ---@param db integer
+    ---@param uid integer
+    ---@overload fun(db: integer, uid: integer):boolean,string
+    ---@overload fun(db: integer, uid: integer):UserData
+    ---@overload fun(db: integer, uid: integer):nil
+    function _M.loaduser(db, uid)
+        local res, err = pgsql.query(db, string.format("select * from userdata where uid=%s;", uid), uid)
+        if not res then
+            ---xpcall lua error
+            return false, "loaduser "..tostring(err)
+        end
+
+        ---check sql error
+        if res.code then
+            return false, table.tostring(res)
+        end
+
+        local data = res.data[1]
+        if data then
+            return jdecode(data)
+        end
+        ---空数据:新玩家
+    return nil
     end
 
-    ---check sql error
-    if res.code then
-        return false, table.tostring(res)
+    function _M.saveuser(db, uid, data)
+        assert(data)
+
+        if moon.DEBUG() then
+            verify_proto("UserData", data)
+            moon.warn("verify success")
+        end
+
+        local tmp = {
+            "insert into userdata(uid, data) values(",
+            uid,
+            ",'",
+            data, -- auto encode as json
+            "') on conflict (uid) do update set data = excluded.data;"
+        }
+        pgsql.execute(db, tmp, uid)
     end
-
-    local data = res.data[1]
-    if data then
-        return jdecode(data)
-    end
-    ---空数据:新玩家
-   return nil
-end
-
-function _M.saveuser(db, uid, data)
-    assert(data)
-
-    if moon.DEBUG() then
-        verify_proto("UserData", data)
-        moon.warn("verify success")
-    end
-
-    local tmp = {
-        "insert into userdata(uid, data) values(",
-        uid,
-        ",'",
-        data, -- auto encode as json
-        "') on conflict (uid) do update set data = excluded.data;"
-    }
-    pgsql.execute(db, tmp, uid)
-end
 end
 
 function _M.LoadUserMail(addr_db, uid)
-    local res, err = redis_call(addr_db, "HEGTALL", "mail_"..uid)
+    local res, err = redis_call(addr_db, "HGETALL", "mail_"..uid)
     if err then
         moon.error("LoadUserMail failed ", uid, err)
         return false
     end
-    return res
+    local maillist = {}
+    assert(#res%2==0, tostring(uid))
+    for i=1,#res,2 do
+        local mail = json.decode(res[i+1])
+        maillist[tonumber(res[i])] = mail
+    end
+    return maillist
 end
 
-function _M.SaveUserMail(addr_db, uid, mailId, data)
-    redis_send(addr_db, "HSET", "mail_"..uid, mailId, data)
+---@param addr_db integer
+---@param uid integer
+---@param mailId integer
+---@param mail MailData
+function _M.SaveUserMail(addr_db, uid, mailId, mail)
+    redis_send(addr_db, "HSET", "mail_"..uid, mailId, json.encode(mail))
+end
+
+---@param addr_db integer
+---@param uid integer
+---@param mailIdList integer[]
+function _M.DelUserMail(addr_db, uid, mailIdList)
+    redis_send(addr_db, "HDEL", "mail_"..uid, table.unpack(mailIdList))
 end
 
 return _M

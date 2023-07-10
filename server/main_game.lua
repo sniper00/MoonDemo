@@ -128,6 +128,12 @@ local function run(node_conf)
             threadid = 7
         },
         {
+            unique = true,
+            name = "mail",
+            file = "game/service_center.lua",
+            threadid = 8
+        },
+        {
             name = "robot",
             file = "robot/robot.lua",
             unique = true,
@@ -196,6 +202,7 @@ local function run(node_conf)
                 assert(moon.call("lua", moon.queryservice("gate"), "Gate.Shutdown"))
                 assert(moon.call("lua", moon.queryservice("center"), "Center.Shutdown"))
                 assert(moon.call("lua", moon.queryservice("auth"), "Auth.Shutdown"))
+                assert(moon.call("lua", moon.queryservice("mail"), "Mail.Shutdown"))
                 moon.sleep(5000)
                 moon.raw_send("system", moon.queryservice("db_server"), "wait_save")
                 moon.raw_send("system", moon.queryservice("db_user"), "wait_save")

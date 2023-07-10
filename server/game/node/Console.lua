@@ -16,6 +16,13 @@ local function Response(code, message, data)
 	return json.encode({ code = code, message = message, data = data })
 end
 
+local function ResponseV2(res, err)
+	if res == false then
+		return json.encode({ code = -1, message = err, data = err })
+	end
+	return json.encode({ code = 0, data = res })
+end
+
 ---@class Console
 local Console = {}
 
@@ -306,6 +313,18 @@ function Console.addscore(uid, count)
 		return Response(-1, "Failed", err)
 	end
 	return Response(0, "OK")
+end
+
+function Console.addmail(uid, mail_key)
+	local ok, err = moon.call("lua", context.addr_mail, "Mail.AddMail", uid, {
+		mail_key = mail_key,
+		flag = 0,
+		rewards = {
+			{id = 10001, count = 1},
+			{id = 10002, count = 2},
+		},
+	})
+	return ResponseV2(ok, err)
 end
 
 return Console

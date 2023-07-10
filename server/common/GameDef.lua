@@ -10,6 +10,7 @@ local M = {
     ---Entity Type Define
     TypeRoom = 1,
     TypeFood = 2,
+    TypeMail = 3,
     ---
 
     AoiEvent = {
@@ -31,6 +32,20 @@ local M = {
         GetReward = 5,
         --- 收藏邮件
         CollectMail = 6,
+    },
+
+    ---@enum MailFlag
+    MailFlag = {
+        --- 已领取
+        Taked = 1,
+        --- 只展示
+        ShowOnly = 2,
+        --- 已读
+        Read = 4,
+        --- 已锁定
+        Locked = 8,
+        --- 已收藏
+        Marked = 16,
     },
 }
 

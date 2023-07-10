@@ -1,5 +1,6 @@
 
 import os
+import re
 import make_annotations
 
 proto_csharp_map = dict()
@@ -24,6 +25,33 @@ def to_csharp_type(prototype):
         return proto_csharp_map[prototype]
     else:
         return prototype
+
+
+class rule_convert:
+    """
+    命名规则转换 Tips：大小驼峰及下划线互转
+    @descript 大驼峰: 首字母大写其余每一个逻辑断点（单词）都用大写字母标记,同帕斯卡命名法
+    @descript 小驼峰: 首字母小写其余每一个逻辑断点（单词）都用大写字母标记
+    @descript 下划线: 逻辑断点（单词）用的是下划线隔开
+    """
+
+    @staticmethod
+    def to_under_line(x):
+        """转下划线命名"""
+        return re.sub('(?<=[a-z])[A-Z]|(?<!^)[A-Z](?=[a-z])', '_\g<0>', x).lower()
+
+    @staticmethod
+    def to_upper_camel_case(x):
+        """转大驼峰法命名"""
+
+        s = re.sub('_([a-zA-Z])', lambda m: (m.group(1).upper()), x.lower())
+        return s[0].upper() + s[1:]
+
+    @staticmethod
+    def to_lower_camel_case(x):
+        """转小驼峰法命名"""
+        s = re.sub('_([a-zA-Z])', lambda m: (m.group(1).upper()), x.lower())
+        return s[0].lower() + s[1:]
 
 
 def make_enum(name, fields):
@@ -61,19 +89,19 @@ def make_proto(proto_list_with_file, output_dir, ignore_file_list):
                 for line_tuple in fields:
                     if line_tuple[0] == "repeated":
                         content +="        [ProtoMember({0},Name = @\"{1}\")]\n".format(line_tuple[3], line_tuple[2])
-                        content +="        public List<{0}> {1} {{ get; set; }}".format(to_csharp_type(line_tuple[1]), line_tuple[2].capitalize())
+                        content +="        public List<{0}> {1} {{ get; set; }}".format(to_csharp_type(line_tuple[1]), rule_convert().to_upper_camel_case(line_tuple[2]))
                         if line_tuple[4]:
                             content += "//"+ line_tuple[4].strip('\n \t/')
                         content += "\n"
                     elif line_tuple[0] == "map":
                         content +="        [ProtoMember({0},Name = @\"{1}\")]\n".format(line_tuple[4], line_tuple[3])
-                        content +="        public Dictionary<{0},{1}> {2} {{ get; set; }}".format(to_csharp_type(line_tuple[1]), to_csharp_type(line_tuple[2]), line_tuple[3].capitalize())
+                        content +="        public Dictionary<{0},{1}> {2} {{ get; set; }}".format(to_csharp_type(line_tuple[1]), to_csharp_type(line_tuple[2]), rule_convert().to_upper_camel_case(line_tuple[3]))
                         if line_tuple[5]:
                             content += "//"+ line_tuple[5].strip('\n \t/')
                         content += "\n"
                     else:
                         content +="        [ProtoMember({0}, Name = @\"{1}\")]\n".format(line_tuple[3], line_tuple[2])
-                        content +="        public {0} {1} {{ get; set; }}".format(to_csharp_type(line_tuple[1]), line_tuple[2].capitalize())
+                        content +="        public {0} {1} {{ get; set; }}".format(to_csharp_type(line_tuple[1]), rule_convert().to_upper_camel_case(line_tuple[2]))
                         if line_tuple[4]:
                             content += "//"+ line_tuple[4].strip('\n \t/')
                         content += "\n"
