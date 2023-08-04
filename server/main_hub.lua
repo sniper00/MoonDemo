@@ -6,24 +6,18 @@ if _G["__init__"] then
         enable_stdout = (arg[3] ~= "hide"),
         logfile = string.format("log/hub-%s-%s.log", arg[1], os.date("%Y-%m-%d-%H-%M-%S")),
         loglevel = arg[4] or "DEBUG",
+        path = table.concat({
+            "./?.lua",
+            "./?/init.lua",
+            "game/?.lua",
+            "moon/lualib/?.lua",
+            "moon/service/?.lua",
+            -- Append your lua module search path
+        },";")
     }
 end
 
--- Define lua module search dir, all services use same lua search path
-local path = table.concat({
-    "./?.lua",
-    "./?/init.lua",
-    "game/?.lua",
-    "moon/lualib/?.lua",
-    "moon/service/?.lua",
-    -- Append your lua module search path
-},";")
-
-package.path = path .. ";"
-
 local moon = require("moon")
-moon.env("PATH", string.format("package.path='%s'", package.path))
-
 local json = require"json"
 local serverconf = require("serverconf")
 local socket = require("moon.socket")

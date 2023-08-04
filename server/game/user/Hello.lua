@@ -24,7 +24,7 @@ end
 
 ---这里可以访问其它模块,做更多初始化工作
 function Hello.Start()
-    scripts.Item.AddItem(1,1,1)
+    scripts.Item.AddItem(10001,1,1)
 end
 
 ---注册服务间通信的消息处理函数
