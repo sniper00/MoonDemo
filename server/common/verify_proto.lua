@@ -1,5 +1,7 @@
 --- 由于lua是脚本语言,灵活性较强。用于开发环境中, 运行时严格验证游戏内的数据结构。
 
+print('Deprecated, use require("schema") instead.')
+
 local moon = require("moon")
 local json = require("json")
 

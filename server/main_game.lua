@@ -17,12 +17,13 @@ if _G["__init__"] then
 end
 
 local moon = require("moon")
-local socket = require "moon.socket"
+local socket = require("moon.socket")
 local json = require("json")
 local uuid = require("uuid")
 local httpc = require("moon.http.client")
 local serverconf = require("serverconf")
 local common = require("common")
+local schema = require("schema")
 local db = common.Database
 local CreateTable = common.CreateTable
 
@@ -40,6 +41,7 @@ end
 
 -- If use protobuf, load *.pb file here, only need load once.
 load_protocol("protocol/proto.pb")
+schema.load(json.decode(io.readfile([[./protocol/json_verify.json]])))
 
 local function run(node_conf)
     local gate_host, gate_port = socket.parse_host_port(node_conf.host)

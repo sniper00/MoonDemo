@@ -4,7 +4,7 @@ local redisd = require("redisd")
 ---@type sqlclient
 local pgsql = require("sqldriver")
 
-local verify_proto = require("common.verify_proto")
+local schema = require("schema")
 
 local jencode = json.encode
 
@@ -72,7 +72,7 @@ end
 
 function _M.saveuser(addr_db, userid, data)
     if moon.DEBUG() then
-        verify_proto("UserData", data)
+        schema.validate("UserData", data)
     end
 
     data = jencode(data)
@@ -110,8 +110,7 @@ if moon.queryservice("db_game") > 0 then
         assert(data)
 
         if moon.DEBUG() then
-            verify_proto("UserData", data)
-            moon.warn("verify success")
+            schema.validate("UserData", data)
         end
 
         local tmp = {
