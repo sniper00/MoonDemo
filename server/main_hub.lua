@@ -77,7 +77,9 @@ moon.async(function()
     end
 
     moon.async(function()
-        local host, port = socket.parse_host_port(selfnode.host, 0)
+        local host, port = selfnode.host:match("([^:]+):?(%d*)$")
+        port = math.tointeger(port) or 80
+
         local listenfd = socket.listen(host, port,moon.PTYPE_SOCKET_TCP)
         print("Http server start", host, port)
 

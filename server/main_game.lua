@@ -44,8 +44,6 @@ load_protocol("protocol/proto.pb")
 schema.load(json.decode(io.readfile([[./protocol/json_verify.json]])))
 
 local function run(node_conf)
-    local gate_host, gate_port = socket.parse_host_port(node_conf.host)
-    local cluster_host, cluster_port = socket.parse_host_port(node_conf.cluster)
 
     local db_conf = serverconf.db[node_conf.node]
 
@@ -92,8 +90,8 @@ local function run(node_conf)
             unique = true,
             name = "gate",
             file = "game/service_gate.lua",
-            host = gate_host,
-            port = gate_port,
+            host = node_conf.host,
+            port = node_conf.port,
             threadid = 3,
         },
         {

@@ -260,8 +260,7 @@ httpserver.on("/conf.cluster", function(request, response)
     end
     response.status_code = 200
     response:write_header("Content-Type","application/json")
-    local host, port = socket.parse_host_port(cfg.cluster)
-    response:write(json.encode({host = host, port = port}))
+    response:write(json.encode({host = cfg.cluster.host, port = cfg.cluster.port}))
 end)
 
 httpserver.static("static/www")
@@ -298,6 +297,19 @@ function command.loadnode()
     local configname = moon.env("NODE_FILE_NAME")
     local res = json.decode(io.readfile(configname))
     for _,v in ipairs(res) do
+        local host, port = v.host:match("([^:]+):?(%d*)$")
+        port = math.tointeger(port) or 80
+        v.host = host
+        v.port = port
+
+        if v.cluster then
+            host, port = v.cluster:match("([^:]+):?(%d*)$")
+            port = math.tointeger(port) or 80
+            v.cluster = {
+                host = host,
+                port = port
+            }
+        end
         node_list[v.node] = v
     end
     print("loadnode")
