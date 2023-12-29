@@ -67,9 +67,9 @@ local ignore_print = {
 }
 
 ---@param uid integer
----@param m message_ptr
-function M.print_message(uid, m)
-    local size, buf = moon.decode(m, "NB")
+---@param buf buffer_ptr
+function M.print_message(uid, buf)
+    local size = buffer.size(buf)
     local has_pack_size = buffer.has_flag(buf, pack_size_flag)
 
     local offset = 0

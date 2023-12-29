@@ -42,7 +42,8 @@ socket.on("message", function(fd, msg)
         moon.send("lua", context.addr_auth, name, req)
     else
         if moon.DEBUG() then
-            protocol.print_message(c.uid, msg)
+            local buf = moon.decode(msg, "B")
+            protocol.print_message(c.uid, buf)
         end
 
         redirect(msg, c.addr_user, PTYPE_C2S, 0, 0)
@@ -71,30 +72,37 @@ moon.raw_dispatch("S2C",function(msg)
         if not c then
             return
         end
-        socket.write_message(c.fd,msg)
+
+        socket.write_message(c.fd, msg)
+
         if moon.DEBUG() then
-            protocol.print_message(uid, msg)
+            protocol.print_message(uid, buf)
         end
     else
+        local p = moon.ref_buffer(msg)
         for _, one in ipairs(uid) do
             local c = context.uid_map[one]
             if c then
-                socket.write_message(c.fd,msg)
+                socket.write_ref_buffer(c.fd,p)
                 if moon.DEBUG() then
-                    protocol.print_message(one, msg)
+                    protocol.print_message(one, buf)
                 end
             end
         end
+        moon.unref_buffer(p)
     end
 end)
 
 moon.raw_dispatch("SBC",function(msg)
-    for _, c in pairs(context.uid_map) do
+    local buf = moon.decode(msg, "B")
+    local p = moon.ref_buffer(msg)
+    for uid, c in pairs(context.uid_map) do
+        socket.write_ref_buffer(c.fd,p)
         if moon.DEBUG() then
-            protocol.print_message(_, msg)
+            protocol.print_message(uid, buf)
         end
-        socket.write_message(c.fd, msg)
     end
+    moon.unref_buffer(p)
 end)
 
 

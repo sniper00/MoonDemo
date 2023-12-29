@@ -268,6 +268,18 @@ Auth.C2SLogin = function (req)
 
     print(string.format("User Login fd:%d uid:%d pulluser:%s", req.fd, req.uid, req.pull))
 
+    if not req.pull then
+        moon.timeout(5000, function ()
+            local res = {
+                ok = false,---maybe banned
+                time = moon.now(),
+                timezone = moon.timezone,
+                uid = req.uid,
+            }
+            context.S2C(req.uid, CmdCode.S2CLogin, res)
+        end)
+    end
+
     local ok, err = xpcall(doAuth, traceback, req)
     if not ok or err then
         moon.error("Auth.C2SLogin Error", err, table.tostring(req))
