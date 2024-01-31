@@ -98,9 +98,9 @@ if moon.queryservice("db_game") > 0 then
             return false, table.tostring(res)
         end
 
-        local data = res.data[1]
-        if data then
-            return jdecode(data)
+        local row = res.data[1]
+        if row then
+            return jdecode(row.data)
         end
         ---空数据:新玩家
     return nil
