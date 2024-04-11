@@ -81,7 +81,7 @@ function Client.new(host, port, name)
                     end
                 end
             else
-                print("recv:", cmd, print_r(data, true))
+                --print("recv:", cmd, print_r(data, true))
                 if cmd == "S2CDead" then
                     print("ROBOT DEAD: ", name)
                     client.ok = false

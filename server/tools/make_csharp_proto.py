@@ -56,14 +56,14 @@ class rule_convert:
 
 def make_enum(name, fields):
     res = "[ProtoContract(Name = \"{}\")]".format(name)
-    res += "    enum  {} = {\n".format(name)
+    res += "    enum  {} = {{\n".format(name)
     for line_tuple in fields:
         if line_tuple[0] is not None:
             if len(line_tuple) == 3:
                 if line_tuple[2] is not None:
-                    res +=  "        {0} = {1}, //{3}\n".format(line_tuple[0], line_tuple[1], line_tuple[2].strip('\n \t/'))
+                    res +=  "        {0} = {1}, //{2}\n".format(line_tuple[0], line_tuple[1], line_tuple[2].strip('\n \t/'))
                 else:
-                    res +=  "        {0} = {1}, //{3}\n".format(line_tuple[0], line_tuple[1])
+                    res +=  "        {0} = {1}\n".format(line_tuple[0], line_tuple[1])
             else:
                 print("wrong enum", line_tuple)
     res += "    }\n\n"

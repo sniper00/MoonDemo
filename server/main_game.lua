@@ -197,13 +197,24 @@ local function run(node_conf)
                 assert(moon.call("lua", moon.queryservice("center"), "Center.Shutdown"))
                 assert(moon.call("lua", moon.queryservice("auth"), "Auth.Shutdown"))
                 assert(moon.call("lua", moon.queryservice("mail"), "Mail.Shutdown"))
-                moon.sleep(5000)
-                moon.raw_send("system", moon.queryservice("db_server"), "wait_save")
-                moon.raw_send("system", moon.queryservice("db_user"), "wait_save")
-                moon.raw_send("system", moon.queryservice("db_openid"), "wait_save")
+
+                moon.sleep(1000)
+                print("5......")
+                moon.sleep(1000)
+                print("4......")
+                moon.sleep(1000)
+                print("3......")
+                moon.sleep(1000)
+                print("2......")
+                moon.sleep(1000)
+                print("1......")
+
+                moon.send("lua", moon.queryservice("db_server"), "save_then_quit")
+                moon.send("lua", moon.queryservice("db_user"), "save_then_quit")
+                moon.send("lua", moon.queryservice("db_openid"), "save_then_quit")
 
                 if moon.queryservice("db_game") > 0 then
-                    moon.raw_send("system", moon.queryservice("db_game"), "wait_save")
+                    moon.send("lua", moon.queryservice("db_game"), "save_then_quit")
                 end
 
                 moon.kill(moon.queryservice("robot"))

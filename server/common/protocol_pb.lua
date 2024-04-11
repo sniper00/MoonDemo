@@ -91,16 +91,11 @@ local ignore_print = {
 ---@param buf buffer_ptr
 function M.print_message(uid, buf)
     local size = buffer.size(buf)
-    local has_pack_size = buffer.has_flag(buf, pack_size_flag)
 
     local offset = 0
 
     while true do
         local len = size
-        if has_pack_size then
-            len = bunpack(buf, ">H", offset)
-            offset = offset + 2
-        end
         local id, p, n = bunpack(buf, "<HC", offset)
         local name = id_name[id]
         offset = offset + 2

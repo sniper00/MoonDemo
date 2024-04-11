@@ -81,6 +81,7 @@ moon.async(function()
         port = math.tointeger(port) or 80
 
         local listenfd = socket.listen(host, port,moon.PTYPE_SOCKET_TCP)
+        assert(listenfd>0)
         print("Http server start", host, port)
 
         local balance = 1

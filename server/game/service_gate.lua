@@ -65,7 +65,7 @@ socket.on("close", function(fd, msg)
 end)
 
 moon.raw_dispatch("S2C",function(msg)
-    local buf = moon.decode(msg, "B")
+    local buf = moon.decode(msg, "L")
     local uid = seri.unpack_one(buf, true)
     if type(uid) == "number" then
         local c = context.uid_map[uid]
@@ -73,13 +73,12 @@ moon.raw_dispatch("S2C",function(msg)
             return
         end
 
-        socket.write_message(c.fd, msg)
-
+        socket.write(c.fd, buf)
         if moon.DEBUG() then
             protocol.print_message(uid, buf)
         end
     else
-        local p = moon.ref_buffer(msg)
+        local p = moon.ref_buffer(buf)
         for _, one in ipairs(uid) do
             local c = context.uid_map[one]
             if c then
@@ -94,8 +93,8 @@ moon.raw_dispatch("S2C",function(msg)
 end)
 
 moon.raw_dispatch("SBC",function(msg)
-    local buf = moon.decode(msg, "B")
-    local p = moon.ref_buffer(msg)
+    local buf = moon.decode(msg, "L")
+    local p = moon.ref_buffer(buf)
     for uid, c in pairs(context.uid_map) do
         socket.write_ref_buffer(c.fd,p)
         if moon.DEBUG() then

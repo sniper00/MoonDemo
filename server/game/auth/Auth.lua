@@ -270,6 +270,10 @@ Auth.C2SLogin = function (req)
 
     if not req.pull then
         moon.timeout(5000, function ()
+            if context.uid_map[req.uid] then
+                return
+            end
+
             local res = {
                 ok = false,---maybe banned
                 time = moon.now(),
