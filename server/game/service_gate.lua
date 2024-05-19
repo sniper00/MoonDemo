@@ -2,6 +2,7 @@ local moon = require("moon")
 local seri = require("seri")
 local socket = require("moon.socket")
 local common = require("common")
+local buffer = require("buffer")
 local setup = common.setup
 local protocol = common.protocol_pb
 local GameDef = common.GameDef
@@ -78,30 +79,28 @@ moon.raw_dispatch("S2C",function(msg)
             protocol.print_message(uid, buf)
         end
     else
-        local p = moon.ref_buffer(buf)
+        local p = buffer.to_shared(buf)
         for _, one in ipairs(uid) do
             local c = context.uid_map[one]
             if c then
-                socket.write_ref_buffer(c.fd,p)
+                socket.write(c.fd, p)
                 if moon.DEBUG() then
                     protocol.print_message(one, buf)
                 end
             end
         end
-        moon.unref_buffer(p)
     end
 end)
 
 moon.raw_dispatch("SBC",function(msg)
     local buf = moon.decode(msg, "L")
-    local p = moon.ref_buffer(buf)
+    local p = buffer.to_shared(buf)
     for uid, c in pairs(context.uid_map) do
-        socket.write_ref_buffer(c.fd,p)
+        socket.write(c.fd, p)
         if moon.DEBUG() then
             protocol.print_message(uid, buf)
         end
     end
-    moon.unref_buffer(p)
 end)
 
 
