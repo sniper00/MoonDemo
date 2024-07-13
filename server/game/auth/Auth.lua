@@ -254,7 +254,7 @@ Auth.C2SLogin = function (req)
         ---make the user offline event in right order.
         local c = context.uid_map[req.uid]
         if c and c.logouttime==0 then
-            moon.send("lua", context.addr_gate, "Kick", req.uid, 0, true)
+            moon.send("lua", context.addr_gate, "Gate.Kick", req.uid, 0, true)
             Auth.Disconnect(req.uid)
             return
         end
