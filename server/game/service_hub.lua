@@ -164,7 +164,7 @@ httpserver.content_max_len = 8192
 
 httpserver.on("/console",function(request, response)
     local command = string.trim(request.body)
-    if request.header["content-type"] == "application/json" then
+    if request.headers["content-type"] == "application/json" then
         command = json.decode(command).command
     end
 
