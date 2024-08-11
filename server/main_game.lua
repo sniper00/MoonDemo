@@ -17,7 +17,6 @@ if _G["__init__"] then
 end
 
 local moon = require("moon")
-local socket = require("moon.socket")
 local json = require("json")
 local uuid = require("uuid")
 local httpc = require("moon.http.client")
@@ -71,15 +70,15 @@ local function run(node_conf)
             poolsize = 5,
             opts = db_conf.redis
         },
-        -- {
-        --     unique = true,
-        --     name = "db_game",
-        --     file = "moon/service/sqldriver.lua",
-        --     provider = "moon.db.pg",
-        --     threadid = 2,
-        --     poolsize = 5,
-        --     opts = db_conf.pg
-        -- },
+        {
+            unique = true,
+            name = "db_game",
+            file = "moon/service/sqldriver.lua",
+            provider = "moon.db.pg",
+            threadid = 2,
+            poolsize = 5,
+            opts = db_conf.pg
+        },
         {
             unique = true,
             name = "auth",
@@ -104,8 +103,7 @@ local function run(node_conf)
             unique = true,
             name = "cluster",
             file = "moon/service/cluster.lua",
-            etc_host = serverconf.NODE_ETC_HOST,
-            etc_path = "/conf.cluster?node=%s",
+            url = serverconf.CLUSTER_ETC_URL,
             threadid = 5,
         },
         {
@@ -239,17 +237,14 @@ local function run(node_conf)
 end
 
 moon.async(function()
-    local response = httpc.get(serverconf.NODE_ETC_HOST, {
-        path = "/conf.node?node=" .. tostring(arg[1])
-    })
-
+    local response = httpc.get(string.format(serverconf.NODE_ETC_URL, arg[1]))
     if response.status_code ~= 200 then
-        moon.error(response.status_code, response.content)
+        moon.error(response.status_code, response.body)
         moon.exit(-1)
         return
     end
 
-    local node_conf = json.decode(response.content)
+    local node_conf = json.decode(response.body)
 
     moon.env("NODE", arg[1])
     moon.env("SERVER_NAME", node_conf.type.."-"..tostring(node_conf.node))

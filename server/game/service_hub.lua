@@ -163,7 +163,7 @@ end
 httpserver.content_max_len = 8192
 
 httpserver.on("/console",function(request, response)
-    local command = string.trim(request.content)
+    local command = string.trim(request.body)
     if request.header["content-type"] == "application/json" then
         command = json.decode(command).command
     end
@@ -195,7 +195,7 @@ httpserver.on("/console",function(request, response)
         response.status_code = Code
         response:write_header("Content-Type","application/text")
         response:write(table.concat(res,""))
-        moon.error(request.content, table.concat(res,""))
+        moon.error(request.body, table.concat(res,""))
     else
         response.status_code = Code
         local content = table.concat(res,"")

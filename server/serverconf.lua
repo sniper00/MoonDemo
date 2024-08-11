@@ -13,7 +13,8 @@ local db_pg = {
 local conf = {
     ---动态获取服务器配置地址,保证和node.json中hub的host一致
     ---如果有多个hub节点建议用nginx做一个负载均衡http代理
-    NODE_ETC_HOST = "127.0.0.1:8003",
+    NODE_ETC_URL = "http://127.0.0.1:8003/conf.node?node=%s",
+    CLUSTER_ETC_URL = "http://127.0.0.1:8003/conf.cluster?node=%s",
 }
 
 ---每个区服的数据库配置
