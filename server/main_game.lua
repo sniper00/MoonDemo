@@ -70,15 +70,15 @@ local function run(node_conf)
             poolsize = 5,
             opts = db_conf.redis
         },
-        {
-            unique = true,
-            name = "db_game",
-            file = "moon/service/sqldriver.lua",
-            provider = "moon.db.pg",
-            threadid = 2,
-            poolsize = 5,
-            opts = db_conf.pg
-        },
+        -- {
+        --     unique = true,
+        --     name = "db_game",
+        --     file = "moon/service/sqldriver.lua",
+        --     provider = "moon.db.pg",
+        --     threadid = 2,
+        --     poolsize = 5,
+        --     opts = db_conf.pg
+        -- },
         {
             unique = true,
             name = "auth",
