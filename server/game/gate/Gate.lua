@@ -15,7 +15,11 @@ end
 
 function Gate.Start()
     ---开始接收客户端网络链接
-    listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET_MOON)
+    if context.conf.websocket then
+        listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET_WS)
+    else
+        listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET_MOON)
+    end
     assert(listenfd>0,"server listen failed")
     socket.start(listenfd)
     print("GAME Server Start Listen",context.conf.host, context.conf.port)

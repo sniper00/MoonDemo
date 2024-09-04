@@ -92,6 +92,7 @@ local function run(node_conf)
             host = node_conf.host,
             port = node_conf.port,
             threadid = 3,
+            websocket = false,
         },
         {
             unique = true,
