@@ -39,7 +39,7 @@ function M.LogShrinkToFit(dir, nameprefix, maxcount)
     local list = fs.listdir(dir)
     for _, file in ipairs(list) do
         if not fs.isdir(file) then
-            local match = string.gmatch(fs.stem(file), "%a+_%d+")()
+            local match = string.gmatch(fs.stem(file), "%a+-%d+")()
             if match and match == log_filename_start then
                 table.insert(logfiles, file)
             end
