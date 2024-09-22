@@ -45,6 +45,7 @@ function User.Load(req)
 
         scripts.UserModel.Create(data)
 
+        context.uid = req.uid
         ---初始化自己数据
         context.batch_invoke("Init", isnew)
         ---初始化互相引用的数据
@@ -62,8 +63,6 @@ function User.Load(req)
         moon.error(errmsg)
         return false, errmsg
     end
-
-    context.uid = res.uid
     return true
 end
 

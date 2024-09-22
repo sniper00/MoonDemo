@@ -76,6 +76,7 @@ if moon.queryservice("db_game") > 0 then
 end
 context.addr_center = moon.queryservice("center")
 context.addr_auth = moon.queryservice("auth")
+context.addr_mail = moon.queryservice("mail")
 
 context.S2C = function(cmd_code, mtable)
     moon.raw_send('S2C', context.addr_gate, protocol.encode(context.uid, cmd_code, mtable))

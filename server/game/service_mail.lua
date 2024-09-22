@@ -11,7 +11,7 @@ local context ={
     uid_address = {}
 }
 
-common.setup(context,"room")
+common.setup(context,"mail")
 
 moon.shutdown(function()
     --- rewrite default behavior: quit immediately

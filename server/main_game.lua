@@ -43,7 +43,6 @@ load_protocol("protocol/proto.pb")
 schema.load(json.decode(io.readfile([[./protocol/json_verify.json]])))
 
 local function run(node_conf)
-
     local db_conf = serverconf.db[node_conf.node]
 
     local services = {
@@ -123,7 +122,7 @@ local function run(node_conf)
         {
             unique = true,
             name = "mail",
-            file = "game/service_center.lua",
+            file = "game/service_mail.lua",
             threadid = 8
         },
         {
@@ -142,7 +141,7 @@ local function run(node_conf)
 
         local data = db.loadserverdata(moon.queryservice("db_server"))
         if not data then
-            data = {boot_times = 0}
+            data = { boot_times = 0 }
         else
             data = json.decode(data)
         end
@@ -197,17 +196,13 @@ local function run(node_conf)
                 assert(moon.call("lua", moon.queryservice("auth"), "Auth.Shutdown"))
                 assert(moon.call("lua", moon.queryservice("mail"), "Mail.Shutdown"))
 
-                moon.sleep(1000)
-                print("5......")
-                moon.sleep(1000)
-                print("4......")
-                moon.sleep(1000)
-                print("3......")
-                moon.sleep(1000)
-                print("2......")
-                moon.sleep(1000)
-                print("1......")
-
+                -- wait other service shutdown
+                local i = 5
+                while i > 0 do
+                    moon.sleep(1000)
+                    print(i .. "......")
+                    i = i - 1
+                end
                 moon.send("lua", moon.queryservice("db_server"), "save_then_quit")
                 moon.send("lua", moon.queryservice("db_user"), "save_then_quit")
                 moon.send("lua", moon.queryservice("db_openid"), "save_then_quit")
@@ -248,6 +243,6 @@ moon.async(function()
     local node_conf = json.decode(response.body)
 
     moon.env("NODE", arg[1])
-    moon.env("SERVER_NAME", node_conf.type.."-"..tostring(node_conf.node))
+    moon.env("SERVER_NAME", node_conf.type .. "-" .. tostring(node_conf.node))
     run(node_conf)
 end)
