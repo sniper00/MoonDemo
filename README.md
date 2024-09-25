@@ -164,6 +164,17 @@ else
 {
     MessageBox.Show("auth failed");
 }
+
+//获取请求结果或者逻辑ErrorCode
+var callResult = await Network.Call<NetMessage.S2CWorld, NetMessage.S2CErrorCode>(UserData.GameSeverID, new NetMessage.C2SHello
+{
+    Hello = "world"
+});
+
+if (!callResult.IsFirstResponse)
+{
+    Debug.Log("error:" + callResult.Response2.Code);
+}
 ```
 
 ```csharp
