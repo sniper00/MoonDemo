@@ -2,7 +2,7 @@ local moon = require("moon")
 local socket = require("moon.socket")
 local common = require("common")
 
-local protocol = common.protocol_pb
+local protocol = common.protocol
 local MSGID = common.CmdCode
 local vector2 = common.vector2
 local GameCfg = common.GameCfg

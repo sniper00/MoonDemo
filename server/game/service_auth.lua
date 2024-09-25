@@ -1,5 +1,5 @@
 local moon = require("moon")
-local common = require("common")
+local setup = require("common.setup")
 
 ---@class auth_context:base_context
 ---@field uid_map table<integer,AuthUser> @内存加载的玩家服务信息
@@ -12,7 +12,7 @@ local context = {
     scripts = {},
 }
 
-local command = common.setup(context)
+local command = setup(context)
 
 command.hotfix = function(names)
     for _,u in pairs(context.uid_map) do

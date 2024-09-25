@@ -3,9 +3,9 @@ local moon = require("moon")
 local seri = require("seri")
 local buffer = require("buffer")
 local common = require("common")
+local setup = require("common.setup")
 
-local protocol = common.protocol_pb
-local setup = common.setup
+local protocol = common.protocol
 local CmdCode = common.CmdCode
 local GameDef = common.GameDef
 

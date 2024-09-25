@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-using ProtoBuf;
-using UnityEngine.XR;
 
 public static class Serializer
 {
@@ -73,6 +71,65 @@ public class Network:MonoBehaviour
     static public Action<long, string> OnError
     {
         set; private get;
+    }
+
+    static public async Task<Response> Wait<Response>(long connectionId)
+    {
+        var responseId = (int)Convert.ChangeType(ToMessageID(typeof(Response)), typeof(int));
+        var task = new TaskCompletionSource<SocketMessage>();
+        tasks[responseId] = task;
+        var res = await task.Task;
+        return Serializer.Decode<Response>(res.Data.Data, res.Data.Index, res.Data.Count);
+    }
+
+    public class CallResult<T1, T2>
+    {
+        public bool IsFirstResponse { get; set; }
+        public T1 Response1 { get; set; }
+        public T2 Response2 { get; set; }
+    }
+
+    static public async Task<CallResult<T1, T2>> Call<T1, T2>(long connectionId, object msg)
+    {
+        var task1 = CreateTaskCompletionSource<T1>(out int responseId1);
+        var task2 = CreateTaskCompletionSource<T2>(out int responseId2);
+
+        var requestId = ToMessageID(msg.GetType());
+        Moon.Buffer buffer = new Moon.Buffer();
+        buffer.Write(Convert.ToUInt16(requestId));
+
+        var sdata = Serializer.Encode(msg);
+        if (sdata != null)
+        {
+            buffer.Write(sdata, 0, sdata.Length);
+            Send(connectionId, buffer);
+        }
+        else
+        {
+            return new CallResult<T1, T2> { IsFirstResponse = true, Response1 = default(T1), Response2 = default(T2) };
+        }
+
+        var res = await Task.WhenAny(task1.Task, task2.Task).ConfigureAwait(false);
+        if (res == task1.Task)
+        {
+            tasks.Remove(responseId2);
+            var response = Serializer.Decode<T1>(res.Result.Data.Data, res.Result.Data.Index, res.Result.Data.Count);
+            return new CallResult<T1, T2> { IsFirstResponse = true, Response1 = response, Response2 = default(T2) };
+        }
+        else
+        {
+            tasks.Remove(responseId1);
+            var response = Serializer.Decode<T2>(res.Result.Data.Data, res.Result.Data.Index, res.Result.Data.Count);
+            return new CallResult<T1, T2> { IsFirstResponse = false, Response1 = default(T1), Response2 = response };
+        }
+    }
+
+    private static TaskCompletionSource<SocketMessage> CreateTaskCompletionSource<T>(out int responseId)
+    {
+        responseId = (int)Convert.ChangeType(ToMessageID(typeof(T)), typeof(int));
+        var task = new TaskCompletionSource<SocketMessage>();
+        tasks[responseId] = task;
+        return task;
     }
 
     static public async Task<Response> Call<Response>(long connectionId, object msg)

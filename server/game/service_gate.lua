@@ -4,8 +4,8 @@ local socket = require("moon.socket")
 local websocket = require("moon.http.websocket")
 local common = require("common")
 local buffer = require("buffer")
-local setup = common.setup
-local protocol = common.protocol_pb
+local setup = require("common.setup")
+local protocol = common.protocol
 local GameDef = common.GameDef
 
 local conf = ...

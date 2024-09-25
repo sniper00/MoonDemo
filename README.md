@@ -206,6 +206,8 @@ protocol目录的文件都会生成lua注解，建议逻辑中多定义proto结�
 
 ### 定义协议
 
+> 如果是小游戏之类的客户端，不想采用`protobuf`作为通信协议，可以通过[修改这里](https://github.com/sniper00/MoonDemo/blob/master/server/common/init.lua#L6), 采用`json`作为通信协议。**注意Demo自带的Unity客户端暂时不支持切换Json协议**。
+
 在 `protocol/user.proto` 中添加, 然后运行`tools/moonfly.bat`
 ```proto
 //客户端发送

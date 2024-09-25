@@ -1,6 +1,5 @@
 local moon = require("moon")
-local common = require("common")
-
+local setup = require("common.setup")
 local conf = ...
 
 ---@class mail_context:base_context
@@ -11,7 +10,7 @@ local context ={
     uid_address = {}
 }
 
-common.setup(context,"mail")
+setup(context,"mail")
 
 moon.shutdown(function()
     --- rewrite default behavior: quit immediately

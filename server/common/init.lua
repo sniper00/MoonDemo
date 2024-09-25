@@ -2,9 +2,8 @@
 
 return {
     vector2 = require("common.vector2"),
-    setup = require("common.setup"),
-    protocol = require("common.protocol"),
-    protocol_pb = require("common.protocol_pb"),
+    protocol = require("common.protocol_pb"), -- protobuf
+    --protocol = require("common.protocol"), -- json
 
     CmdCode = require("common.CmdCode"),
     Database = require("common.Database"),

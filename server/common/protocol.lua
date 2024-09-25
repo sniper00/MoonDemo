@@ -1,10 +1,11 @@
 local moon = require "moon"
 local json = require("json")
 local buffer = require("buffer")
+local seri = require "seri"
 local code = require("common.CmdCode")
 
-local jdecode = json.decode
 local concats = buffer.concat_string
+local concat = buffer.concat
 local type = type
 
 local bsize = buffer.size
@@ -25,19 +26,31 @@ end
 
 local M = {}
 
-function M.encode(id,t)
+function M.encode(uid, id, t)
     if type(id)=='string' then
         id = code[id]
     end
-    local data = id_bytes[id]
+    local bytes = id_bytes[id]
     if t then
-        return concats(data,json.encode(t))
+        return concat(seri.packs(uid), bytes, json.encode(t))
     else
-        return data
+        return seri.packs(uid) .. bytes
     end
 end
 
-M.encodestring = M.encode
+function M.encodestring(id, t)
+    if type(id) == 'string' then
+        id = code[id]
+    end
+    local bytes = id_bytes[id]
+    if t then
+        local name = id_name[id]
+        assert(name, id)
+        return concats(bytes, json.encode(t))
+    else
+        return bytes
+    end
+end
 
 function M.decode(buf)
     local size = bsize(buf)
@@ -51,16 +64,24 @@ function M.decode(buf)
         error(string.format("recv unknown message code: %d.", id))
     end
     if n > 0 then
-        return name, jdecode(p, n)
+        return name, json.decode(p, n)
     end
     return name
+end
+
+function M.decodestring(data)
+    local id = string.unpack("<H", data)
+    data = string.sub(data, 3)
+    local name = id_name[id]
+    if not name then
+        error(string.format("recv unknown message CmdCode: %d. client server version mismatch", id))
+    end
+    return name, json.decode(data), id
 end
 
 function M.name(id)
     return id_name[id]
 end
-
-local pack_size_flag = 1
 
 local ignore_print = {
     ["S2CXXX"] = true,

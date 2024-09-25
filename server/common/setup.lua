@@ -3,10 +3,11 @@ local hotfix = require("hotfix")
 local fs = require("fs")
 local seri = require("seri")
 local datetime = require("moon.datetime")
-local GameDef = require("common.GameDef")
-local protocol = require("common.protocol_pb")
-local CmdCode = require("common.CmdCode")
-local GameCfg = require("common.GameCfg")
+local common = require("common")
+local GameDef = common.GameDef
+local protocol = common.protocol
+local CmdCode = common.CmdCode
+local GameCfg = common.GameCfg
 
 local string = string
 local type = type
@@ -185,13 +186,12 @@ local function do_client_command(context, cmd, uid, req)
 end
 
 return function(context, sname)
-
-    setmetatable (context, {
+    setmetatable(context, {
         __index = function(t, key)
             if string.sub(key, 1, 5) == "addr_" then
                 local addr = moon.queryservice(string.sub(key, 6))
                 if addr == 0 then
-                    error("Can not found service: ".. tostring(key))
+                    error("Can not found service: " .. tostring(key))
                 end
                 t[key] = addr
                 return addr
@@ -279,6 +279,3 @@ return function(context, sname)
 
     return command
 end
-
-
-

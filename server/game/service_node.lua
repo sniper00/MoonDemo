@@ -1,6 +1,5 @@
 local moon = require("moon")
-local common = require("common")
-
+local setup = require("common.setup")
 local conf = ...
 
 ---@class node_context:base_context
@@ -9,7 +8,7 @@ local context ={
     logics = {},
 }
 
-common.setup(context)
+setup(context)
 
 moon.shutdown(function()
     moon.quit()

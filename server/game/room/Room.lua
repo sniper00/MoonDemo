@@ -1,9 +1,8 @@
 local moon = require("moon")
-local seri = require("seri")
 local uuid = require("uuid")
 local common = require("common")
 
-local protocol = common.protocol_pb
+local protocol = common.protocol
 local vector2 = common.vector2
 local GameDef = common.GameDef
 local CmdCode = common.CmdCode

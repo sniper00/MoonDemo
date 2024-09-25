@@ -33,13 +33,15 @@ function M.encode(uid, id, t)
     if type(id) == 'string' then
         id = CmdCode[id]
     end
-    local data = id_bytes[id]
+    local bytes = id_bytes[id]
     if t then
         local name = id_name[id]
-        assert(name, id)
-        return concat(seri.packs(uid), data, pencode(name, t))
+        if not name then
+            error("Unknown cmdcode: "..id)
+        end
+        return concat(seri.packs(uid), bytes, pencode(name, t))
     else
-        return seri.packs(uid) .. data
+        return seri.packs(uid) .. bytes
     end
 end
 
@@ -47,13 +49,13 @@ function M.encodestring(id, t)
     if type(id) == 'string' then
         id = CmdCode[id]
     end
-    local data = id_bytes[id]
+    local bytes = id_bytes[id]
     if t then
         local name = id_name[id]
         assert(name, id)
-        return concats(data, pencode(name, t))
+        return concats(bytes, pencode(name, t))
     else
-        return data
+        return bytes
     end
 end
 
@@ -80,8 +82,6 @@ end
 function M.name(id)
     return id_name[id]
 end
-
-local pack_size_flag = 1
 
 local ignore_print = {
     ["S2CXXX"] = true,
