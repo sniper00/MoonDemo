@@ -14,6 +14,7 @@ local context = {
 
 local command = setup(context)
 
+---@diagnostic disable-next-line: duplicate-set-field
 command.hotfix = function(names)
     for _,u in pairs(context.uid_map) do
         moon.send("lua", u.addr_user, "hotfix", names)

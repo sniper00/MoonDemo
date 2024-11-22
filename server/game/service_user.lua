@@ -63,6 +63,9 @@ moon.raw_dispatch("C2S",function(msg)
                 moon.error(res)
                 context.S2C(CmdCode.S2CErrorCode,{code = 1}) --server internal error
             elseif res then
+                if type(res) ~= "number" then
+                    error(string.format("Expect number(error code) got boolean when handle message '%s'", cmd))
+                end
                 context.S2C(CmdCode.S2CErrorCode,{code = res})
             end
         end)

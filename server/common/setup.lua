@@ -18,22 +18,6 @@ local unpack_one = seri.unpack_one
 local pack = moon.pack
 local raw_send = moon.raw_send
 
----@class base_context
----@field scripts table
----@field S2C fun(uid:integer, msgid:integer|string, mdata:table) @ 给玩家发送消息
----@field start_hour_timer fun() @ 开启整点定时器
----@field batch_invoke fun(fnname:string, ...) @批量调用所有脚本的函数
----@field send_user fun(uid:integer, cmd:string, ...) @给玩家服务发送消息,如果玩家不在线,会加载玩家
----@field call_user fun(uid:integer, cmd:string, ...) @调用玩家服务,如果玩家不在线,会加载玩家
----@field try_send_user fun(uid:integer, cmd:string, ...) @尝试给玩家服务发送消息,如果玩家不在线,消息会被忽略
----@field addr_gate integer
----@field addr_auth integer
----@field addr_center integer
----@field addr_db_user integer
----@field addr_db_server integer
----@field addr_db_openid integer
----@field addr_mail integer
-
 local command = {}
 
 hotfix.addsearcher(function(file)
@@ -83,8 +67,71 @@ local function load_scripts(context, sname)
 end
 
 ---@param context base_context
+local function start_hour_timer(context)
+    local fn = command["OnHour"]
+    if not fn then
+        return
+    end
+
+    local MILLSECONDS_ONE_HOUR <const> = 3600000
+
+    local hour = datetime.localtime(moon.time()).hour
+    moon.async(function()
+        while true do
+            local diff = MILLSECONDS_ONE_HOUR - moon.now() % MILLSECONDS_ONE_HOUR + 100
+            moon.sleep(diff)
+            local tm = datetime.localtime(moon.time())
+            if hour == tm.hour then
+                moon.error("not hour!")
+            else
+                hour = tm.hour
+                local _ = context.batch_invoke("OnHour", hour)
+                if hour == 0 then
+                    hour = tm.hour
+                    local _ = context.batch_invoke("OnDay", datetime.localday())
+                end
+            end
+        end
+    end)
+end
+
 local function _internal(context)
-    context.batch_invoke = function(cmd, ...)
+    ---@class base_context
+    ---@field scripts table
+    ---@field addr_gate integer
+    ---@field addr_auth integer
+    ---@field addr_center integer
+    ---@field addr_db_user integer
+    ---@field addr_db_server integer
+    ---@field addr_db_openid integer
+    ---@field addr_mail integer
+    local base_context = context
+
+    setmetatable(base_context, {
+        __index = function(t, key)
+            if string.sub(key, 1, 5) == "addr_" then
+                local addr = moon.queryservice(string.sub(key, 6))
+                if addr == 0 then
+                    error("Can not found service: " .. tostring(key))
+                end
+                t[key] = addr
+                return addr
+            end
+            return nil
+        end
+    })
+
+    if not base_context.scripts then
+        base_context.scripts = {}
+    end
+
+    --- 开启整点定时器
+    function base_context.start_hour_timer()
+        start_hour_timer(context)
+    end
+
+    --- 批量调用所有脚本的函数, 如果发生错误, 会打印错误信息
+    function base_context.batch_invoke(cmd, ...)
         for _, v in pairs(context.scripts) do
             local f = v[cmd]
             if f then
@@ -94,6 +141,36 @@ local function _internal(context)
                 end
             end
         end
+    end
+
+    --- 批量调用所有脚本的函数, 如果发生错误, 抛出异常
+    function base_context.batch_invoke_throw(cmd, ...)
+        for _, v in pairs(context.scripts) do
+            local f = v[cmd]
+            if f then
+                f(...)
+            end
+        end
+    end
+
+    --- send message to client.
+    function base_context.S2C(uid, cmd_code, mtable)
+        moon.raw_send('S2C', context.addr_gate, protocol.encode(uid, cmd_code, mtable))
+    end
+
+    --- 给玩家服务发送消息,如果玩家不在线,会加载玩家
+    function base_context.send_user(uid, ...)
+        moon.send("lua", context.addr_auth, "Auth.SendUser", uid, ...)
+    end
+
+    --- 调用玩家服务,如果玩家不在线,会加载玩家
+    function base_context.call_user(uid, ...)
+        return moon.call("lua", context.addr_auth, "Auth.CallUser", uid, ...)
+    end
+
+    --- 尝试给玩家服务发送消息,如果玩家不在线,消息会被忽略
+    function base_context.try_send_user(uid, ...)
+        moon.send("lua", context.addr_auth, "Auth.TrySendUser", uid, ...)
     end
 
     command.hotfix = function(fixlist)
@@ -122,43 +199,14 @@ local function _internal(context)
 
     command.Init = function(...)
         GameCfg.Load()
-        context.batch_invoke("Init", ...)
+        base_context.batch_invoke_throw("Init", ...)
         return true
     end
 
     command.Start = function(...)
-        context.batch_invoke("Start", ...)
+        base_context.batch_invoke_throw("Start", ...)
         return true
     end
-end
-
----@param context base_context
-local function start_hour_timer(context)
-    local fn = command["OnHour"]
-    if not fn then
-        return
-    end
-
-    local MILLSECONDS_ONE_HOUR <const> = 3600000
-
-    local hour = datetime.localtime(moon.time()).hour
-    moon.async(function()
-        while true do
-            local diff = MILLSECONDS_ONE_HOUR - moon.now() % MILLSECONDS_ONE_HOUR + 100
-            moon.sleep(diff)
-            local tm = datetime.localtime(moon.time())
-            if hour == tm.hour then
-                moon.error("not hour!")
-            else
-                hour = tm.hour
-                context.batch_invoke("OnHour", hour)
-                if hour == 0 then
-                    hour = tm.hour
-                    context.batch_invoke("OnDay", datetime.localday())
-                end
-            end
-        end
-    end)
 end
 
 local function xpcall_ret(ok, ...)
@@ -186,29 +234,7 @@ local function do_client_command(context, cmd, uid, req)
 end
 
 return function(context, sname)
-    setmetatable(context, {
-        __index = function(t, key)
-            if string.sub(key, 1, 5) == "addr_" then
-                local addr = moon.queryservice(string.sub(key, 6))
-                if addr == 0 then
-                    error("Can not found service: " .. tostring(key))
-                end
-                t[key] = addr
-                return addr
-            end
-            return nil
-        end
-    })
-
     sname = sname or moon.name
-
-    if not context.scripts then
-        context.scripts = {}
-    end
-
-    context.start_hour_timer = function()
-        start_hour_timer(context)
-    end
 
     _internal(context)
 
@@ -257,25 +283,6 @@ return function(context, sname)
         PTYPE = GameDef.PTYPE_SBC,
         dispatch = nil
     })
-
-    --- send message to client.
-    context.S2C = function(uid, cmd_code, mtable)
-        moon.raw_send('S2C', context.addr_gate, protocol.encode(uid, cmd_code, mtable))
-    end
-
-    --- send message to user-service.
-    context.send_user = function(uid, ...)
-        moon.send("lua", context.addr_auth, "Auth.SendUser", uid, ...)
-    end
-
-    --- send message to user-service and get results.
-    context.call_user = function(uid, ...)
-        return moon.call("lua", context.addr_auth, "Auth.CallUser", uid, ...)
-    end
-
-    context.try_send_user = function(uid, ...)
-        moon.send("lua", context.addr_auth, "Auth.TrySendUser", uid, ...)
-    end
 
     return command
 end

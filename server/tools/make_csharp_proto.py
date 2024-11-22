@@ -56,7 +56,7 @@ class rule_convert:
 
 def make_enum(name, fields):
     res = "[ProtoContract(Name = \"{}\")]".format(name)
-    res += "    enum  {} = {{\n".format(name)
+    res += "    enum  {} {{\n".format(name)
     for line_tuple in fields:
         if line_tuple[0] is not None:
             if len(line_tuple) == 3:

@@ -83,19 +83,15 @@ if moon.queryservice("db_game") > 0 then
         ---async
     ---@param db integer
     ---@param uid integer
-    ---@overload fun(db: integer, uid: integer):boolean,string
-    ---@overload fun(db: integer, uid: integer):UserData
-    ---@overload fun(db: integer, uid: integer):nil
+    ---@return UserData?
     function _M.loaduser(db, uid)
         local res, err = pgsql.query(db, string.format("select * from userdata where uid=%s;", uid), uid)
         if not res then
-            ---xpcall lua error
-            return false, "loaduser "..tostring(err)
+            error("loaduser failed:" .. err)
         end
 
-        ---check sql error
         if res.code then
-            return false, table.tostring(res)
+            error("loaduser failed db error:" .. json.encode(res))
         end
 
         local row = res.data[1]
@@ -103,7 +99,7 @@ if moon.queryservice("db_game") > 0 then
             return jdecode(row.data)
         end
         ---空数据:新玩家
-    return nil
+        return nil
     end
 
     function _M.saveuser(db, uid, data)

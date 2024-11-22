@@ -47,9 +47,9 @@ function User.Load(req)
 
         context.uid = req.uid
         ---初始化自己数据
-        context.batch_invoke("Init", isnew)
+        context.batch_invoke_throw("Init", isnew)
         ---初始化互相引用的数据
-        context.batch_invoke("Start")
+        context.batch_invoke_throw("Start")
         return data
     end
 

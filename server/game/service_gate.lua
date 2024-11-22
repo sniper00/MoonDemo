@@ -34,9 +34,16 @@ if conf.websocket then
     websocket.wson("message", function(fd, msg)
         local c = context.fd_map[fd]
         if not c then
-            ---first message must be auth message
+            --- First message must be auth message
+            
+            --- Since the auth process is asynchronous, the address where the auth message is saved is used as a sign to distinguish different auth requests
             context.auth_watch[fd] = tostring(msg)
-            local name, req = protocol.decode(moon.decode(msg, "B"))
+            local ok, name, req = pcall(protocol.decode,moon.decode(msg, "B"))
+            if not ok then
+                moon.error("Decode auth message failed:", name)
+                socket.close(fd)
+                return
+            end
             req.sign = context.auth_watch[fd]
             req.fd = fd
             req.addr = socket.getaddress(fd)

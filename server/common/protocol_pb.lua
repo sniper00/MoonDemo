@@ -63,7 +63,7 @@ function M.decode(buf)
     local id, p, n = bunpack(buf, "<HC")
     local name = id_name[id]
     if not name then
-        error(string.format("recv unknown message CmdCode: %d. client server version mismatch", id))
+        error(string.format("Received unknown message CmdCode: %d. The client and server versions might not match.", id))
     end
     return name, pdecode(name, p, n)
 end
@@ -73,7 +73,7 @@ function M.decodestring(data)
     local pbdata = string.sub(data, 3)
     local name = id_name[id]
     if not name then
-        error(string.format("recv unknown message CmdCode: %d. client server version mismatch", id))
+        error(string.format("Received unknown message CmdCode: %d. The client and server versions might not match.", id))
     end
     return name, pdecode(name, pbdata), id
 end
