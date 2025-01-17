@@ -51,8 +51,8 @@ public class Login : MonoBehaviour
                 Port.text = 12345.ToString();
             }
 
-            var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.TcpMoon);
-            if (result.ConnectionId == 0)
+            var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.Ws);
+            if (result.Data.GetString() != "Success")
             {
                 MessageBox.Show(result.Data.GetString());
                 return;

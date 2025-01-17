@@ -27,7 +27,7 @@ setup(context)
 
 if conf.websocket then
     websocket.on_accept(function(fd, msg)
-        print("GAME SERVER: accept ", fd, moon.decode(msg, "Z"))
+        print("GAME SERVER: accept ", fd, print_r(msg, true))
         --socket.settimeout(fd, 60)
     end)
 

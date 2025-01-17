@@ -202,8 +202,22 @@ namespace Moon
             WritePos += offset;
             if (WritePos > capacity)
             {
-                WritePos = capacity;
+                throw new IndexOutOfRangeException("Buffer.Commit");
             }
+        }
+
+        public void Consume(int offset)
+        {
+            Index += offset;
+            if (Index > WritePos)
+            {
+                throw new IndexOutOfRangeException("Buffer.Consume");
+            }
+        }
+
+        public void Clear()
+        {
+            Index = WritePos = headreserved;
         }
 
         void CheckFrontSize(long need)
@@ -254,6 +268,12 @@ namespace Moon
         public string GetString()
         {
             return Encoding.Default.GetString(Data, Index, Count);
+        }
+
+        public byte[] GetBytes(){
+            var bytes = new byte[Count];
+            System.Buffer.BlockCopy(Data, Index, bytes, 0, Count);
+            return bytes;
         }
     };
 }

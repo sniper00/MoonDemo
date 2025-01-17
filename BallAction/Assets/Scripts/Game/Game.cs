@@ -85,6 +85,7 @@ public class Game : MonoBehaviour {
         Network.Register<NetMessage.S2CEnterRoom>(v => {
             uid = v.Id;
             UserData.time = v.Time;
+            UserData.uid = v.Id;
             now = Millseconds();
 
             Debug.LogFormat("Entity User  id {0} S2CEnterRoom", v.Id);
