@@ -5,6 +5,7 @@ local socket = require("moon.socket")
 local context = ...
 
 local listenfd
+local ws_listenfd
 
 ---@class Gate
 local Gate = {}
@@ -15,14 +16,16 @@ end
 
 function Gate.Start()
     ---开始接收客户端网络链接
-    if context.conf.websocket then
-        listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET_WS)
-    else
-        listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET_MOON)
-    end
+
+    listenfd  = socket.listen(context.conf.host, context.conf.port, moon.PTYPE_SOCKET_MOON)
+    ws_listenfd  = socket.listen(context.conf.host, context.conf.port+1, moon.PTYPE_SOCKET_WS)
+
     assert(listenfd>0,"server listen failed")
+    assert(ws_listenfd>0,"server listen websocket failed")
     socket.start(listenfd)
-    print("GAME Server Start Listen",context.conf.host, context.conf.port)
+    socket.start(ws_listenfd)
+    print("GAME Server Start Listen TCP",context.conf.host, context.conf.port)
+    print("GAME Server Start Listen Websocket", string.format("ws://%s:%d", context.conf.host, context.conf.port+1))
     return true
 end
 
@@ -32,6 +35,7 @@ function Gate.Shutdown()
     end
     if listenfd then
         socket.close(listenfd)
+        socket.close(ws_listenfd)
     end
     moon.quit()
     return true

@@ -128,7 +128,7 @@ git clone --recursive https://github.com/sniper00/MoonDemo.git
 
 - 如需要自己部署，可以修改`node.json`中的ip地址
 
-- Client请使用unity2018 启动执行第一个场景Prepare。
+- Client请使用unity2022 启动执行第一个场景Prepare。
 
 # 调试
 

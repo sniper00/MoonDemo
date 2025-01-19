@@ -89,9 +89,8 @@ local function run(node_conf)
             name = "gate",
             file = "game/service_gate.lua",
             host = node_conf.host,
-            port = node_conf.port,
+            port = node_conf.port, -- websocket port = node_conf.port + 1
             threadid = 3,
-            websocket = false,
         },
         {
             unique = true,
