@@ -7,12 +7,15 @@ public class Login : MonoBehaviour
     Text userName;
     InputField Ip;
     InputField Port;
+
+    Toggle toggleWS;
     // Use this for initialization
     void Start()
     {
         userName = transform.Find("Username/Text").GetComponent<Text>();
         Ip = transform.Find("IP").GetComponent<InputField>();
         Port = transform.Find("Port").GetComponent<InputField>();
+        toggleWS = transform.Find("ToggleWS").GetComponent<Toggle>();
 
         if (Ip.text.Length == 0)
         {
@@ -35,6 +38,18 @@ public class Login : MonoBehaviour
             MessageBox.SetVisible(false);
             SceneManager.LoadScene("Game");
         });
+
+        toggleWS.onValueChanged.AddListener((bool value) =>
+        {
+            if (value)
+            {
+                Port.text = 12346.ToString();
+            }
+            else
+            {
+                Port.text = 12345.ToString();
+            }
+        });
     }
 
     public async void OnClickLogin()
@@ -51,13 +66,26 @@ public class Login : MonoBehaviour
                 Port.text = 12345.ToString();
             }
 
-            var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.Tcp);
-            if (result.Data.GetString() != "Success")
+            if(toggleWS.isOn)
             {
-                MessageBox.Show(result.Data.GetString());
-                return;
+                var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.Ws);
+                if (result.Data.GetString() != "Success")
+                {
+                    MessageBox.Show(result.Data.GetString());
+                    return;
+                }
+                UserData.GameSeverID = result.ConnectionId;
             }
-            UserData.GameSeverID = result.ConnectionId;
+            else
+            {
+                var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.Tcp);
+                if (result.Data.GetString() != "Success")
+                {
+                    MessageBox.Show(result.Data.GetString());
+                    return;
+                }
+                UserData.GameSeverID = result.ConnectionId;
+            }
         }
 
         var v = await Network.Call<NetMessage.S2CLogin>(UserData.GameSeverID, new NetMessage.C2SLogin { Openid = userName.text });
