@@ -9,6 +9,8 @@ public class Login : MonoBehaviour
     InputField Port;
 
     Toggle toggleWS;
+
+    Moon.SocketProtocolType protocolType = Moon.SocketProtocolType.Tcp;
     // Use this for initialization
     void Start()
     {
@@ -44,12 +46,19 @@ public class Login : MonoBehaviour
             if (value)
             {
                 Port.text = 12346.ToString();
+                protocolType = Moon.SocketProtocolType.Ws;
             }
             else
             {
                 Port.text = 12345.ToString();
+                protocolType = Moon.SocketProtocolType.Tcp;
             }
         });
+
+        if(IsWebPlatform())
+        {
+            toggleWS.gameObject.GetComponent<Toggle>().isOn = true;
+        }
     }
 
     public async void OnClickLogin()
@@ -66,26 +75,13 @@ public class Login : MonoBehaviour
                 Port.text = 12345.ToString();
             }
 
-            if(toggleWS.isOn)
+            var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text), protocolType);
+            if (result.Data.GetString() != "Success")
             {
-                var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.Ws);
-                if (result.Data.GetString() != "Success")
-                {
-                    MessageBox.Show(result.Data.GetString());
-                    return;
-                }
-                UserData.GameSeverID = result.ConnectionId;
+                MessageBox.Show(result.Data.GetString());
+                return;
             }
-            else
-            {
-                var result = await Network.AsyncConnect(Ip.text, int.Parse(Port.text),Moon.SocketProtocolType.Tcp);
-                if (result.Data.GetString() != "Success")
-                {
-                    MessageBox.Show(result.Data.GetString());
-                    return;
-                }
-                UserData.GameSeverID = result.ConnectionId;
-            }
+            UserData.GameSeverID = result.ConnectionId;
         }
 
         var v = await Network.Call<NetMessage.S2CLogin>(UserData.GameSeverID, new NetMessage.C2SLogin { Openid = userName.text });
@@ -100,5 +96,10 @@ public class Login : MonoBehaviour
         {
             MessageBox.Show("auth failed");
         }
+    }
+
+    private bool IsWebPlatform()
+    {
+        return Application.platform == RuntimePlatform.WebGLPlayer;
     }
 }
