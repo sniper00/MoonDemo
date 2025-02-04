@@ -25,6 +25,8 @@
         }
     ```
 
+-------
+
 <div align="center">
 
 ![Server Message Processing](https://github.com/sniper00/BallGame/raw/master/image/message.svg)
@@ -33,17 +35,22 @@
 
 </div>
 
-<div style="text-align: center;">
-  <img src="https://github.com/sniper00/BallGame/raw/master/image/start.png" alt="image">
-  <p>登陆界面，可选Tcp或者Websocket</p>
+<div align="center">
+
+![Server Message Processing](https://github.com/sniper00/BallGame/raw/master/image/start.png)
+
+登陆界面，可选Tcp或者Websocket
+
 </div>
 
-<div style="text-align: center;">
-  <img src="https://github.com/sniper00/BallGame/raw/master/image/game.png" alt="image">
-  <p>游戏画面</p>
+
+<div align="center">
+
+![Server Message Processing](https://github.com/sniper00/BallGame/raw/master/image/game.png)
+
+游戏画面
+
 </div>
-
-
 
 # Server结构介绍
 
