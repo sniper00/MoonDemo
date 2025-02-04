@@ -1,0 +1,66 @@
+{
+    "completion": {
+      "enable": true,
+      "autoRequire": true,
+      "autoRequireFunction": "require",
+      "autoRequireNamingConvention": "keep",
+      "callSnippet": false,
+      "postfix": "@"
+    },
+    "signature": {
+      "detailSignatureHelper": false
+    },
+    "diagnostics": {
+      "disable": [
+      ],
+      "globals": [],
+      "globalsRegex": [],
+      "severity": {
+      },
+      "enables": [
+      ]
+    },
+    "hint": {
+      "enable": true,
+      "paramHint": true,
+      "indexHint": true,
+      "localHint": true,
+      "overrideHint": true
+    },
+    "runtime": {
+      "version": "Lua5.4",
+      "requireLikeFunction": [],
+      "frameworkVersions": [],
+      "extensions": [],
+      "requirePattern": []
+    },
+    "workspace": {
+      "ignoreDir": [
+  
+      ],
+      "ignoreGlobs": [
+      ],
+      "library": ["moon/lualib", "moon/service"],
+      "workspaceRoots": [],
+      "encoding": ""
+    },
+    "resource": {
+      "paths": [
+      ]
+    },
+    "codeLens": {
+      "enable": true
+    },
+    "strict": {
+      "requirePath": false,
+      "typeCall": true
+    },
+    "hover": {
+      "enable": true
+    },
+    "references": {
+      "enable": true,
+      "fuzzy_search": true
+    }
+  }
+  
