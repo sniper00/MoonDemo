@@ -210,9 +210,14 @@ moon.async(function()
     end
 
     moon.sleep(3000)
-    for _=1, GameCfg.constant.robot_num do
-        create_user()
-        moon.sleep(10)
+
+    while true do
+        for _=1, GameCfg.constant.robot_num do
+            create_user()
+            moon.sleep(10)
+        end
+
+        moon.sleep(70000)
     end
 end)
 

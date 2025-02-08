@@ -95,6 +95,7 @@ local function start_hour_timer(context)
     end)
 end
 
+local dynamic_wrap = setmetatable({}, { __mode = "kv" })
 local function wrap_send_or_call(context, name, is_send)
     local M = { memo = "" }
     setmetatable(M, {
@@ -153,15 +154,25 @@ local function _internal(context)
     base_context.MailRpc = wrap_send_or_call(context, "addr_mail", false)
 
     ---@param user_addr integer
-    ---@return user_scripts 
+    ---@return user_scripts
     function base_context.GetUserEvent(user_addr)
-        return wrap_send_or_call(nil, user_addr, true)
+        local v = dynamic_wrap[user_addr]
+        if not v then
+            v = wrap_send_or_call(nil, user_addr, true)
+            dynamic_wrap[user_addr] = v
+        end
+        return v
     end
 
     ---@param user_addr integer
-    ---@return user_scripts 
+    ---@return user_scripts
     function base_context.GetUserRpc(user_addr)
-        return wrap_send_or_call(nil, user_addr, false)
+        local v = dynamic_wrap[user_addr]
+        if not v then
+            v = wrap_send_or_call(nil, user_addr, false)
+            dynamic_wrap[user_addr] = v
+        end
+        return v
     end
 
     setmetatable(base_context, {

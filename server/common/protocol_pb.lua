@@ -29,6 +29,10 @@ end
 
 local M = {}
 
+---@param uid integer
+---@param id integer|string
+---@param t table
+---@return string
 function M.encode(uid, id, t)
     if type(id) == 'string' then
         id = CmdCode[id]

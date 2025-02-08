@@ -44,7 +44,7 @@ public class Game : MonoBehaviour {
 
     static bool IsPlayer(long id)
     {
-        return ((id >> 62) == 0);
+        return (id >> 62) == 0;
     }
 
     long now = Millseconds();
@@ -290,8 +290,13 @@ public class Game : MonoBehaviour {
                 }
             }
 
+            var baseRadius = 0.15f;
+            if(IsPlayer(e.id)){
+                baseRadius = 0.16f;
+            }
+
             var rect = e.Go.GetComponent<RectTransform>();
-            rect.localScale = new Vector3(1 + e.radius, 1+ e.radius , 1);
+            rect.localScale = Vector3.one * (e.radius / baseRadius);
 
             if (e.NameText!=null)
             {

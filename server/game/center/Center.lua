@@ -18,8 +18,8 @@ local room_conf = {
         size = 128
     },
     speed = 2,
-    radius = 0.3,
-    food_radius = 0.25,
+    radius = 16/100,
+    food_radius = 15/100,
 }
 
 local room_name = room_conf.name

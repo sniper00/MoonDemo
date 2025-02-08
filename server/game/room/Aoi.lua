@@ -73,6 +73,11 @@ function Aoi.erase(id)
     return res
 end
 
+---@param x number
+---@param y number
+---@param view_w number
+---@param view_h number
+---@return table
 function Aoi.query(x, y, view_w, view_h)
     x = math.floor(x)
     y = math.floor(y)

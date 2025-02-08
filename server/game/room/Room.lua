@@ -64,6 +64,7 @@ function Room.CreatePlayer(uid, req)
     p.radius = conf.radius
     p.spriteid = math.random(1,6)
     p.movetime = moon.now()
+    p.eat_count = 0
     MemModel.players[uid] = p
 
     return p
@@ -199,11 +200,8 @@ function Room.Update()
                             entity.dead = true
                             table.insert(dead, id)
                             player.score = player.score + 1
-                            player.radius = player.radius + 0.1
-                            if player.radius > 5 then
-                                player.radius = 0.3
-                                --print("radius too big")
-                            end
+                            player.eat_count = player.eat_count + 1
+                            player.radius = conf.radius + (0.05*player.eat_count)
                         end
                     end
                 end

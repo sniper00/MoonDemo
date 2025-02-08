@@ -40,8 +40,8 @@ local function forward(msg, msgname)
         address = context[v]
     end
 
-    if not address then
-        moon.error("recv unknown message", msgname)
+    if not address or address == 0 then
+        moon.error("Forward target service not found for message:", msgname)
         return
     end
 
