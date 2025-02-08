@@ -162,7 +162,7 @@ end
 
 httpserver.content_max_len = 8192
 
-httpserver.on("/console",function(request, response)
+httpserver.on("/console",function(request, response, next)
     local command = string.trim(request.body)
     if request.headers["content-type"] == "application/json" then
         command = json.decode(command).command
@@ -216,7 +216,7 @@ httpserver.on("/console",function(request, response)
     end
 end)
 
-httpserver.on("/conf.updatenode",function(request, response)
+httpserver.on("/conf.updatenode",function(request, response, next)
     local i = 1
     while true do
         local addr = moon.queryservice("hub"..i)
@@ -233,7 +233,7 @@ httpserver.on("/conf.updatenode",function(request, response)
     response:write("OK")
 end)
 
-httpserver.on("/conf.node",function(request, response)
+httpserver.on("/conf.node",function(request, response, next)
     local query = request:parse_query()
     local node = tonumber(query.node)
     local cfg = node_list[node]
@@ -248,7 +248,7 @@ httpserver.on("/conf.node",function(request, response)
     response:write(json.encode(cfg))
 end)
 
-httpserver.on("/conf.cluster", function(request, response)
+httpserver.on("/conf.cluster", function(request, response, next)
     local query = request:parse_query()
     local node = tonumber(query.node)
     local cfg = node_list[node]

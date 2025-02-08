@@ -316,7 +316,7 @@ function Console.addscore(uid, count)
 end
 
 function Console.addmail(uid, mail_key)
-	local ok, err = moon.call("lua", context.addr_mail, "Mail.AddMail", uid, {
+	local ok, err = context.MailRpc.Mail.AddMail(uid, {
 		mail_key = mail_key,
 		flag = 0,
 		rewards = {

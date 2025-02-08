@@ -30,9 +30,9 @@ local function doAuth(req)
             return "create user service failed!"
         end
 
-        local ok, err = moon.call("lua", addr_user, "User.Load", req)
+        local ok, err = context.GetUserRpc(addr_user).User.Load(req)
         if not ok then
-            moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+            context.GateEvent.Gate.Kick(0, req.fd)
             moon.kill(addr_user)
             context.uid_map[req.uid] = nil
             return err
@@ -41,10 +41,11 @@ local function doAuth(req)
         addr_user = u.addr_user
     end
 
-    local openid, err = moon.call("lua", addr_user, "User.Login", req)
+    local openid, err = context.GetUserRpc(addr_user).User.Login(req)
+
     if not openid then
         print(openid, err)
-        moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+        context.GateEvent.Gate.Kick(0, req.fd)
         moon.kill(addr_user)
         context.uid_map[req.uid] = nil
         return err
@@ -77,7 +78,7 @@ local function doAuth(req)
         print("login failed", req.uid)
     end
 
-    moon.send("lua", context.addr_gate, "Gate.BindUser", req)
+    context.GateEvent.Gate.BindUser(req)
 
     local res = {
         ok = pass,---maybe banned
@@ -89,7 +90,7 @@ local function doAuth(req)
 end
 
 local function QuitOneUser(u)
-    moon.send("lua", u.addr_user, "User.Exit")
+    context.GetUserEvent(u.addr_user).User.Exit()
     context.uid_map[u.uid] = nil
 end
 
@@ -173,7 +174,7 @@ Auth.OnHour = function(v)
     print("OnHour", v)
     for _,u in pairs(context.uid_map) do
         if u.logouttime == 0 then
-            moon.send("lua", u.addr_user, "User.OnHour", v)
+            context.GetUserEvent(u.addr_user).User.OnHour(v)
         end
     end
 end
@@ -182,7 +183,7 @@ Auth.OnDay = function(v)
     print("OnDay", v)
     for _,u in pairs(context.uid_map) do
         if u.logouttime == 0 then
-            moon.send("lua", u.addr_user, "User.OnDay", v)
+            context.GetUserEvent(u.addr_user).User.OnDay(v)
         end
     end
 end
@@ -197,7 +198,7 @@ Auth.C2SLogin = function (req)
     if not req.pull then
         if not req.openid or #req.openid == 0 then
             moon.error("user auth illegal", req.fd, req.openid)
-            moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+            context.GateEvent.Gate.Kick(0, req.fd)
             return false
         end
 
@@ -214,7 +215,7 @@ Auth.C2SLogin = function (req)
             local res, err = db.insertuserid(context.addr_db_openid, req.openid, uid)
             if not res then
                 moon.error("insertuserid", req.fd, req.openid, err)
-                moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+                context.GateEvent.Gate.Kick(0, req.fd)
                 return false
             end
 
@@ -227,7 +228,7 @@ Auth.C2SLogin = function (req)
         if not req.uid or req.uid == 0 then
             if req.fd then
                 moon.error("user auth illegal", req.fd, req.uid)
-                moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+                context.GateEvent.Gate.Kick(0, req.fd)
             end
             return false
         end
@@ -247,14 +248,14 @@ Auth.C2SLogin = function (req)
     if not req.pull then
         if lock("count") > 0 then
             moon.error("user auth too quickly", req.fd, req.uid, req.addr, "is pull:", req.pull)
-            moon.send("lua", context.addr_gate, "Gate.Kick", 0, req.fd)
+            context.GateEvent.Gate.Kick(0, req.fd)
             return
         end
         ---user may login again, but old socket not close,force close it
         ---make the user offline event in right order.
         local c = context.uid_map[req.uid]
         if c and c.logouttime==0 then
-            moon.send("lua", context.addr_gate, "Gate.Kick", req.uid, 0, true)
+            context.GateEvent.Gate.Kick(0, req.fd)
             Auth.Disconnect(req.uid)
             return
         end
@@ -350,7 +351,7 @@ end
 function Auth.Disconnect(uid)
     local u = context.uid_map[uid]
     if u then
-        assert(moon.call("lua", u.addr_user, "User.Logout"))
+        assert(context.GetUserRpc(u.addr_user).User.Logout())
         u.logouttime = moon.time()
     end
 end

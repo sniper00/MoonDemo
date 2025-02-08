@@ -105,7 +105,7 @@ function User.Offline()
 
 	if state.ismatching then
         state.ismatching = false
-        moon.send("lua", context.addr_center, "Center.UnMatch", context.uid)
+        context.CenterEvent.Center.UnMatch(context.uid)
     end
 end
 
@@ -143,7 +143,7 @@ function User.C2SMatch()
 
     state.ismatching = true
     --向匹配服务器请求
-    local ok, err = moon.call("lua", context.addr_center, "Center.Match", context.uid, moon.id)
+    local ok, err  = context.CenterRpc.Center.Match(context.uid, moon.id)
     if not ok then
         state.ismatching = false
         moon.error(err)

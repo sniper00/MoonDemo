@@ -95,6 +95,31 @@ local function start_hour_timer(context)
     end)
 end
 
+local function wrap_send_or_call(context, name, is_send)
+    local M = { memo = "" }
+    setmetatable(M, {
+        __index = function(self, k)
+            if #self.memo == 0 then
+                self.memo = self.memo .. k .. "."
+            else
+                self.memo = self.memo .. k
+            end
+            return M
+        end,
+        __call = function(self, ...)
+            local receiver = context and context[name] or name
+            local cmd = M.memo
+            M.memo = ""
+            if is_send then
+                return moon.send('lua', receiver, cmd, ...)
+            else
+                return moon.call('lua', receiver, cmd, ...)
+            end
+        end
+    })
+    return M
+end
+
 local function _internal(context)
     ---@class base_context
     ---@field scripts table
@@ -106,6 +131,38 @@ local function _internal(context)
     ---@field addr_db_openid integer
     ---@field addr_mail integer
     local base_context = context
+
+    ---@type gate_scripts
+    base_context.GateEvent = wrap_send_or_call(context, "addr_gate", true)
+    ---@type gate_scripts
+    base_context.GateRpc = wrap_send_or_call(context, "addr_gate", false)
+
+    ---@type center_scripts
+    base_context.CenterEvent = wrap_send_or_call(context, "addr_center", true)
+    ---@type center_scripts
+    base_context.CenterRpc = wrap_send_or_call(context, "addr_center", false)
+
+    ---@type auth_scripts
+    base_context.AuthEvent = wrap_send_or_call(context, "addr_auth", true)
+    ---@type auth_scripts
+    base_context.AuthRpc = wrap_send_or_call(context, "addr_auth", false)
+
+    ---@type mail_scripts
+    base_context.MailEvent = wrap_send_or_call(context, "addr_mail", true)
+    ---@type mail_scripts
+    base_context.MailRpc = wrap_send_or_call(context, "addr_mail", false)
+
+    ---@param user_addr integer
+    ---@return user_scripts 
+    function base_context.GetUserEvent(user_addr)
+        return wrap_send_or_call(nil, user_addr, true)
+    end
+
+    ---@param user_addr integer
+    ---@return user_scripts 
+    function base_context.GetUserRpc(user_addr)
+        return wrap_send_or_call(nil, user_addr, false)
+    end
 
     setmetatable(base_context, {
         __index = function(t, key)

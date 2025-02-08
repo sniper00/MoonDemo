@@ -63,7 +63,7 @@ local function on_close(fd, msg)
     end
     context.fd_map[fd] = nil
     context.uid_map[c.uid] = nil
-    moon.send('lua', context.addr_auth, "Auth.Disconnect", c.uid)
+    context.AuthEvent.Auth.Disconnect(c.uid)
     print("GAME SERVER: close", fd, c.uid, data)
 end
 

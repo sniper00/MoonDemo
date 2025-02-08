@@ -247,7 +247,7 @@ function Room.GameOver()
     for _, player in pairs(players) do
         context.send_user(player.id, "User.GameOver", player.score)
     end
-    moon.send("lua", context.addr_center, "Center.RemoveRoom", moon.id)
+    context.CenterEvent.Center.RemoveRoom(moon.id)
     moon.quit()
 end
 

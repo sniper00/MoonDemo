@@ -25,14 +25,15 @@ end
 ---这里可以访问其它模块,做更多初始化工作
 function Hello.Start()
     scripts.Item.AddItem(10001,1,1)
-    local ok, err = moon.call("lua", context.addr_mail, "Mail.AddMail", context.uid, {
-		mail_key = "hello_mail",
-		flag = 0,
-		rewards = {
-			{id = 10001, count = 1},
-			{id = 10002, count = 2},
-		},
-	})
+
+    local ok, err = context.MailRpc.Mail.AddMail(context.uid, {
+        mail_key = "hello_mail",
+        flag = 0,
+        rewards = {
+            {id = 10001, count = 1},
+            {id = 10002, count = 2},
+        },
+    })
     assert(ok, err)
 end
 
