@@ -1,24 +1,24 @@
-local moon = require("moon")
-local hotfix = require("hotfix")
-local fs = require("fs")
-local seri = require("seri")
-local datetime = require("moon.datetime")
-local common = require("common")
-local GameDef = common.GameDef
-local protocol = common.protocol
-local CmdCode = common.CmdCode
-local GameCfg = common.GameCfg
+local moon       = require("moon")
+local hotfix     = require("hotfix")
+local fs         = require("fs")
+local seri       = require("seri")
+local datetime   = require("moon.datetime")
+local common     = require("common")
+local GameDef    = common.GameDef
+local protocol   = common.protocol
+local CmdCode    = common.CmdCode
+local GameCfg    = common.GameCfg
 
-local string = string
-local type = type
-local strfmt = string.format
-local traceback = debug.traceback
+local string     = string
+local type       = type
+local strfmt     = string.format
+local traceback  = debug.traceback
 
 local unpack_one = seri.unpack_one
-local pack = moon.pack
-local raw_send = moon.raw_send
+local pack       = moon.pack
+local raw_send   = moon.raw_send
 
-local command = {}
+local command    = {}
 
 hotfix.addsearcher(function(file)
     local content = moon.env(file)
@@ -233,7 +233,9 @@ local function _internal(context)
 
     --- 调用玩家服务,如果玩家不在线,会加载玩家
     function base_context.call_user(uid, ...)
-        return moon.call("lua", context.addr_auth, "Auth.CallUser", uid, ...)
+        local session = moon.next_sequence()
+        moon.send("lua", context.addr_auth, "Auth.CallUser", moon.id, session, uid, ...)
+        return moon.wait(session)
     end
 
     --- 尝试给玩家服务发送消息,如果玩家不在线,消息会被忽略

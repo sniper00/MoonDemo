@@ -1,28 +1,28 @@
-local moon = require("moon")
-local uuid = require("uuid")
-local queue = require("moon.queue")
-local common = require("common")
+local moon             = require("moon")
+local uuid             = require("uuid")
+local queue            = require("moon.queue")
+local common           = require("common")
 
-local db = common.Database
-local CmdCode = common.CmdCode
+local db               = common.Database
+local CmdCode          = common.CmdCode
 
-local traceback = debug.traceback
+local traceback        = debug.traceback
 
 local mem_player_limit = 0 --内存中最小玩家数量
-local min_online_time = 60 --seconds，logout间隔大于这个时间的,并且不在线的,user服务会被退出
+local min_online_time  = 60 --seconds，logout间隔大于这个时间的,并且不在线的,user服务会被退出
 
 ---@type auth_context
-local context = ...
+local context          = ...
 
-local auth_queue = context.auth_queue
-local temp_openid_uid = {}
+local auth_queue       = context.auth_queue
+local temp_openid_uid  = {}
 
 local function doAuth(req)
     local u = context.uid_map[req.uid]
     local addr_user
     if not u then
         local conf = {
-            name = "user"..req.uid,
+            name = "user" .. req.uid,
             file = "game/service_user.lua"
         }
         addr_user = moon.new_service(conf)
@@ -81,7 +81,7 @@ local function doAuth(req)
     context.GateEvent.Gate.BindUser(req)
 
     local res = {
-        ok = pass,---maybe banned
+        ok = pass, ---maybe banned
         time = moon.now(),
         timezone = moon.timezone,
         uid = req.uid,
@@ -98,7 +98,6 @@ end
 local Auth = {}
 
 Auth.Init = function()
-
     moon.async(function()
         while true do
             moon.sleep(10000)
@@ -123,8 +122,8 @@ Auth.Init = function()
     end)
 
     local res = db.loadallopenid(context.addr_db_openid) or {}
-    for i=1,#res,2 do
-        context.openid_map[res[i]] = math.tointeger(res[i+1])
+    for i = 1, #res, 2 do
+        context.openid_map[res[i]] = math.tointeger(res[i + 1])
     end
 
     context.start_hour_timer()
@@ -158,8 +157,8 @@ Auth.Shutdown = function()
         end
 
         ---let all user service quit
-        local count  = 0
-        for _ ,u in pairs(context.uid_map) do
+        local count = 0
+        for _, u in pairs(context.uid_map) do
             QuitOneUser(u)
             count = count + 1
         end
@@ -172,7 +171,7 @@ end
 
 Auth.OnHour = function(v)
     print("OnHour", v)
-    for _,u in pairs(context.uid_map) do
+    for _, u in pairs(context.uid_map) do
         if u.logouttime == 0 then
             context.GetUserEvent(u.addr_user).User.OnHour(v)
         end
@@ -181,15 +180,14 @@ end
 
 Auth.OnDay = function(v)
     print("OnDay", v)
-    for _,u in pairs(context.uid_map) do
+    for _, u in pairs(context.uid_map) do
         if u.logouttime == 0 then
             context.GetUserEvent(u.addr_user).User.OnDay(v)
         end
     end
 end
 
-Auth.C2SLogin = function (req)
-
+Auth.C2SLogin = function(req)
     if not req then
         return false
     end
@@ -254,14 +252,14 @@ Auth.C2SLogin = function (req)
         ---user may login again, but old socket not close,force close it
         ---make the user offline event in right order.
         local c = context.uid_map[req.uid]
-        if c and c.logouttime==0 then
+        if c and c.logouttime == 0 then
             context.GateEvent.Gate.Kick(0, req.fd)
             Auth.Disconnect(req.uid)
             return
         end
     end
 
-    local scope_lock<close> = lock()
+    local scope_lock <close> = lock()
 
     if req.pull and context.uid_map[req.uid] then
         return true
@@ -270,13 +268,13 @@ Auth.C2SLogin = function (req)
     print(string.format("User Login fd:%d uid:%d pulluser:%s", req.fd, req.uid, req.pull))
 
     if not req.pull then
-        moon.timeout(5000, function ()
+        moon.timeout(5000, function()
             if context.uid_map[req.uid] then
                 return
             end
 
             local res = {
-                ok = false,---maybe banned
+                ok = false, ---maybe banned
                 time = moon.now(),
                 timezone = moon.timezone,
                 uid = req.uid,
@@ -297,7 +295,7 @@ end
 function Auth.PullUser(uid)
     local u = context.uid_map[uid]
     if not u then
-        local ok,err = Auth.C2SLogin({fd =0 ,uid = uid, pull = true})
+        local ok, err = Auth.C2SLogin({ fd = 0, uid = uid, pull = true })
         if not ok then
             return ok, err
         end
@@ -307,21 +305,24 @@ function Auth.PullUser(uid)
 end
 
 ---向玩家发起调用，会主动加载玩家
-function Auth.CallUser(uid, cmd, ...)
+function Auth.CallUser(id, session, uid, cmd, ...)
     if context.server_exit then
-        error(string.format("call user %d cmd %s when server exit", uid, cmd))
+        moon.raw_send("lua", id, moon.pack(false, string.format("call user %d cmd %s when server exit", uid, cmd)),
+            -session)
+        return
     end
 
     local u, err = Auth.PullUser(uid)
     if not u then
-        return false, err
+        moon.raw_send("lua", id, moon.pack(false, err), -session)
+        return
     end
 
     if u.logouttime > 0 then
         u.logouttime = moon.time()
     end
 
-    return moon.call("lua", u.addr_user, cmd, ...)
+    moon.raw_send("lua", u.addr_user, moon.pack(cmd, ...), session, id)
 end
 
 ---向玩家发送消息，会主动加载玩家
@@ -336,7 +337,7 @@ function Auth.SendUser(uid, cmd, ...)
         u.logouttime = moon.time()
     end
 
-    moon.send("lua", u.addr_user, cmd,...)
+    moon.send("lua", u.addr_user, cmd, ...)
 end
 
 ---向已经在内存的玩家发送消息,不会主动加载玩家
@@ -345,7 +346,7 @@ function Auth.TrySendUser(uid, cmd, ...)
     if not u then
         return
     end
-    moon.send("lua", u.addr_user, cmd,...)
+    moon.send("lua", u.addr_user, cmd, ...)
 end
 
 function Auth.Disconnect(uid)
@@ -357,5 +358,3 @@ function Auth.Disconnect(uid)
 end
 
 return Auth
-
-
