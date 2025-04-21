@@ -307,6 +307,46 @@ function Console.mem(addr)
 	end
 end
 
+--- Profile logic. S1 profile auth, S1 profile user, S1 profile user 1099780325415
+--- @param name string 服务名或服务地址
+--- @param ... any
+function Console.profile(name, ...)
+	if not name then
+		return Response(-1, "Failed", "name is nil")
+	end
+
+	local profiler_record = {}
+	local err
+
+	if name == "user" then
+		profiler_record, err = moon.call("lua", moon.queryservice("auth"), "Auth.Profile", ...)
+	else
+		local addr = tonumber(name, 16)
+		if addr then
+			profiler_record, err = moon.call("lua", addr, "_profile")
+		else
+			profiler_record, err = moon.call("lua", moon.queryservice(name), "_profile")
+		end
+	end
+	if err then
+		return Response(-1, "Failed", err)
+	end
+
+	local t = {}
+	for k,v in pairs(profiler_record) do
+		t[#t+1]= {k, v.count, v.cost}
+	end
+	table.sort(t, function(a, b)
+		return a[2]*a[3] > b[2]*b[3]
+	end)
+
+	local res = {string.format("%32s%20s    %s", "cmd","count","cost")}
+	for k,v in ipairs(t) do
+		res[#res+1] = string.format("%32s%20d    %f", v[1], v[2], v[3])
+	end
+	return json.pretty_encode(res)
+end
+
 function Console.addscore(uid, count)
 	local ok, err = context.call_user(uid, "User.AddScore", count)
 	if not ok then

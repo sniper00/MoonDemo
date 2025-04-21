@@ -1,9 +1,11 @@
 local moon       = require("moon")
+local json       = require("json")
 local hotfix     = require("hotfix")
 local fs         = require("fs")
 local seri       = require("seri")
 local datetime   = require("moon.datetime")
 local common     = require("common")
+local profile    = require("coroutine.profile")
 local GameDef    = common.GameDef
 local protocol   = common.protocol
 local CmdCode    = common.CmdCode
@@ -19,6 +21,8 @@ local pack       = moon.pack
 local raw_send   = moon.raw_send
 
 local command    = {}
+
+local profiler_record = {}
 
 hotfix.addsearcher(function(file)
     local content = moon.env(file)
@@ -267,6 +271,10 @@ local function _internal(context)
         print(moon.name, "reload", table.concat(names, " "))
     end
 
+    command._profile = function()
+        return profiler_record
+    end
+
     command.Init = function(...)
         GameCfg.Load()
         base_context.batch_invoke_throw("Init", ...)
@@ -287,6 +295,7 @@ local function xpcall_ret(ok, ...)
 end
 
 local function do_client_command(context, cmd, uid, req)
+    profile.start()
     local fn = command[cmd]
     if fn then
         local ok, res = xpcall(fn, traceback, uid, req)
@@ -301,6 +310,13 @@ local function do_client_command(context, cmd, uid, req)
     else
         moon.error(moon.name, "receive unknown PTYPE_C2S cmd " .. tostring(cmd) .. " " .. tostring(uid))
     end
+    local v = profiler_record[cmd]
+    if not v then
+        v = {count =0, cost = 0}
+        profiler_record[cmd] = v
+    end
+    v.count = v.count + 1
+    v.cost = v.cost + profile.stop()
 end
 
 return function(context, sname)
@@ -311,6 +327,7 @@ return function(context, sname)
     load_scripts(context, sname)
 
     moon.dispatch("lua", function(sender, session, cmd, ...)
+        profile.start()
         local fn = command[cmd]
         if fn then
             if session ~= 0 then
@@ -320,7 +337,17 @@ return function(context, sname)
             end
         else
             moon.error(moon.name, "recv unknown cmd " .. tostring(cmd))
+            if session ~= 0 then
+                raw_send("lua", sender, xpcall_ret(false, moon.name .. " recv unknown cmd " .. tostring(cmd)), session)
+            end
         end
+        local v = profiler_record[cmd]
+        if not v then
+            v = {count =0, cost = 0}
+            profiler_record[cmd] = v
+        end
+        v.count = v.count + 1
+        v.cost = v.cost + profile.stop()
     end)
 
     moon.register_protocol({

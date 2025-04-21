@@ -1,4 +1,5 @@
 local moon             = require("moon")
+local json             = require("json")
 local uuid             = require("uuid")
 local queue            = require("moon.queue")
 local common           = require("common")
@@ -8,7 +9,7 @@ local CmdCode          = common.CmdCode
 
 local traceback        = debug.traceback
 
-local mem_player_limit = 0 --内存中最小玩家数量
+local mem_player_limit = 0  --内存中最小玩家数量
 local min_online_time  = 60 --seconds，logout间隔大于这个时间的,并且不在线的,user服务会被退出
 
 ---@type auth_context
@@ -97,7 +98,7 @@ end
 ---@class Auth
 local Auth = {}
 
-Auth.Init = function()
+function Auth.Init()
     moon.async(function()
         while true do
             moon.sleep(10000)
@@ -131,12 +132,12 @@ Auth.Init = function()
     return true
 end
 
-Auth.Start = function()
+function Auth.Start()
     context.start_hour_timer()
     return true
 end
 
-Auth.Shutdown = function()
+function Auth.Shutdown()
     context.server_exit = true
     print("begin: server exit save user")
     local ok, err = xpcall(function()
@@ -169,7 +170,32 @@ Auth.Shutdown = function()
     return true
 end
 
-Auth.OnHour = function(v)
+function Auth.Profile(uid)
+    if uid then
+        local u = context.uid_map[uid]
+        if not u then
+            return "user not online"
+        end
+        return moon.call("lua", u.addr_user, "_profile")
+    else
+        local t = {}
+        for _, u in pairs(context.uid_map) do
+            local profiler_record, err = moon.call("lua", u.addr_user, "_profile")
+            if profiler_record then
+                for k, v in pairs(profiler_record) do
+                    if not t[k] then
+                        t[k] = { count = 0, cost = 0 }
+                    end
+                    t[k].count = t[k].count + v.count
+                    t[k].cost = t[k].cost + v.cost
+                end
+            end
+        end
+        return t
+    end
+end
+
+function Auth.OnHour(v)
     print("OnHour", v)
     for _, u in pairs(context.uid_map) do
         if u.logouttime == 0 then
@@ -178,7 +204,7 @@ Auth.OnHour = function(v)
     end
 end
 
-Auth.OnDay = function(v)
+function Auth.OnDay(v)
     print("OnDay", v)
     for _, u in pairs(context.uid_map) do
         if u.logouttime == 0 then
@@ -187,7 +213,7 @@ Auth.OnDay = function(v)
     end
 end
 
-Auth.C2SLogin = function(req)
+function Auth.C2SLogin(req)
     if not req then
         return false
     end
