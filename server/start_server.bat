@@ -1,3 +1,11 @@
-start cmd /k moon\moon.exe main_hub.lua 10000 node.json
+IF EXIST moon\moon.exe (
+    start cmd /k moon\moon.exe main_hub.lua 10000 node.json
+) ELSE (
+    start cmd /k "cd moon && premake5 run --release ..\main_hub.lua 10000 node.json"
+)
 timeout /t 1
-start cmd /k moon\moon.exe main_game.lua 1
+IF EXIST moon\moon.exe (
+    start cmd /k moon\moon.exe main_game.lua 1
+) ELSE (
+    start cmd /k "cd moon && premake5 run --release ..\main_game.lua 1"
+)
