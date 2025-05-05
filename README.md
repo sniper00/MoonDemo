@@ -29,7 +29,7 @@
 
 <div align="center">
 
-![Server Message Processing](https://github.com/sniper00/BallGame/raw/master/image/message.svg)
+![Server Message Processing](https://github.com/sniper00/BallGame/raw/master/image/message.png)
 
 服务器消息处理
 
