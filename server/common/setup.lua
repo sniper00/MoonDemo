@@ -1,26 +1,26 @@
-local moon       = require("moon")
-local json       = require("json")
-local hotfix     = require("hotfix")
-local fs         = require("fs")
-local seri       = require("seri")
-local datetime   = require("moon.datetime")
-local common     = require("common")
-local profile    = require("coroutine.profile")
-local GameDef    = common.GameDef
-local protocol   = common.protocol
-local CmdCode    = common.CmdCode
-local GameCfg    = common.GameCfg
+local moon            = require("moon")
+local json            = require("json")
+local hotfix          = require("hotfix")
+local fs              = require("fs")
+local seri            = require("seri")
+local datetime        = require("moon.datetime")
+local common          = require("common")
+local profile         = require("coroutine.profile")
+local GameDef         = common.GameDef
+local protocol        = common.protocol
+local CmdCode         = common.CmdCode
+local GameCfg         = common.GameCfg
 
-local string     = string
-local type       = type
-local strfmt     = string.format
-local traceback  = debug.traceback
+local string          = string
+local type            = type
+local strfmt          = string.format
+local traceback       = debug.traceback
 
-local unpack_one = seri.unpack_one
-local pack       = moon.pack
-local raw_send   = moon.raw_send
+local unpack_one      = seri.unpack_one
+local pack            = moon.pack
+local raw_send        = moon.raw_send
 
-local command    = {}
+local command         = {}
 
 local profiler_record = {}
 
@@ -53,7 +53,7 @@ local function load_scripts(context, sname)
             fn = assert(loadfile(file))
         end
         local t = fn(context)
-        assert(type(t) == "table")
+        assert(type(t) == "table", "script must return a table: " .. file)
 
         context.scripts[name] = t
         hotfix.register(file, fn, t)
@@ -99,8 +99,9 @@ local function start_hour_timer(context)
     end)
 end
 
-local dynamic_wrap = setmetatable({}, { __mode = "kv" })
-local function wrap_send_or_call(context, name, is_send)
+local dynamic_send_wrap = setmetatable({}, { __mode = "kv" })
+local dynamic_call_wrap = setmetatable({}, { __mode = "kv" })
+local function wrap_send_or_call(who, is_send)
     local M = { memo = "" }
     setmetatable(M, {
         __index = function(self, k)
@@ -112,7 +113,7 @@ local function wrap_send_or_call(context, name, is_send)
             return M
         end,
         __call = function(self, ...)
-            local receiver = context and context[name] or name
+            local receiver = who
             local cmd = M.memo
             M.memo = ""
             if is_send then
@@ -137,44 +138,58 @@ local function _internal(context)
     ---@field addr_mail integer
     local base_context = context
 
-    ---@type gate_scripts
-    base_context.GateEvent = wrap_send_or_call(context, "addr_gate", true)
-    ---@type gate_scripts
-    base_context.GateRpc = wrap_send_or_call(context, "addr_gate", false)
+    ---@alias services 
+    --- | gate_scripts 
+    --- | auth_scripts 
+    --- | user_scripts 
+    --- | center_scripts 
+    --- | room_scripts 
+    --- | mail_scripts
 
-    ---@type center_scripts
-    base_context.CenterEvent = wrap_send_or_call(context, "addr_center", true)
-    ---@type center_scripts
-    base_context.CenterRpc = wrap_send_or_call(context, "addr_center", false)
-
-    ---@type auth_scripts
-    base_context.AuthEvent = wrap_send_or_call(context, "addr_auth", true)
-    ---@type auth_scripts
-    base_context.AuthRpc = wrap_send_or_call(context, "addr_auth", false)
-
-    ---@type mail_scripts
-    base_context.MailEvent = wrap_send_or_call(context, "addr_mail", true)
-    ---@type mail_scripts
-    base_context.MailRpc = wrap_send_or_call(context, "addr_mail", false)
-
-    ---@param user_addr integer
-    ---@return user_scripts
-    function base_context.GetUserEvent(user_addr)
-        local v = dynamic_wrap[user_addr]
+    --- Create a dynamic proxy for sending messages to a service (fire-and-forget).
+    --- The returned proxy supports chained method calls, e.g., SEND("user_scripts").Module.Function(...)
+    --- Uses caching to avoid recreating wrappers for the same service.
+    ---@generic T: services
+    ---@param name `T` Service name (e.g., "user_scripts", "gate_scripts")
+    ---@param addr integer? Optional service address, if nil will query by name
+    ---@return T @ A proxy object that can chain method calls and send messages
+    function base_context.SEND(name, addr)
+        name = "addr_" .. string.gsub(name, "_scripts", "")
+        local v = addr and dynamic_send_wrap[addr] or dynamic_send_wrap[name]
         if not v then
-            v = wrap_send_or_call(nil, user_addr, true)
-            dynamic_wrap[user_addr] = v
+            if not addr then
+                addr = context[name]
+            end
+            v = wrap_send_or_call(addr, true)
+            if addr then
+                dynamic_send_wrap[addr] = v
+            else
+                dynamic_send_wrap[name] = v
+            end
         end
         return v
     end
 
-    ---@param user_addr integer
-    ---@return user_scripts
-    function base_context.GetUserRpc(user_addr)
-        local v = dynamic_wrap[user_addr]
+    --- Create a dynamic proxy for calling a service and waiting for response.
+    --- The returned proxy supports chained method calls, e.g., CALL("user_scripts").Module.Function(...)
+    --- Uses caching to avoid recreating wrappers for the same service.
+    ---@generic T: services
+    ---@param name `T` Service name (e.g., "user_scripts", "gate_scripts")
+    ---@param addr integer? Optional service address, if nil will query by name
+    ---@return T @ A proxy object that can chain method calls and await responses
+    function base_context.CALL(name, addr)
+        name = "addr_" .. string.gsub(name, "_scripts", "")
+        local v = addr and dynamic_call_wrap[addr] or dynamic_call_wrap[name]
         if not v then
-            v = wrap_send_or_call(nil, user_addr, false)
-            dynamic_wrap[user_addr] = v
+            if not addr then
+                addr = context[name]
+            end
+            v = wrap_send_or_call(addr, false)
+            if addr then
+                dynamic_call_wrap[addr] = v
+            else
+                dynamic_call_wrap[name] = v
+            end
         end
         return v
     end
@@ -312,7 +327,7 @@ local function do_client_command(context, cmd, uid, req)
     end
     local v = profiler_record[cmd]
     if not v then
-        v = {count =0, cost = 0}
+        v = { count = 0, cost = 0 }
         profiler_record[cmd] = v
     end
     v.count = v.count + 1
@@ -343,7 +358,7 @@ return function(context, sname)
         end
         local v = profiler_record[cmd]
         if not v then
-            v = {count =0, cost = 0}
+            v = { count = 0, cost = 0 }
             profiler_record[cmd] = v
         end
         v.count = v.count + 1

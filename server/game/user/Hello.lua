@@ -1,15 +1,16 @@
-local moon = require("moon")
-local common = require "common"
-local GameCfg = common.GameCfg --游戏配置
+local moon      = require("moon")
+local common    = require("common")
+
+local GameCfg   = common.GameCfg   --游戏配置
 local ErrorCode = common.ErrorCode --逻辑错误码
-local CmdCode = common.CmdCode --客户端通信消息码
+local CmdCode   = common.CmdCode   --客户端通信消息码
 
 ---@type user_context
-local context = ...
-local scripts = context.scripts ---方便访问同服务的其它lua模块
+local context   = ...
+local scripts   = context.scripts ---方便访问同服务的其它lua模块
 
 ---@class Hello
-local Hello = {}
+local Hello     = {}
 
 ---这里初始化本模块相关的数据
 function Hello.Init()
@@ -24,17 +25,31 @@ end
 
 ---这里可以访问其它模块,做更多初始化工作
 function Hello.Start()
-    scripts.Item.AddItem(10001,1,1)
+    scripts.Item.AddItem(10001, 1, 1)
 
-    local ok, err = context.MailRpc.Mail.AddMail(context.uid, {
+    local ok, err = context.CALL("mail_scripts").Mail.AddMail(context.uid, {
         mail_key = "hello_mail",
         flag = 0,
         rewards = {
-            {id = 10001, count = 1},
-            {id = 10002, count = 2},
+            { id = 10001, count = 1 },
+            { id = 10002, count = 2 },
         },
     })
     assert(ok, err)
+
+    moon.async(function()
+        moon.sleep(3000)
+        if scripts.UserModel.Get().name == "robot1" then
+            local bt = moon.clock()
+            for i = 1, 10000 do
+                --moon.call("lua", 0xB000001, "Hello.DoSometing2", 1)
+                context.call_user(1099780325378, "Hello.DoSometing2", 1)
+            end
+            local et = moon.clock()
+            print("call_user_v2 cost time:", et - bt)
+            print_r(context.call_user(1099780325378, "Hello.DoSometing2", 1))
+        end
+    end)
 end
 
 ---注册服务间通信的消息处理函数
@@ -47,7 +62,7 @@ end
 ---注册服务间通信的消息处理函数
 ---其它服务可以访问`local res = context.call_user(uid, "Hello.DoSometing1", 1)`
 function Hello.DoSometing2()
-    return "OK"
+    return scripts.UserModel.Get()
 end
 
 ---注册客户端消息处理函数
@@ -55,9 +70,9 @@ end
 function Hello.C2SHello(req)
     local cfg = GameCfg.item[1]
     if not cfg then
-        return ErrorCode.ItemNotExist ---直接返回错误码, 会给玩家发送 S2CErrorCode 消息
+        return ErrorCode.ItemNotExist                    ---直接返回错误码, 会给玩家发送 S2CErrorCode 消息
     end
-    context.S2C(CmdCode.S2CWorld, {world=req.hello}) ---给客户端发送消息
+    context.S2C(CmdCode.S2CWorld, { world = req.hello }) ---给客户端发送消息
 end
 
 return Hello

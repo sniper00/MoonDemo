@@ -63,7 +63,7 @@ local function on_close(fd, msg)
     end
     context.fd_map[fd] = nil
     context.uid_map[c.uid] = nil
-    context.AuthEvent.Auth.Disconnect(c.uid)
+    context.SEND("auth_scripts").Auth.Disconnect(c.uid)
     print("GAME SERVER: close", fd, c.uid, data)
 end
 
